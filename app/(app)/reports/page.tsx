@@ -37,7 +37,7 @@ export default async function ReportsPage({ searchParams }: PageProps<"/reports"
     <div className="space-y-4">
       <PageHeader
         title={t.nav2.reports}
-        subtitle="პერიოდი შეკვეთის შექმნის თარიღით. თვის ფინანსური ანგარიში გადახდის თარიღით."
+        subtitle="პერიოდი შეკვეთის შექმნის თარიღით. „შემოსული“ რეალური გადახდებიდან ითვლება, „მასალების ხარჯი“ მხოლოდ ფასიანი პოზიციებიდან (სხვა ხარჯი არ იგულისხმება)."
         actions={
           <form method="get" className="flex items-center gap-2 text-sm">
             <input type="date" name="from" defaultValue={p.from} className="h-8 rounded-lg border bg-white px-2 dark:bg-neutral-900" />
@@ -172,8 +172,8 @@ export default async function ReportsPage({ searchParams }: PageProps<"/reports"
                   <th className={thr}>შეკვ.</th>
                   <th className={thr}>შესრ.</th>
                   <th className={thr}>შემოსული</th>
-                  <th className={thr}>ხარჯი</th>
-                  <th className={thr}>მოგება</th>
+                  <th className={thr}>მასალების ხარჯი</th>
+                  <th className={thr}>სხვაობა მასალების შემდეგ</th>
                 </tr>
               </thead>
               <tbody>

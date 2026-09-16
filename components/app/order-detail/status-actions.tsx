@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Play, RotateCcw, XCircle, Lock, UserPlus } from "lucide-react";
+import { Lock, RotateCcw, XCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { toast } from "sonner";
@@ -8,39 +8,31 @@ import { setStatus } from "@/actions/orders";
 import { Button } from "@/components/ui/button";
 import type { OrderStatus, UserRole } from "@/db/schema";
 import { STATUS_LABELS } from "@/lib/i18n";
+import { ConfirmButton } from "../confirm-button";
+import { CompleteDialog } from "./complete-dialog";
 
-type Action = { to: OrderStatus; label: string; icon: React.ComponentType<{ className?: string }>; primary?: boolean; variant?: "outline" | "destructive" };
-
-function actionsFor(status: OrderStatus, role: UserRole): Action[] {
-  const staff = role !== "executor";
-  const start: Action = { to: "in_progress", label: "დაწყება", icon: Play, primary: true };
-  const done: Action = { to: "done", label: "შესრულებულია", icon: Check, primary: true };
-  const reopen: Action = { to: "in_progress", label: "დაბრუნება მიმდინარეში", icon: RotateCcw, variant: "outline" };
-  const close: Action = { to: "closed", label: "დახურვა", icon: Lock, primary: true };
-  const cancel: Action = { to: "cancelled", label: "გაუქმება", icon: XCircle, variant: "destructive" };
-  const toAssigned: Action = { to: "assigned", label: STATUS_LABELS.assigned, icon: UserPlus, variant: "outline" };
-
-  switch (status) {
-    case "new":
-      return staff ? [toAssigned, start, cancel] : [];
-    case "assigned":
-      return staff ? [start, done, cancel] : [start, done];
-    case "in_progress":
-      return staff ? [done, cancel] : [done];
-    case "done":
-      return staff ? [close, reopen] : [reopen];
-    case "closed":
-      return staff ? [reopen] : [];
-    case "cancelled":
-      return staff ? [{ to: "new", label: "აღდგენა", icon: RotateCcw, variant: "outline" }] : [];
-  }
-}
-
-export function StatusActions({ orderId, status, role }: { orderId: number; status: OrderStatus; role: UserRole }) {
+/**
+ * Primary flow buttons. Executors complete via the dialog (visit start lives in the Visits block).
+ * Staff verify & close after completion, cancel, or (admin) reopen a closed order.
+ */
+export function StatusActions({
+  orderId,
+  status,
+  role,
+  isAssignee,
+  requiredLeft,
+  needsPhoto,
+}: {
+  orderId: number;
+  status: OrderStatus;
+  role: UserRole;
+  isAssignee: boolean;
+  requiredLeft: number;
+  needsPhoto: boolean;
+}) {
   const router = useRouter();
   const [pending, start] = useTransition();
-  const actions = actionsFor(status, role);
-  if (actions.length === 0) return null;
+  const staff = role !== "executor";
 
   function run(to: OrderStatus) {
     start(async () => {
@@ -54,21 +46,49 @@ export function StatusActions({ orderId, status, role }: { orderId: number; stat
     });
   }
 
+  const canComplete = (staff || isAssignee) && (status === "assigned" || status === "in_progress");
+  const next =
+    status === "new"
+      ? "შემდეგი ნაბიჯი: შემსრულებლის დანიშვნა"
+      : status === "assigned"
+        ? "შემდეგი ნაბიჯი: შემსრულებელი მიდის ობიექტზე („მივედი“) და ასრულებს სამუშაოს"
+        : status === "in_progress"
+          ? "შემდეგი ნაბიჯი: სამუშაოს ჩაბარება ჩეკ-ლისტით და აღწერით"
+          : status === "done"
+            ? "შემდეგი ნაბიჯი: მენეჯერი ამოწმებს და ხურავს შეკვეთას"
+            : status === "closed"
+              ? "შეკვეთა დახურულია. ცვლილება მხოლოდ ადმინს შეუძლია"
+              : "შეკვეთა გაუქმებულია";
+
   return (
-    <div className="flex flex-wrap items-center gap-2 rounded-xl border bg-white p-3 dark:bg-neutral-900">
-      <span className="mr-1 text-sm text-muted-foreground">მოქმედება:</span>
-      {actions.map((a) => (
-        <Button
-          key={a.to + a.label}
-          size="sm"
-          disabled={pending}
-          variant={a.variant ?? "default"}
-          className={a.primary ? "bg-blue-600 hover:bg-blue-700" : undefined}
-          onClick={() => run(a.to)}
-        >
-          <a.icon className="size-3.5" /> {a.label}
+    <div className="flex flex-wrap items-center gap-2 rounded-2xl border bg-white p-3 dark:bg-neutral-900" aria-live="polite">
+      <span className="mr-auto text-sm text-muted-foreground">{next}</span>
+      {canComplete && <CompleteDialog orderId={orderId} requiredLeft={requiredLeft} needsPhoto={needsPhoto} />}
+      {staff && status === "done" && (
+        <Button size="default" disabled={pending} onClick={() => run("closed")}>
+          <Lock className="size-4" /> შემოწმებულია, დახურვა
         </Button>
-      ))}
+      )}
+      {(staff || isAssignee) && status === "done" && (
+        <Button size="default" variant="outline" disabled={pending} onClick={() => run("in_progress")}>
+          <RotateCcw className="size-4" /> დაბრუნება მიმდინარეში
+        </Button>
+      )}
+      {role === "admin" && status === "closed" && (
+        <ConfirmButton title="დახურული შეკვეთის გახსნა" description="შეკვეთა დაბრუნდება „მიმდინარე“ სტატუსში. ეს ისტორიაში დაფიქსირდება." confirmLabel="გახსნა" variant="outline" size="default" action={() => setStatus(orderId, "in_progress")}>
+          <RotateCcw className="size-4" /> გახსნა (ადმინი)
+        </ConfirmButton>
+      )}
+      {staff && status === "cancelled" && (
+        <Button size="default" variant="outline" disabled={pending} onClick={() => run("new")}>
+          <RotateCcw className="size-4" /> აღდგენა
+        </Button>
+      )}
+      {staff && (status === "new" || status === "assigned" || status === "in_progress") && (
+        <ConfirmButton title="შეკვეთის გაუქმება" description="შეკვეთა გადავა „გაუქმებული“ სტატუსში. შემსრულებლები შეტყობინებას მიიღებენ." confirmLabel="გაუქმება" variant="ghost" size="default" className="text-rose-700 hover:bg-rose-50" action={() => setStatus(orderId, "cancelled")}>
+          <XCircle className="size-4" /> გაუქმება
+        </ConfirmButton>
+      )}
     </div>
   );
 }

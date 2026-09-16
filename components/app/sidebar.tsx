@@ -1,7 +1,9 @@
 "use client";
 
+import { LogOut, UserCircle } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { signOut } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 import type { SessionUser } from "@/lib/session";
 import { ROLE_LABELS, t } from "@/lib/i18n";
@@ -56,6 +58,42 @@ export function NavLinks({
   );
 }
 
+export function SidebarFooter({ user, onNavigate }: { user: SessionUser; onNavigate?: () => void }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  async function logout() {
+    await signOut();
+    router.replace("/login");
+    router.refresh();
+  }
+  return (
+    <div className="border-t p-3">
+      <Link
+        href="/profile"
+        onClick={onNavigate}
+        className={cn(
+          "flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition-colors",
+          pathname === "/profile" ? "bg-blue-50 text-blue-700" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900",
+        )}
+      >
+        <UserCircle className="size-4 shrink-0" />
+        <span className="min-w-0 flex-1">
+          <span className="block truncate font-medium text-foreground">{user.name}</span>
+          <span className="block text-[11px] text-muted-foreground">{ROLE_LABELS[user.role]} · {t.nav2.profile}</span>
+        </span>
+      </Link>
+      <button
+        type="button"
+        onClick={logout}
+        className="mt-1 flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm text-slate-600 transition-colors hover:bg-rose-50 hover:text-rose-700 focus-visible:outline-2 focus-visible:outline-blue-500"
+      >
+        <LogOut className="size-4 shrink-0" />
+        <span className="font-heading uppercase tracking-wide">{t.nav.logout}</span>
+      </button>
+    </div>
+  );
+}
+
 export function Sidebar(props: { user: SessionUser; inboxCount: number; unseenCount: number }) {
   return (
     <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r bg-white dark:bg-neutral-900 md:flex">
@@ -69,10 +107,7 @@ export function Sidebar(props: { user: SessionUser; inboxCount: number; unseenCo
       <div className="flex-1 overflow-y-auto p-3">
         <NavLinks {...props} />
       </div>
-      <div className="border-t p-4 text-xs text-muted-foreground">
-        <div className="font-medium text-foreground">{props.user.name}</div>
-        <div>{ROLE_LABELS[props.user.role]}</div>
-      </div>
+      <SidebarFooter user={props.user} />
     </aside>
   );
 }

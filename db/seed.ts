@@ -101,7 +101,9 @@ async function main() {
   // checklist templates (once)
   const existingTemplates = await db.select({ id: checklistTemplates.id }).from(checklistTemplates);
   if (existingTemplates.length === 0) {
-    await db.insert(checklistTemplates).values(TEMPLATES.map((t) => ({ ...t, isDefault: true })));
+    await db.insert(checklistTemplates).values(
+      TEMPLATES.map((t) => ({ ...t, items: t.items.map((label, i) => ({ label, required: i === 0 })), isDefault: true })),
+    );
     console.log(`checklist templates: ${TEMPLATES.length}`);
   }
 

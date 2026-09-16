@@ -121,6 +121,17 @@ export const EVENT_LABELS: Record<string, string> = {
   material_removed: "წაიშალა მასალა",
   checklist_done: "ჩეკ-ლისტი შესრულდა",
   created_from_schedule: "შეიქმნა გრაფიკით",
+  visit_started: "ვიზიტი დაიწყო",
+  visit_ended: "ვიზიტი დასრულდა",
+  payment_added: "გადახდა დაფიქსირდა",
+  payment_removed: "გადახდა წაიშალა",
+  payment_reviewed: "გადახდა დაზუსტდა",
+  verified_closed: "შემოწმდა და დაიხურა",
+  reopened: "დახურული შეკვეთა გაიხსნა",
+  edited_closed: "დახურული შეკვეთა შეიცვალა (ადმინი)",
+  attachment_removed: "წაიშალა ფაილი",
+  checklist_template_applied: "დაემატა ჩეკ-ლისტის შაბლონი",
+  scheduled: "დაიგეგმა",
 };
 
 export const t = {

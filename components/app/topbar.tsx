@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -18,7 +19,7 @@ import { signOut } from "@/lib/auth-client";
 import { ROLE_LABELS, t } from "@/lib/i18n";
 import type { SessionUser } from "@/lib/session";
 import { NotificationBell, type BellItem } from "./notification-bell";
-import { NavLinks } from "./sidebar";
+import { NavLinks, SidebarFooter } from "./sidebar";
 import { UserAvatar } from "./user-avatar";
 
 export function Topbar({
@@ -53,6 +54,9 @@ export function Topbar({
         <SheetContent side="left" className="w-72 p-4">
           <SheetTitle className="mb-4 text-base">{t.appName}</SheetTitle>
           <NavLinks user={user} inboxCount={inboxCount} unseenCount={unseenCount} onNavigate={() => setOpen(false)} />
+          <div className="mt-4">
+            <SidebarFooter user={user} onNavigate={() => setOpen(false)} />
+          </div>
         </SheetContent>
       </Sheet>
 
@@ -90,19 +94,21 @@ export function Topbar({
           </div>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
-          <DropdownMenuLabel>
-            <div className="text-sm font-medium">{user.name}</div>
-            <div className="text-xs font-normal text-muted-foreground">{user.email}</div>
-          </DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem render={<Link href="/profile" />}>
-            <UserCircle className="size-4" />
-            {t.nav2.profile}
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={logout}>
-            <LogOut className="size-4" />
-            {t.nav.logout}
-          </DropdownMenuItem>
+          <DropdownMenuGroup>
+            <DropdownMenuLabel>
+              <div className="text-sm font-medium">{user.name}</div>
+              <div className="text-xs font-normal text-muted-foreground">{user.email}</div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem render={<Link href="/profile" />}>
+              <UserCircle className="size-4" />
+              {t.nav2.profile}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={logout}>
+              <LogOut className="size-4" />
+              {t.nav.logout}
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>
     </header>

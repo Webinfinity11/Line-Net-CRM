@@ -87,6 +87,9 @@ docs/                 კვლევა, სპეციფიკაცია, 
 4. Cron არ არის საჭირო: შიდა scheduler მუშაობს. სურვილისამებრ `INTERNAL_CRON=0` და გარე cron `/api/cron/*` endpoint-ებზე.
 5. პირველი გაშვების შემდეგ: `npm run db:push` და ადმინის შექმნა `npm run db:seed`-ით (SEED_PASSWORD შეცვალეთ), ან პირდაპირ ბაზაში.
 
+## გამართვის ეტაპი
+იხ. `docs/05-improvement-pass.md`: გადახდების ისტორია, ვიზიტები, ჩაბარების კონტროლი, განრიგის გადაფარვა, ჩეკ-ლისტების შაბლონები, მიგრაციები.
+
 ## სკრიპტები
 
-`npm run dev` · `npm run build` · `npm run typecheck` · `npm run db:push` · `npm run db:seed` · `npm run db:studio`
+`npm run dev` · `npm run build` · `npm run typecheck` · `npm test` · `npm run db:generate` · `npm run db:migrate` · `npm run db:seed` · `npm run db:studio`

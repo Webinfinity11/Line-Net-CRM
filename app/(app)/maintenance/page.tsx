@@ -1,6 +1,6 @@
 import { CalendarSync, Pencil, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { listTemplates } from "@/actions/order-work";
+import { listTemplates } from "@/lib/checklists";
 import { createSchedule, deleteSchedule, toggleSchedule, updateSchedule } from "@/actions/schedules";
 import { SystemBadge } from "@/components/app/badges";
 import { ConfirmButton } from "@/components/app/confirm-button";

@@ -1,4 +1,5 @@
 import * as XLSX from "xlsx";
+import { materialsCost } from "@/lib/finance";
 import { PAYMENT_LABELS, PRIORITY_LABELS, STATUS_LABELS, SYSTEM_LABELS, TYPE_LABELS } from "@/lib/i18n";
 import { clientsForExport, defaultPeriod, ordersForExport, reportByClient, reportByExecutor, reportBySystem, reportMonthly, type Period } from "@/lib/reports";
 import { getSession, isStaff } from "@/lib/session";
@@ -66,8 +67,14 @@ export async function GET(req: Request) {
               დასრულება: fmtDate(o.finishedAt),
               შესრულდა: fmtDate(o.completedAt),
               თანხა: o.amount ? Number(o.amount) : "",
-              გადახდა: PAYMENT_LABELS[o.paymentStatus],
-              ხარჯი: o.materials.reduce((sum, m) => sum + (m.unitCost ? Number(m.unitCost) * Number(m.quantity) : 0), 0) || "",
+              მიღებული: Number(o.paidTotal) || 0,
+              ნაშთი: o.amount ? Math.max(0, Number(o.amount) - Number(o.paidTotal)) : "",
+              გადახდა: PAYMENT_LABELS[o.paymentStatus] + (o.paymentReviewNeeded ? " (დასაზუსტებელი)" : ""),
+              "მასალების ხარჯი": (() => {
+                const c = materialsCost(o.materials);
+                return c.known ? c.cost : "უცნობია";
+              })(),
+              "ვიზიტების საათები": Math.round((o.visits.reduce((sum, v) => sum + (v.endedAt ? (v.endedAt.getTime() - v.startedAt.getTime()) / 60000 : 0), 0) / 60) * 10) / 10 || "",
               გარანტია: o.warrantyUntil ?? "",
               წყარო: o.source,
             })),
@@ -94,7 +101,7 @@ export async function GET(req: Request) {
     case "monthly": {
       const r = await reportMonthly(12);
       return xlsx(
-        [{ name: "თვეები", rows: r.months.map((m) => ({ თვე: m.month, შექმნილი: m.created, შესრულებული: m.completed, დაჯავშნილი: m.booked, შემოსული: m.revenue, ხარჯი: m.cost, მოგება: m.profit })) }],
+        [{ name: "თვეები", rows: r.months.map((m) => ({ თვე: m.month, შექმნილი: m.created, შესრულებული: m.completed, დაჯავშნილი: m.booked, შემოსული: m.revenue, "მასალების ხარჯი": m.cost, "სხვაობა მასალების შემდეგ": m.profit })) }],
         "report-monthly.xlsx",
       );
     }

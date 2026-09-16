@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
 import type { Order, SystemType } from "@/db/schema";
-import { PAYMENT_LABELS, PRIORITY_LABELS, ROLE_LABELS, SYSTEM_LABELS, SYSTEM_ORDER, TYPE_LABELS, t } from "@/lib/i18n";
+import { PRIORITY_LABELS, ROLE_LABELS, SYSTEM_LABELS, SYSTEM_ORDER, TYPE_LABELS, t } from "@/lib/i18n";
 import { toLocalInput } from "@/lib/order-utils";
 import { cn } from "@/lib/utils";
 import { UserAvatar } from "./user-avatar";
@@ -23,7 +23,7 @@ export type UserOption = { id: string; name: string; role: string; image?: strin
 type Initial = Partial<
   Pick<
     Order,
-    "title" | "description" | "type" | "priority" | "clientId" | "siteId" | "address" | "dueDate" | "amount" | "paymentStatus" | "systemType" | "scheduledAt" | "warrantyMonths"
+    "title" | "description" | "type" | "priority" | "clientId" | "siteId" | "address" | "dueDate" | "amount" | "systemType" | "scheduledAt" | "warrantyMonths" | "plannedMinutes" | "requiresPhoto"
   >
 > & {
   assigneeIds?: string[];
@@ -174,6 +174,17 @@ export function OrderForm({
             <Input id="scheduledAt" name="scheduledAt" type="datetime-local" defaultValue={toLocalInput(initial?.scheduledAt)} />
           </div>
           <div className="space-y-1.5">
+            <Label htmlFor="plannedMinutes">დაგეგმილი ხანგრძლივობა (წუთი)</Label>
+            <NativeSelect id="plannedMinutes" name="plannedMinutes" defaultValue={initial?.plannedMinutes ? String(initial.plannedMinutes) : ""}>
+              <NativeSelectOption value="">— (ნაგულისხმევი 2 სთ)</NativeSelectOption>
+              {[30, 60, 90, 120, 180, 240, 300, 360, 480].map((m) => (
+                <NativeSelectOption key={m} value={String(m)}>
+                  {m < 60 ? `${m} წთ` : `${m / 60} სთ`}
+                </NativeSelectOption>
+              ))}
+            </NativeSelect>
+          </div>
+          <div className="space-y-1.5">
             <Label htmlFor="dueDate">{t.order.dueDate}</Label>
             <Input id="dueDate" name="dueDate" type="date" defaultValue={initial?.dueDate ?? ""} />
             <p className="text-[11px] text-muted-foreground">ცარიელი დატოვებისას დაგეგმილი დღე გამოიყენება</p>
@@ -185,16 +196,11 @@ export function OrderForm({
           <div className="space-y-1.5">
             <Label htmlFor="amount">{t.order.amount} (₾)</Label>
             <Input id="amount" name="amount" type="number" step="0.01" min="0" defaultValue={initial?.amount ?? ""} placeholder="0.00" />
+            <p className="text-[11px] text-muted-foreground">გადახდები შეკვეთის ბარათზე იწერება; სტატუსი ავტომატურად ითვლება</p>
           </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="paymentStatus">{t.order.paymentStatus}</Label>
-            <NativeSelect id="paymentStatus" name="paymentStatus" defaultValue={initial?.paymentStatus ?? "unpaid"}>
-              {Object.entries(PAYMENT_LABELS).map(([k, v]) => (
-                <NativeSelectOption key={k} value={k}>
-                  {v}
-                </NativeSelectOption>
-              ))}
-            </NativeSelect>
+          <div className="flex items-center gap-2 self-end pb-2">
+            <input id="requiresPhoto" name="requiresPhoto" type="checkbox" defaultChecked={Boolean(initial?.requiresPhoto)} className="size-4 accent-blue-600" />
+            <Label htmlFor="requiresPhoto">ჩაბარებისას ფოტო სავალდებულოა</Label>
           </div>
         </CardContent>
       </Card>

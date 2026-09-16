@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { markAllNotificationsRead, markNotificationRead } from "@/actions/notifications";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { formatDate } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -27,6 +27,7 @@ export function NotificationBell({ unread, items }: { unread: number; items: Bel
         )}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80">
+        <DropdownMenuGroup>
         <DropdownMenuLabel className="flex items-center justify-between">
           <span>შეტყობინებები</span>
           {unread > 0 && (
@@ -69,6 +70,7 @@ export function NotificationBell({ unread, items }: { unread: number; items: Bel
         <DropdownMenuItem render={<Link href="/notifications" />} className="justify-center text-sm text-blue-600">
           ყველას ნახვა
         </DropdownMenuItem>
+        </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   );

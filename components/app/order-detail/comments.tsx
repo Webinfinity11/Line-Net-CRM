@@ -17,20 +17,26 @@ type Comment = { id: number; body: string; createdAt: Date; user: { id: string; 
 export function Comments({ orderId, comments, meId }: { orderId: number; comments: Comment[]; meId: string }) {
   const router = useRouter();
   const ref = useRef<HTMLTextAreaElement>(null);
+  const busy = useRef(false);
   const [pending, start] = useTransition();
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
     const body = ref.current?.value ?? "";
-    if (!body.trim()) return;
+    if (!body.trim() || busy.current) return;
+    busy.current = true;
     start(async () => {
-      const res = await addComment(orderId, body);
-      if (!res.ok) {
-        toast.error(res.error);
-        return;
+      try {
+        const res = await addComment(orderId, body);
+        if (!res.ok) {
+          toast.error(res.error); // text stays in the box
+          return;
+        }
+        if (ref.current) ref.current.value = "";
+        router.refresh();
+      } finally {
+        busy.current = false;
       }
-      if (ref.current) ref.current.value = "";
-      router.refresh();
     });
   }
 

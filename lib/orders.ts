@@ -3,6 +3,7 @@ import { db } from "@/db";
 import {
   clients,
   orderAssignees,
+  orderPayments,
   orders,
   sites,
   user,
@@ -11,6 +12,8 @@ import {
   type OrderType,
   type SystemType,
 } from "@/db/schema";
+import type { SessionUser } from "@/lib/session";
+import { tbilisiDayBounds, tbilisiToday } from "@/lib/schedule-utils";
 import "server-only";
 import { ACTIVE_STATUSES } from "@/lib/i18n";
 import { FINISHED_STATUSES, isOverdue, todayIso } from "@/lib/order-utils";
@@ -26,6 +29,8 @@ export type OrderFilters = {
   assignee?: string;
   clientId?: number;
   overdue?: boolean;
+  /** orders whose migrated partial payment needs manual confirmation */
+  review?: boolean;
   inbox?: boolean;
   /** Only orders assigned to this user id */
   mine?: string;
@@ -34,13 +39,12 @@ export type OrderFilters = {
 
 export type DateRange = "today" | "week" | "month" | "all";
 
+/** Start of the range in Asia/Tbilisi (server may run in UTC). */
 export function rangeStart(range: DateRange): Date | null {
   if (range === "all") return null;
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  if (range === "week") d.setDate(d.getDate() - 6);
-  if (range === "month") d.setDate(d.getDate() - 29);
-  return d;
+  const { start } = tbilisiDayBounds(tbilisiToday());
+  const days = range === "today" ? 0 : range === "week" ? 6 : 29;
+  return new Date(start.getTime() - days * 24 * 60 * 60_000);
 }
 
 const FINISHED = FINISHED_STATUSES;
@@ -64,6 +68,7 @@ function buildWhere(f: OrderFilters): SQL | undefined {
     parts.push(lt(orders.dueDate, todayIso()));
     parts.push(notInArray(orders.status, FINISHED));
   }
+  if (f.review) parts.push(eq(orders.paymentReviewNeeded, true));
   if (f.q && f.q.trim()) {
     const q = `%${f.q.trim()}%`;
     parts.push(
@@ -103,6 +108,54 @@ export async function listOrders(f: OrderFilters = {}, opts: { limit?: number; o
 
 export type OrderListItem = Awaited<ReturnType<typeof listOrders>>[number];
 
+export const PAGE_SIZE = 50;
+
+/** Page of orders plus the total count for the same filters. */
+export async function listOrdersPage(f: OrderFilters, page: number, pageSize = PAGE_SIZE) {
+  const safePage = Math.max(1, Math.floor(page || 1));
+  const [rows, total] = await Promise.all([listOrders(f, { limit: pageSize, offset: (safePage - 1) * pageSize }), countOrders(f)]);
+  return { rows, total, page: safePage, pageSize, pages: Math.max(1, Math.ceil(total / pageSize)) };
+}
+
+/**
+ * Orders for the executor's own list. Financial columns are never selected,
+ * so nothing money-related reaches the client bundle.
+ */
+export async function listMyOrders(userId: string) {
+  return db.query.orders.findMany({
+    where: and(
+      eq(orders.triaged, true),
+      sql`exists (select 1 from order_assignees oa where oa.order_id = ${orders.id} and oa.user_id = ${userId})`,
+    ),
+    columns: {
+      id: true,
+      number: true,
+      title: true,
+      status: true,
+      type: true,
+      priority: true,
+      systemType: true,
+      address: true,
+      dueDate: true,
+      scheduledAt: true,
+      plannedMinutes: true,
+      requiresPhoto: true,
+      createdAt: true,
+    },
+    with: {
+      client: { columns: { id: true, name: true, phone: true } },
+      site: { columns: { id: true, name: true, address: true, lat: true, lng: true } },
+      assignees: { columns: { userId: true, seenAt: true } },
+      visits: { columns: { id: true, userId: true, startedAt: true, endedAt: true } },
+      checklist: { columns: { id: true, done: true, required: true } },
+    },
+    orderBy: [asc(orders.scheduledAt), desc(orders.createdAt)],
+    limit: 300,
+  });
+}
+
+export type MyOrderItem = Awaited<ReturnType<typeof listMyOrders>>[number];
+
 export async function countOrders(f: OrderFilters = {}) {
   const [row] = await db.select({ n: count() }).from(orders).where(buildWhere(f));
   return row?.n ?? 0;
@@ -121,11 +174,38 @@ export async function getOrder(id: number) {
       events: { with: { user: { columns: { id: true, name: true } } }, orderBy: [desc(sql`created_at`)] },
       materials: { orderBy: [asc(sql`created_at`)] },
       checklist: { with: { doneByUser: { columns: { id: true, name: true } } }, orderBy: [asc(sql`position`), asc(sql`id`)] },
+      payments: { with: { creator: { columns: { id: true, name: true } } }, orderBy: [desc(sql`paid_at`), desc(sql`id`)] },
+      visits: { with: { user: { columns: { id: true, name: true, image: true } } }, orderBy: [desc(sql`started_at`)] },
+      verifier: { columns: { id: true, name: true } },
     },
   });
 }
 
 export type OrderDetail = NonNullable<Awaited<ReturnType<typeof getOrder>>>;
+
+/**
+ * Role-restricted order view. Executors get the order only when assigned, and the
+ * financial fields are stripped on the server: amount, payments, paid totals and
+ * material prices never leave the server for them.
+ */
+export async function getOrderForUser(id: number, u: SessionUser): Promise<{ order: OrderDetail; financeVisible: boolean } | null> {
+  const order = await getOrder(id);
+  if (!order) return null;
+  const staff = u.role === "admin" || u.role === "manager";
+  if (staff) return { order, financeVisible: true };
+  if (!order.assignees.some((a) => a.userId === u.id)) return null;
+  const stripped: OrderDetail = {
+    ...order,
+    amount: null,
+    paidTotal: "0",
+    paidAt: null,
+    paymentReviewNeeded: false,
+    payments: [],
+    materials: order.materials.map((m) => ({ ...m, unitCost: null })),
+    events: order.events.filter((e) => !e.type.startsWith("payment")),
+  };
+  return { order: stripped, financeVisible: false };
+}
 
 export async function getInboxCount() {
   const [row] = await db.select({ n: count() }).from(orders).where(eq(orders.triaged, false));
@@ -187,7 +267,8 @@ export async function getDashboardStats(range: DateRange = "week") {
   const rangeWhere = start ? gte(orders.createdAt, start) : undefined;
   const notInbox = eq(orders.triaged, true);
 
-  const [byStatusRows, createdRow, completedRow, overdueList, loadRows, users, paidRow, unpaidRow, recent, inbox, todayList, weekly, prevRow, warranty, mapPoints] =
+  const today = tbilisiDayBounds(tbilisiToday());
+  const [byStatusRows, createdRow, completedRow, overdueList, loadRows, users, paidRow, unpaidRow, recent, inbox, todayList, weekly, prevRow, warranty, mapPoints, overdueCountRow, urgentUnassigned, awaitingClosure, reviewRow] =
     await Promise.all([
       db
         .select({ status: orders.status, n: count() })
@@ -199,7 +280,7 @@ export async function getDashboardStats(range: DateRange = "week") {
         .select({ n: count() })
         .from(orders)
         .where(and(notInbox, inArray(orders.status, ["done", "closed"]), start ? gte(orders.completedAt, start) : undefined)),
-      listOrders({ overdue: true, inbox: false }, { limit: 20 }),
+      listOrders({ overdue: true, inbox: false }, { limit: 10 }),
       db
         .select({ userId: orderAssignees.userId, active: count() })
         .from(orderAssignees)
@@ -207,21 +288,24 @@ export async function getDashboardStats(range: DateRange = "week") {
         .where(inArray(orders.status, ACTIVE_STATUSES))
         .groupBy(orderAssignees.userId),
       listAssignableUsers(),
+      // received in the selected period, from actual payment rows
       db
-        .select({ total: sum(orders.amount) })
-        .from(orders)
-        .where(and(notInbox, eq(orders.paymentStatus, "paid"), start ? gte(orders.paidAt, start) : undefined)),
+        .select({ total: sum(orderPayments.amount) })
+        .from(orderPayments)
+        .where(start ? gte(orderPayments.paidAt, start) : undefined),
+      // outstanding balance, all time: amount minus what was received, excluding cancelled orders
       db
-        .select({ total: sum(orders.amount) })
+        .select({ total: sql<string>`coalesce(sum(greatest(${orders.amount} - ${orders.paidTotal}, 0)), 0)` })
         .from(orders)
-        .where(and(notInbox, ne(orders.paymentStatus, "paid"), ne(orders.status, "cancelled"))),
+        .where(and(notInbox, ne(orders.status, "cancelled"), sql`${orders.amount} is not null`)),
       listOrders({ inbox: false }, { limit: 8 }),
       listOrders({ inbox: true }, { limit: 5 }),
+      // today's planned visits (scheduled time inside the Tbilisi day)
       db.query.orders.findMany({
-        where: and(notInbox, eq(orders.dueDate, todayIso()), notInArray(orders.status, FINISHED)),
+        where: and(notInbox, gte(orders.scheduledAt, today.start), lt(orders.scheduledAt, today.end), ne(orders.status, "cancelled")),
         with: { client: { columns: { id: true, name: true } }, assignees: { with: { user: { columns: { id: true, name: true } } } } },
-        orderBy: [asc(orders.priority), asc(orders.createdAt)],
-        limit: 10,
+        orderBy: [asc(orders.scheduledAt)],
+        limit: 12,
       }),
       getWeeklySeries(),
       prev
@@ -256,6 +340,25 @@ export async function getDashboardStats(range: DateRange = "week") {
         .leftJoin(clients, eq(clients.id, orders.clientId))
         .where(and(notInbox, inArray(orders.status, ACTIVE_STATUSES), sql`${sites.lat} is not null`))
         .limit(200),
+      db
+        .select({ n: count() })
+        .from(orders)
+        .where(and(notInbox, lt(orders.dueDate, todayIso()), notInArray(orders.status, FINISHED))),
+      db.query.orders.findMany({
+        where: and(notInbox, eq(orders.status, "new"), inArray(orders.priority, ["urgent", "high"])),
+        columns: { id: true, number: true, title: true, priority: true, dueDate: true, scheduledAt: true },
+        with: { client: { columns: { id: true, name: true } } },
+        orderBy: [asc(orders.priority), asc(orders.createdAt)],
+        limit: 8,
+      }),
+      db.query.orders.findMany({
+        where: and(notInbox, eq(orders.status, "done")),
+        columns: { id: true, number: true, title: true, completedAt: true },
+        with: { client: { columns: { id: true, name: true } }, assignees: { with: { user: { columns: { id: true, name: true } } } } },
+        orderBy: [asc(orders.completedAt)],
+        limit: 8,
+      }),
+      db.select({ n: count() }).from(orders).where(and(notInbox, eq(orders.paymentReviewNeeded, true))),
     ]);
 
   const counts = Object.fromEntries(byStatusRows.map((r) => [r.status, r.n])) as Partial<Record<OrderStatus, number>>;
@@ -272,6 +375,10 @@ export async function getDashboardStats(range: DateRange = "week") {
     created: createdRow[0]?.n ?? 0,
     completed: completedRow[0]?.n ?? 0,
     overdue: overdueList,
+    overdueCount: overdueCountRow[0]?.n ?? 0,
+    urgentUnassigned,
+    awaitingClosure,
+    paymentReviewCount: reviewRow[0]?.n ?? 0,
     executorLoad,
     maxLoad,
     money: {

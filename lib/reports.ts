@@ -1,7 +1,7 @@
 import "server-only";
 import { and, asc, desc, eq, gte, inArray, isNotNull, lt, ne, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { clients, orderAssignees, orderMaterials, orders, user } from "@/db/schema";
+import { clients, orderAssignees, orderMaterials, orderPayments, orders, user } from "@/db/schema";
 
 export type Period = { from: string; to: string }; // inclusive from, exclusive to (YYYY-MM-DD)
 
@@ -27,8 +27,8 @@ export async function reportByClient(p: Period) {
       total: sql<number>`count(${orders.id})`.mapWith(Number),
       completed: sql<number>`count(*) filter (where ${orders.status} in ('done','closed'))`.mapWith(Number),
       amount: sql<string>`coalesce(sum(${orders.amount}), 0)`,
-      paid: sql<string>`coalesce(sum(${orders.amount}) filter (where ${orders.paymentStatus} = 'paid'), 0)`,
-      unpaid: sql<string>`coalesce(sum(${orders.amount}) filter (where ${orders.paymentStatus} <> 'paid' and ${orders.status} <> 'cancelled'), 0)`,
+      paid: sql<string>`coalesce(sum(${orders.paidTotal}), 0)`,
+      unpaid: sql<string>`coalesce(sum(greatest(${orders.amount} - ${orders.paidTotal}, 0)) filter (where ${orders.status} <> 'cancelled'), 0)`,
     })
     .from(orders)
     .innerJoin(clients, eq(clients.id, orders.clientId))
@@ -48,7 +48,7 @@ export async function reportByExecutor(p: Period) {
       completed: sql<number>`count(*) filter (where ${orders.status} in ('done','closed'))`.mapWith(Number),
       overdue: sql<number>`count(*) filter (where ${orders.dueDate} < current_date and ${orders.status} not in ('done','closed','cancelled'))`.mapWith(Number),
       lateDone: sql<number>`count(*) filter (where ${orders.completedAt} is not null and ${orders.dueDate} is not null and (${orders.completedAt} at time zone 'Asia/Tbilisi')::date > ${orders.dueDate})`.mapWith(Number),
-      minutes: sql<number>`coalesce(sum(extract(epoch from (${orders.finishedAt} - ${orders.arrivedAt})) / 60) filter (where ${orders.finishedAt} is not null and ${orders.arrivedAt} is not null), 0)`.mapWith(Number),
+      minutes: sql<number>`coalesce(sum((select sum(extract(epoch from (v.ended_at - v.started_at)) / 60) from order_visits v where v.user_id = ${orderAssignees.userId} and v.order_id = ${orderAssignees.orderId} and v.ended_at is not null)), 0)`.mapWith(Number),
       amount: sql<string>`coalesce(sum(${orders.amount}), 0)`,
     })
     .from(orderAssignees)
@@ -68,7 +68,7 @@ export async function reportBySystem(p: Period) {
       total: sql<number>`count(*)`.mapWith(Number),
       completed: sql<number>`count(*) filter (where ${orders.status} in ('done','closed'))`.mapWith(Number),
       amount: sql<string>`coalesce(sum(${orders.amount}), 0)`,
-      paid: sql<string>`coalesce(sum(${orders.amount}) filter (where ${orders.paymentStatus} = 'paid'), 0)`,
+      paid: sql<string>`coalesce(sum(${orders.paidTotal}), 0)`,
     })
     .from(orders)
     .where(and(eq(orders.triaged, true), gte(orders.createdAt, start), lt(orders.createdAt, end)))
@@ -96,9 +96,9 @@ export async function reportMonthly(months = 12) {
       .where(and(eq(orders.triaged, true), isNotNull(orders.completedAt), gte(orders.completedAt, start)))
       .groupBy(sql`1`),
     db
-      .select({ m: monthExpr(sql`${orders.paidAt}`), amount: sql<string>`coalesce(sum(${orders.amount}),0)` })
-      .from(orders)
-      .where(and(eq(orders.paymentStatus, "paid"), isNotNull(orders.paidAt), gte(orders.paidAt, start)))
+      .select({ m: monthExpr(sql`${orderPayments.paidAt}`), amount: sql<string>`coalesce(sum(${orderPayments.amount}),0)` })
+      .from(orderPayments)
+      .where(gte(orderPayments.paidAt, start))
       .groupBy(sql`1`),
     db
       .select({ m: monthExpr(sql`${orders.createdAt}`), cost: sql<string>`coalesce(sum(${orderMaterials.quantity} * ${orderMaterials.unitCost}),0)` })
@@ -122,7 +122,7 @@ export async function reportMonthly(months = 12) {
     out.push({ month: key, created: c?.n ?? 0, completed: dMap.get(key) ?? 0, booked: num(c?.amount), revenue: revenueM, cost: costM, profit: revenueM - costM });
   }
   const [outstanding] = await db
-    .select({ unpaid: sql<string>`coalesce(sum(${orders.amount}) filter (where ${orders.paymentStatus} <> 'paid' and ${orders.status} <> 'cancelled'), 0)` })
+    .select({ unpaid: sql<string>`coalesce(sum(greatest(${orders.amount} - ${orders.paidTotal}, 0)) filter (where ${orders.status} <> 'cancelled'), 0)` })
     .from(orders)
     .where(eq(orders.triaged, true));
   return { months: out, outstanding: num(outstanding?.unpaid) };
@@ -138,6 +138,7 @@ export async function ordersForExport(p: Period | null) {
       site: { columns: { name: true, address: true } },
       assignees: { with: { user: { columns: { name: true } } } },
       materials: true,
+      visits: { columns: { startedAt: true, endedAt: true } },
     },
     orderBy: [asc(orders.createdAt)],
     limit: 5000,

@@ -7,7 +7,7 @@ Spec: `docs/02-mvp-spec.md` (MVP) + `docs/04-phase-1.5-spec.md` (agreed addition
 
 ## Commands
 - `npm run dev` (http://localhost:3000), `npm run typecheck`, `npm run build`
-- `npm run db:push` applies `db/schema.ts` to Postgres; `npm run db:seed` creates demo users (admin1234 / meneger1234 / user1234), checklist templates and demo orders; safe to re-run
+- Schema changes: edit `db/schema.ts`, then `npx drizzle-kit generate --name <slug>` and `npm run db:migrate` (versioned SQL in `db/migrations`). `db:push` is only for throwaway local databases; `npm run db:seed` creates demo users (admin1234 / meneger1234 / user1234), checklist templates and demo orders; safe to re-run
 - Env lives in `.env.local` (see `.env.example`)
 
 ## Architecture
@@ -29,4 +29,8 @@ Spec: `docs/02-mvp-spec.md` (MVP) + `docs/04-phase-1.5-spec.md` (agreed addition
 - Notifications: `lib/notify.ts` `notifyUsers()` writes rows and emails via SMTP when configured. Hook points: assignment, executor marks done, inbound email, schedule generation.
 - Maps: `components/app/map-view.tsx` wraps Leaflet (client-only, dynamic import). Sites carry `lat/lng`; `lib/geocode.ts` uses Nominatim best-effort on site save.
 - Excel: `/api/export?type=...` (SheetJS) and `actions/import.ts` for client import. Reports queries in `lib/reports.ts`.
-- Times: all "today"/day boundaries use Asia/Tbilisi explicitly (server runs in UTC on Railway).
+- Times: all "today"/day boundaries use Asia/Tbilisi explicitly (`lib/schedule-utils.ts`).
+- Finance: `order_payments` is the source of truth; `orders.paid_total`/`payment_status` are recomputed by `lib/payments.ts` inside the same transaction. Never set payment_status by hand. Executors get orders only through `getOrderForUser`/`listMyOrders`, which strip money fields on the server.
+- Work flow: visits (`order_visits`, one open per executor+order) are separate from completion. `completeOrder` needs a note and is gated server-side by required checklist items and `requires_photo`. `done` → staff `closed` (verified). Closed orders are frozen except for admins.
+- Never export helpers from `actions/*.ts` ("use server" makes every export a public endpoint); put shared logic in `lib/*` with `server-only`.
+- Tests: `npm test` (vitest, pure logic in `tests/`).

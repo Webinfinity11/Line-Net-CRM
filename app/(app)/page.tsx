@@ -1,4 +1,4 @@
-import { AlertTriangle, ArrowRight, ArrowDownRight, ArrowUpRight, CheckCircle2, ClipboardList, Clock3, Inbox, Mail, MapPinned, ShieldCheck } from "lucide-react";
+import { AlertTriangle, ArrowRight, ArrowDownRight, ArrowUpRight, CheckCircle2, ClipboardList, Clock3, Inbox, Mail, MapPinned, ShieldCheck, Siren, Wallet } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { PriorityLabel } from "@/components/app/badges";
@@ -43,9 +43,9 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
   const inProgress = (s.counts.assigned ?? 0) + (s.counts.in_progress ?? 0);
   const stat = [
     { label: "ახალი", value: s.counts.new ?? 0, icon: ClipboardList, tone: "bg-blue-50 text-blue-600", href: "/orders?status=new", trend: trendOf(s.created, s.previous.created) },
-    { label: "მიმდინარე", value: inProgress, icon: Clock3, tone: "bg-indigo-50 text-indigo-600", href: "/orders?status=active", trend: null },
+    { label: "დანიშნული + მიმდინარე", value: inProgress, icon: Clock3, tone: "bg-indigo-50 text-indigo-600", href: "/orders?status=active", trend: null },
     { label: "შესრულებული", value: s.completed, icon: CheckCircle2, tone: "bg-emerald-50 text-emerald-600", href: "/orders?status=done", trend: trendOf(s.completed, s.previous.completed) },
-    { label: "ვადაგადაცილებული", value: s.overdue.length, icon: AlertTriangle, tone: "bg-amber-50 text-amber-600", href: "/orders?overdue=1", trend: null },
+    { label: "ვადაგადაცილებული (სულ)", value: s.overdueCount, icon: AlertTriangle, tone: "bg-amber-50 text-amber-600", href: "/orders?overdue=1", trend: null },
   ];
 
   const donut = STATUS_ORDER.map((k) => ({ name: STATUS_LABELS[k], value: s.counts[k] ?? 0, color: STATUS_HEX[k] }));
@@ -78,6 +78,54 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
           </div>
         }
       />
+
+      {/* Needs action today */}
+      <section aria-labelledby="needs-action" className="rounded-2xl border border-blue-100 bg-white p-4 dark:bg-neutral-900">
+        <h2 id="needs-action" className="mb-3 text-sm font-semibold text-slate-700">მოქმედება სჭირდება</h2>
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          <ActionTile
+            href="/orders?status=new&priority=urgent"
+            icon={<Siren className="size-4" />}
+            tone="rose"
+            title="სასწრაფო დაუნიშნავი"
+            count={s.urgentUnassigned.length}
+            empty="სასწრაფო დაუნიშნავი შეკვეთა არ არის"
+            items={s.urgentUnassigned.map((o) => ({ id: o.id, label: o.title, sub: o.client?.name ?? o.number }))}
+          />
+          <ActionTile
+            href="/orders?overdue=1"
+            icon={<AlertTriangle className="size-4" />}
+            tone="amber"
+            title="ვადაგადაცილებული"
+            count={s.overdueCount}
+            empty="ვადაგადაცილებული არ არის"
+            items={s.overdue.map((o) => ({ id: o.id, label: o.title, sub: `${o.client?.name ?? o.number} · ${formatDate(o.dueDate)}` }))}
+          />
+          <ActionTile
+            href="/schedule"
+            icon={<Clock3 className="size-4" />}
+            tone="blue"
+            title="დღევანდელი ვიზიტები"
+            count={s.today.length}
+            empty="დღეს ვიზიტი არ არის დაგეგმილი. დაუგეგმავი შეკვეთები განრიგშია."
+            items={s.today.map((o) => ({ id: o.id, label: o.title, sub: `${o.scheduledAt ? timeOf(o.scheduledAt) : ""} · ${o.assignees.map((a) => a.user.name.split(" ")[0]).join(", ") || "დაუნიშნავი"}` }))}
+          />
+          <ActionTile
+            href="/orders?status=done"
+            icon={<CheckCircle2 className="size-4" />}
+            tone="emerald"
+            title="ჩასაბარებელი (შესამოწმებელი)"
+            count={s.awaitingClosure.length}
+            empty="შესამოწმებელი შეკვეთა არ არის"
+            items={s.awaitingClosure.map((o) => ({ id: o.id, label: o.title, sub: `${o.assignees.map((a) => a.user.name.split(" ")[0]).join(", ")} · ${formatDate(o.completedAt)}` }))}
+          />
+        </div>
+        {s.paymentReviewCount > 0 && (
+          <Link href="/orders?status=all&review=1" className="mt-3 flex items-center gap-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900 ring-1 ring-amber-200 hover:bg-amber-100">
+            <Wallet className="size-3.5" /> {s.paymentReviewCount} შეკვეთაზე ნაწილობრივი გადახდის თანხა დასაზუსტებელია (ძველი მონაცემები)
+          </Link>
+        )}
+      </section>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {stat.map((x) => (
@@ -322,6 +370,61 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
             <OrderTable orders={s.overdue} compact />
           </CardContent>
         </Card>
+      )}
+    </div>
+  );
+}
+
+function ActionTile({
+  href,
+  icon,
+  tone,
+  title,
+  count,
+  empty,
+  items,
+}: {
+  href: string;
+  icon: React.ReactNode;
+  tone: "rose" | "amber" | "blue" | "emerald";
+  title: string;
+  count: number;
+  empty: string;
+  items: { id: number; label: string; sub: string }[];
+}) {
+  const tones = {
+    rose: "bg-rose-50 text-rose-700 ring-rose-200",
+    amber: "bg-amber-50 text-amber-700 ring-amber-200",
+    blue: "bg-blue-50 text-blue-700 ring-blue-200",
+    emerald: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+  }[tone];
+  return (
+    <div className="flex flex-col rounded-xl border p-3">
+      <Link href={href} className="mb-2 flex items-center gap-2">
+        <span className={cn("flex size-7 items-center justify-center rounded-md ring-1", tones)}>{icon}</span>
+        <span className="text-sm font-medium">{title}</span>
+        <span className={cn("ml-auto rounded-full px-2 py-0.5 text-xs font-semibold ring-1", count > 0 ? tones : "bg-slate-50 text-slate-500 ring-slate-200")}>{count}</span>
+      </Link>
+      {items.length === 0 ? (
+        <p className="text-xs text-muted-foreground">{empty}</p>
+      ) : (
+        <ul className="space-y-1">
+          {items.slice(0, 4).map((i) => (
+            <li key={i.id}>
+              <Link href={`/orders/${i.id}`} className="block rounded-md px-1.5 py-1 hover:bg-slate-50">
+                <span className="block truncate text-xs font-medium">{i.label}</span>
+                <span className="block truncate text-[11px] text-muted-foreground">{i.sub}</span>
+              </Link>
+            </li>
+          ))}
+          {count > 4 && (
+            <li>
+              <Link href={href} className="px-1.5 text-xs text-blue-600 hover:underline">
+                კიდევ {count - 4} →
+              </Link>
+            </li>
+          )}
+        </ul>
       )}
     </div>
   );

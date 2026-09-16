@@ -3,6 +3,7 @@ import {
   boolean,
   date,
   index,
+  uniqueIndex,
   integer,
   jsonb,
   numeric,
@@ -184,8 +185,15 @@ export const orders = pgTable(
     warrantyMonths: integer("warranty_months"),
     warrantyUntil: date("warranty_until"),
     scheduleId: integer("schedule_id"),
+    plannedMinutes: integer("planned_minutes"),
+    requiresPhoto: boolean("requires_photo").notNull().default(false),
+    completionNote: text("completion_note"),
+    verifiedBy: text("verified_by").references(() => user.id, { onDelete: "set null" }),
+    verifiedAt: timestamp("verified_at", { withTimezone: true }),
     amount: numeric("amount", { precision: 12, scale: 2 }),
+    paidTotal: numeric("paid_total", { precision: 12, scale: 2 }).notNull().default("0"),
     paymentStatus: paymentStatusEnum("payment_status").notNull().default("unpaid"),
+    paymentReviewNeeded: boolean("payment_review_needed").notNull().default(false),
     paidAt: timestamp("paid_at", { withTimezone: true }),
     source: orderSourceEnum("source").notNull().default("manual"),
     triaged: boolean("triaged").notNull().default(true),
@@ -226,12 +234,15 @@ export const orderMaterials = pgTable(
   (t) => [index("materials_order_idx").on(t.orderId)],
 );
 
+export type ChecklistTemplateItem = { label: string; required?: boolean };
+
 export const checklistTemplates = pgTable("checklist_templates", {
   id: serial("id").primaryKey(),
   systemType: systemTypeEnum("system_type").notNull(),
   name: text("name").notNull(),
-  items: jsonb("items").$type<string[]>().notNull().default([]),
+  items: jsonb("items").$type<ChecklistTemplateItem[]>().notNull().default([]),
   isDefault: boolean("is_default").notNull().default(false),
+  requiresPhoto: boolean("requires_photo").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -244,6 +255,7 @@ export const orderChecklistItems = pgTable(
       .references(() => orders.id, { onDelete: "cascade" }),
     position: integer("position").notNull().default(0),
     label: text("label").notNull(),
+    required: boolean("required").notNull().default(false),
     done: boolean("done").notNull().default(false),
     doneBy: text("done_by").references(() => user.id, { onDelete: "set null" }),
     doneAt: timestamp("done_at", { withTimezone: true }),
@@ -251,6 +263,51 @@ export const orderChecklistItems = pgTable(
   },
   (t) => [index("checklist_order_idx").on(t.orderId)],
 );
+
+export const orderPayments = pgTable(
+  "order_payments",
+  {
+    id: serial("id").primaryKey(),
+    orderId: integer("order_id")
+      .notNull()
+      .references(() => orders.id, { onDelete: "cascade" }),
+    amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
+    paidAt: timestamp("paid_at", { withTimezone: true }).notNull().defaultNow(),
+    method: text("method").notNull().default("transfer"),
+    note: text("note"),
+    createdBy: text("created_by").references(() => user.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("payments_order_idx").on(t.orderId), index("payments_paid_at_idx").on(t.paidAt)],
+);
+
+export const orderVisits = pgTable(
+  "order_visits",
+  {
+    id: serial("id").primaryKey(),
+    orderId: integer("order_id")
+      .notNull()
+      .references(() => orders.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
+    endedAt: timestamp("ended_at", { withTimezone: true }),
+    note: text("note"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("visits_order_idx").on(t.orderId),
+    index("visits_user_idx").on(t.userId, t.startedAt),
+    uniqueIndex("visits_active_unique").on(t.orderId, t.userId).where(sql`${t.endedAt} is null`),
+  ],
+);
+
+export const appSettings = pgTable("app_settings", {
+  key: text("key").primaryKey(),
+  value: jsonb("value").$type<unknown>().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
 
 export const siteEquipment = pgTable(
   "site_equipment",
@@ -408,13 +465,26 @@ export const siteRelations = relations(sites, ({ one, many }) => ({
 export const orderRelations = relations(orders, ({ one, many }) => ({
   client: one(clients, { fields: [orders.clientId], references: [clients.id] }),
   site: one(sites, { fields: [orders.siteId], references: [sites.id] }),
-  creator: one(user, { fields: [orders.createdBy], references: [user.id] }),
+  creator: one(user, { fields: [orders.createdBy], references: [user.id], relationName: "creator" }),
+  verifier: one(user, { fields: [orders.verifiedBy], references: [user.id], relationName: "verifier" }),
   assignees: many(orderAssignees),
   comments: many(orderComments),
   attachments: many(orderAttachments),
   events: many(orderEvents),
   materials: many(orderMaterials),
   checklist: many(orderChecklistItems),
+  payments: many(orderPayments),
+  visits: many(orderVisits),
+}));
+
+export const orderPaymentRelations = relations(orderPayments, ({ one }) => ({
+  order: one(orders, { fields: [orderPayments.orderId], references: [orders.id] }),
+  creator: one(user, { fields: [orderPayments.createdBy], references: [user.id] }),
+}));
+
+export const orderVisitRelations = relations(orderVisits, ({ one }) => ({
+  order: one(orders, { fields: [orderVisits.orderId], references: [orders.id] }),
+  user: one(user, { fields: [orderVisits.userId], references: [user.id] }),
 }));
 
 export const orderMaterialRelations = relations(orderMaterials, ({ one }) => ({
@@ -469,3 +539,6 @@ export type ChecklistItem = typeof orderChecklistItems.$inferSelect;
 export type SiteEquipment = typeof siteEquipment.$inferSelect;
 export type ServiceSchedule = typeof serviceSchedules.$inferSelect;
 export type Notification = typeof notifications.$inferSelect;
+export type OrderPayment = typeof orderPayments.$inferSelect;
+export type OrderVisit = typeof orderVisits.$inferSelect;
+export type ChecklistTemplate = typeof checklistTemplates.$inferSelect;
