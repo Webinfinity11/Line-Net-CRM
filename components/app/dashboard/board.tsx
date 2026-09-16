@@ -58,6 +58,7 @@ export function DashboardBoard({
   executors,
   workload,
   normHours,
+  today,
   mail,
   warrantyCount,
 }: {
@@ -68,6 +69,7 @@ export function DashboardBoard({
   executors: Executor[];
   workload: WorkloadRow[];
   normHours: number;
+  today: string;
   mail: MailPeek;
   warrantyCount: number;
 }) {
@@ -312,7 +314,7 @@ export function DashboardBoard({
         </aside>
       </div>
 
-      <OrderDrawer order={selected} executors={executors} onClose={() => setSelectedId(null)} />
+      <OrderDrawer order={selected} executors={executors} normHours={normHours} today={today} onClose={() => setSelectedId(null)} />
     </div>
   );
 }

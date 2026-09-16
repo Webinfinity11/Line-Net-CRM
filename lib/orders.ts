@@ -422,6 +422,18 @@ export async function getDashboardStats(range: DateRange = "week") {
   };
 }
 
+/** Planned minutes per executor for one Tbilisi day (planned time, not tracked time). */
+export async function plannedMinutesByUser(dayIso: string): Promise<Record<string, number>> {
+  const { start, end } = tbilisiDayBounds(dayIso);
+  const rows = await db
+    .select({ userId: orderAssignees.userId, minutes: sql<number>`coalesce(sum(coalesce(${orders.plannedMinutes}, 120)), 0)`.mapWith(Number) })
+    .from(orderAssignees)
+    .innerJoin(orders, eq(orders.id, orderAssignees.orderId))
+    .where(and(eq(orders.triaged, true), gte(orders.scheduledAt, start), lt(orders.scheduledAt, end), ne(orders.status, "cancelled")))
+    .groupBy(orderAssignees.userId);
+  return Object.fromEntries(rows.map((r) => [r.userId, r.minutes]));
+}
+
 async function getWeeklySeries() {
   const start = new Date();
   start.setHours(0, 0, 0, 0);

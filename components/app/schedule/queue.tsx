@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { PriorityLabel, SystemBadge } from "@/components/app/badges";
-import { QuickPlanDialog } from "@/components/app/quick-plan-dialog";
+import { AssignDialog, type ExecutorOption } from "@/components/app/assign-form";
 import type { OrderPriority, SystemType } from "@/db/schema";
 import { formatDate } from "@/lib/i18n";
 
@@ -17,7 +17,7 @@ export type QueueItem = {
 };
 
 /** Left column of the dispatch board: jobs waiting for an executor or a time slot. */
-export function Queue({ items, day, users }: { items: QueueItem[]; day: string; users: { id: string; name: string }[] }) {
+export function Queue({ items, day, executors, normHours }: { items: QueueItem[]; day: string; executors: ExecutorOption[]; normHours: number }) {
   if (items.length === 0) {
     return <div className="rounded-md border border-dashed border-[#e6ebf2] px-3 py-8 text-center text-xs text-muted-foreground">რიგი ცარიელია</div>;
   }
@@ -36,7 +36,7 @@ export function Queue({ items, day, users }: { items: QueueItem[]; day: string; 
             <SystemBadge system={o.systemType} />
             <PriorityLabel priority={o.priority} className="text-[11px]" />
             <div className="ml-auto">
-              <QuickPlanDialog orderId={o.id} title={o.title} defaultDate={day} users={users} currentAssigneeId={o.currentAssigneeId} label="დანიშვნა" variant="secondary" className="h-10 md:h-8" />
+              <AssignDialog orderId={o.id} title={o.title} systemType={o.systemType} executors={executors} normHours={normHours} defaultAssigneeId={o.currentAssigneeId} defaultDate={day} defaultTime={null} className="h-10 md:h-8" />
             </div>
           </div>
         </div>

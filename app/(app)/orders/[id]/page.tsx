@@ -20,9 +20,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PAYMENT_METHODS } from "@/lib/finance";
 import { EVENT_LABELS, PAYMENT_LABELS, STATUS_LABELS, formatDate, formatDuration, formatMoney, t } from "@/lib/i18n";
 import { listTemplates } from "@/lib/checklists";
-import { getOrderForUser, listAssignableUsers } from "@/lib/orders";
+import { getOrderForUser, listAssignableUsers, plannedMinutesByUser } from "@/lib/orders";
+import { AssignDialog } from "@/components/app/assign-form";
+import { getWorkHoursPerDay } from "@/lib/settings";
 import { isOverdue } from "@/lib/order-utils";
-import { plannedEnd, tbilisiTime } from "@/lib/schedule-utils";
+import { plannedEnd, tbilisiTime, tbilisiToday } from "@/lib/schedule-utils";
 import { isStaff, requireUser } from "@/lib/session";
 
 export async function generateMetadata({ params }: PageProps<"/orders/[id]">) {
@@ -57,7 +59,8 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
   const staff = isStaff(me.role);
   const isAssignee = order.assignees.some((a) => a.userId === me.id);
   const readOnly = order.status === "closed" && me.role !== "admin";
-  const [users, templates] = await Promise.all([staff ? listAssignableUsers() : Promise.resolve([]), staff ? listTemplates() : Promise.resolve([])]);
+  const [users, templates, plannedToday, normHours] = await Promise.all([staff ? listAssignableUsers() : Promise.resolve([]), staff ? listTemplates() : Promise.resolve([]), staff ? plannedMinutesByUser(tbilisiToday()) : Promise.resolve({} as Record<string, number>), getWorkHoursPerDay()]);
+  const executorOptions = users.filter((u) => u.role === "executor").map((u) => ({ id: u.id, name: u.name, image: u.image, specializations: u.specializations ?? [], hours: Math.round(((plannedToday[u.id] ?? 0) / 60) * 10) / 10 }));
   const overdue = isOverdue(order);
   const siteCoords = order.site?.lat && order.site?.lng ? { lat: Number(order.site.lat), lng: Number(order.site.lng) } : null;
   const address = order.address ?? order.site?.address ?? null;
@@ -129,6 +132,20 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
                       </span>
                     ))}
                     {staff && !readOnly && <AssigneesEditor orderId={order.id} users={users} selected={order.assignees.map((a) => a.userId)} />}
+                    {staff && !readOnly && (
+                      <AssignDialog
+                        orderId={order.id}
+                        title={order.title}
+                        systemType={order.systemType}
+                        executors={executorOptions}
+                        normHours={normHours}
+                        defaultAssigneeId={order.assignees[0]?.userId ?? null}
+                        defaultDate={order.scheduledAt ? new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Tbilisi" }).format(order.scheduledAt) : tbilisiToday()}
+                        defaultTime={order.scheduledAt ? tbilisiTime(order.scheduledAt) : null}
+                        defaultMinutes={order.plannedMinutes}
+                        size="xs"
+                      />
+                    )}
                   </dd>
                 </div>
               </div>

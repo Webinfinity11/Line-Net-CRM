@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
-import { PRIORITY_LABELS, TYPE_LABELS, t } from "@/lib/i18n";
+import { PRIORITY_LABELS, TYPE_LABELS, t, SYSTEM_LABELS } from "@/lib/i18n";
 import type { ClientOption } from "./types";
 
 /** Compact "ახალი შეკვეთა" form; the full form stays on /orders/new. */
@@ -84,6 +84,18 @@ export function QuickCreate({ clients }: { clients: ClientOption[] }) {
                   </NativeSelectOption>
                 ))}
               </NativeSelect>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="qc-system">სისტემა</Label>
+              <NativeSelect id="qc-system" name="systemType" className="w-full" defaultValue="">
+                <NativeSelectOption value="">— აირჩიეთ —</NativeSelectOption>
+                {Object.entries(SYSTEM_LABELS).map(([k, v]) => (
+                  <NativeSelectOption key={k} value={k}>
+                    {v}
+                  </NativeSelectOption>
+                ))}
+              </NativeSelect>
+              <p className="text-[11px] text-muted-foreground">სისტემის მიხედვით ჩეკ-ლისტი ავტომატურად დაერთვება</p>
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="qc-priority">პრიორიტეტი</Label>

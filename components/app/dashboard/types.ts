@@ -25,7 +25,7 @@ export type BoardOrder = {
 
 export type BoardFilter = "all" | "unassigned" | "overdue" | "review";
 
-export type Executor = { id: string; name: string; image: string | null };
+export type Executor = { id: string; name: string; image: string | null; specializations?: string[]; hours?: number };
 
 export type Visit = { id: number; time: string; client: string; executor: string; site: string };
 

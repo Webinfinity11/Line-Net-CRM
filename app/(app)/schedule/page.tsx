@@ -124,7 +124,9 @@ export default async function SchedulePage({ searchParams }: PageProps<"/schedul
 
   const nowMin = day === today ? minutesIntoDay(new Date(), start) : null;
   const overlapCount = overlaps.size;
-  const userOptions = users.filter((u) => u.role === "executor").map((u) => ({ id: u.id, name: u.name }));
+  const executorOptions = users
+    .filter((u) => u.role === "executor")
+    .map((u) => ({ id: u.id, name: u.name, image: u.image, specializations: u.specializations ?? [], hours: lanes.find((l) => l.key === u.id)?.load?.hours ?? 0 }));
   const queue: QueueItem[] = [
     ...unassignedToday.map((o) => ({ id: o.id, number: o.number, title: o.title, client: o.client?.name ?? null, dueDate: o.dueDate, priority: o.priority, systemType: o.systemType, scheduled: true, currentAssigneeId: null })),
     ...unscheduled.map((o) => ({ id: o.id, number: o.number, title: o.title, client: o.client?.name ?? null, dueDate: o.dueDate, priority: o.priority, systemType: o.systemType, scheduled: false, currentAssigneeId: o.assignees[0]?.userId ?? null })),
@@ -194,7 +196,7 @@ export default async function SchedulePage({ searchParams }: PageProps<"/schedul
             <span className="text-[11px] text-muted-foreground tabular">{queue.length}</span>
           </CardHeader>
           <CardContent>
-            <Queue items={queue} day={day} users={userOptions} />
+            <Queue items={queue} day={day} executors={executorOptions} normHours={normHours} />
           </CardContent>
         </Card>
 

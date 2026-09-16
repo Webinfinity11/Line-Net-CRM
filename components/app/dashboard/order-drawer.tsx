@@ -1,16 +1,11 @@
 "use client";
 
-import { CalendarDays, Clock3, ExternalLink, UserCheck } from "lucide-react";
+import { CalendarDays, Clock3, ExternalLink } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, useTransition } from "react";
-import { toast } from "sonner";
-import { setAssignees } from "@/actions/orders";
+import { AssignForm } from "@/components/app/assign-form";
 import { StatusBadge } from "@/components/app/badges";
 import { UserAvatar } from "@/components/app/user-avatar";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 import { PRIORITY_COLORS, PRIORITY_LABELS, SYSTEM_LABELS, TYPE_LABELS, formatDate } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -23,43 +18,9 @@ const CLOSED_FOR_ASSIGN = new Set(["done", "closed", "cancelled"]);
  * Right-hand detail drawer for a board row: summary, assignment (one executor,
  * replaces the current list) and links to the full order page / schedule.
  */
-export function OrderDrawer({ order, executors, onClose }: { order: BoardOrder | null; executors: Executor[]; onClose: () => void }) {
-  const router = useRouter();
-  const [pending, start] = useTransition();
-  const busy = useRef(false);
-  const [choice, setChoice] = useState<string>("");
-  const [error, setError] = useState<string | null>(null);
-
-  // reset the form whenever another order opens
-  useEffect(() => {
-    setChoice(order?.assignees[0]?.id ?? "");
-    setError(null);
-  }, [order?.id, order?.assignees]);
-
+export function OrderDrawer({ order, executors, normHours, today, onClose }: { order: BoardOrder | null; executors: Executor[]; normHours: number; today: string; onClose: () => void }) {
   const canAssign = order ? !CLOSED_FOR_ASSIGN.has(order.status) : false;
-  const current = order?.assignees[0]?.id ?? "";
 
-  function submit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!order || busy.current || !choice) return;
-    busy.current = true;
-    setError(null);
-    start(async () => {
-      try {
-        const res = await setAssignees(order.id, [choice]);
-        if (!res.ok) {
-          setError(res.error);
-          return;
-        }
-        const name = executors.find((u) => u.id === choice)?.name ?? "";
-        toast.success(`${order.number} — დანიშნულია ${name}`);
-        router.refresh();
-        onClose();
-      } finally {
-        busy.current = false;
-      }
-    });
-  }
 
   return (
     <Sheet open={order !== null} onOpenChange={(open) => !open && onClose()}>
@@ -129,33 +90,20 @@ export function OrderDrawer({ order, executors, onClose }: { order: BoardOrder |
             </div>
 
             {canAssign && (
-              <form onSubmit={submit} className="space-y-3 border-t border-border pt-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor={`assign-${order.id}`} className="text-[12px] text-[#4a5e73]">
-                    შემსრულებელი
-                  </Label>
-                  <NativeSelect id={`assign-${order.id}`} className="w-full" value={choice} onChange={(e) => setChoice(e.target.value)} required>
-                    <NativeSelectOption value="">აირჩიე შემსრულებელი</NativeSelectOption>
-                    {executors.map((u) => (
-                      <NativeSelectOption key={u.id} value={u.id}>
-                        {u.name}
-                      </NativeSelectOption>
-                    ))}
-                  </NativeSelect>
-                  {order.assignees.length > 1 && <p className="text-[11px] text-muted-foreground">არჩეული შემსრულებელი ჩაანაცვლებს ამჟამინდელ სიას.</p>}
-                </div>
-                {error && (
-                  <p className="text-[12px] text-[#b13f32]" role="alert">
-                    {error}
-                  </p>
-                )}
-                <div className="flex flex-wrap items-center gap-3">
-                  <Button type="submit" disabled={pending || !choice || choice === current}>
-                    <UserCheck className="size-4" /> დანიშვნის შენახვა
-                  </Button>
-                  <span className="text-[11px] text-muted-foreground">შემსრულებელი შეტყობინებას მიიღებს</span>
-                </div>
-              </form>
+              <div className="border-t border-border pt-4">
+                <div className="mb-2 text-[11px] text-muted-foreground">დანიშვნა და დრო</div>
+                <AssignForm
+                  orderId={order.id}
+                  systemType={order.systemType}
+                  executors={executors}
+                  normHours={normHours}
+                  defaultAssigneeId={order.assignees[0]?.id ?? null}
+                  defaultDate={order.scheduledAt ? order.scheduledAt.slice(0, 10) : today}
+                  defaultTime={order.timeLabel}
+                  defaultMinutes={order.plannedMinutes}
+                  onDone={onClose}
+                />
+              </div>
             )}
 
             <div className="flex flex-wrap gap-2 border-t border-border pt-4">
@@ -163,7 +111,7 @@ export function OrderDrawer({ order, executors, onClose }: { order: BoardOrder |
                 <ExternalLink className="size-4" /> სრული გვერდი
               </Button>
               <Button variant="ghost" render={<Link href="/schedule" />}>
-                <CalendarDays className="size-4" /> დაგეგმვა
+                <CalendarDays className="size-4" /> განრიგი
               </Button>
             </div>
           </div>
