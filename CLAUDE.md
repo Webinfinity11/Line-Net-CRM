@@ -34,3 +34,8 @@ Spec: `docs/02-mvp-spec.md` (MVP) + `docs/04-phase-1.5-spec.md` (agreed addition
 - Work flow: visits (`order_visits`, one open per executor+order) are separate from completion. `completeOrder` needs a note and is gated server-side by required checklist items and `requires_photo`. `done` → staff `closed` (verified). Closed orders are frozen except for admins.
 - Never export helpers from `actions/*.ts` ("use server" makes every export a public endpoint); put shared logic in `lib/*` with `server-only`.
 - Tests: `npm test` (vitest, pure logic in `tests/`).
+
+## UI rendering rules
+- The Tailwind scale is px-based (`--spacing: 4px`, px text sizes, px breakpoints in `app/globals.css`). Some embedded browser panels force a large root/minimum font size; px keeps spacing stable. Do not reintroduce rem-based tokens.
+- `formatDate` / `formatMoney` in `lib/i18n.ts` are deterministic (manual formatting, Tbilisi timezone). Never use `toLocaleString`/`Intl` currency formatting in components: Node and browsers produce different output and React reports hydration mismatches.
+- Maps: `components/app/map-view.tsx` uses OpenStreetMap tiles, numbered `divIcon` pins with popups, `fadeAnimation: false` and a ResizeObserver-driven `invalidateSize`. CARTO tiles require an API key now; do not switch back.

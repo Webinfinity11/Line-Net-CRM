@@ -17,9 +17,9 @@ export function OrderTable({ orders, compact = false, showMoney = true }: { orde
           <tr className="border-b text-left">
             <th className="px-4 py-2.5 font-medium">{t.order.number}</th>
             <th className="px-3 py-2.5 font-medium">{t.order.title}</th>
-            <th className="px-3 py-2.5 font-medium">{t.order.client}</th>
+            {!compact && <th className="px-3 py-2.5 font-medium">{t.order.client}</th>}
             {!compact && <th className="px-3 py-2.5 font-medium">{t.order.type}</th>}
-            <th className="px-3 py-2.5 font-medium">{t.order.priority}</th>
+            {!compact && <th className="px-3 py-2.5 font-medium">{t.order.priority}</th>}
             <th className="px-3 py-2.5 font-medium">{t.order.assignees}</th>
             <th className="px-3 py-2.5 font-medium">{t.order.status}</th>
             <th className="px-3 py-2.5 font-medium">{t.order.dueDate}</th>
@@ -31,32 +31,45 @@ export function OrderTable({ orders, compact = false, showMoney = true }: { orde
             const overdue = isOverdue(o);
             return (
               <tr key={o.id} className="group border-b last:border-0 hover:bg-neutral-50 dark:hover:bg-neutral-800/60">
-                <td className="px-4 py-2.5 font-mono text-xs text-muted-foreground">
+                <td className="px-4 py-2.5 font-mono text-xs whitespace-nowrap text-muted-foreground">
                   <Link href={`/orders/${o.id}`} className="block">
                     {o.number}
                   </Link>
                 </td>
-                <td className="max-w-[320px] px-3 py-2.5">
+                <td className={cn("px-3 py-2.5", compact ? "max-w-[280px]" : "max-w-[320px]")}>
                   <Link href={`/orders/${o.id}`} className="block">
-                    <div className="truncate font-medium group-hover:text-blue-700">{o.title}</div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="truncate font-medium group-hover:text-blue-700">{o.title}</span>
+                      {compact && o.priority === "urgent" && <span className="shrink-0 text-[10px] font-semibold text-rose-600">სასწრაფო</span>}
+                    </div>
+                    {compact && (
+                      <div className="truncate text-xs text-muted-foreground">
+                        {o.client?.name ?? "—"}
+                        {o.site?.name ? ` · ${o.site.name}` : ""}
+                      </div>
+                    )}
                     <div className="mt-0.5 flex flex-wrap gap-1">
                       {compact && <TypeBadge type={o.type} className="px-1.5 py-0 text-[10px]" />}
                       <SystemBadge system={o.systemType} className="px-1.5 py-0 text-[10px]" />
                     </div>
                   </Link>
                 </td>
-                <td className="max-w-[200px] px-3 py-2.5">
-                  <div className="truncate">{o.client?.name ?? <span className="text-muted-foreground">—</span>}</div>
-                  <div className="truncate text-xs text-muted-foreground">{o.site?.name ?? o.address ?? ""}</div>
-                </td>
+                {!compact && (
+                  <td className="max-w-[200px] px-3 py-2.5">
+                    <div className="truncate">{o.client?.name ?? <span className="text-muted-foreground">—</span>}</div>
+                    <div className="truncate text-xs text-muted-foreground">{o.site?.name ?? o.address ?? ""}</div>
+                  </td>
+                )}
                 {!compact && (
                   <td className="px-3 py-2.5">
                     <TypeBadge type={o.type} />
                   </td>
                 )}
-                <td className="px-3 py-2.5">
-                  <PriorityLabel priority={o.priority} />
-                </td>
+                {!compact && (
+                  <td className="px-3 py-2.5">
+                    <PriorityLabel priority={o.priority} />
+                  </td>
+                )}
                 <td className="px-3 py-2.5">
                   <AvatarStack users={o.assignees.map((a) => a.user)} />
                 </td>

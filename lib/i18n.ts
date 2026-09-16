@@ -223,17 +223,29 @@ export function formatMoney(value: string | number | null | undefined): string {
   if (value === null || value === undefined || value === "") return "—";
   const n = typeof value === "string" ? Number(value) : value;
   if (Number.isNaN(n)) return "—";
-  return new Intl.NumberFormat("ka-GE", { style: "currency", currency: "GEL", maximumFractionDigits: 2 }).format(n);
+  // manual formatting: Intl currency output differs between Node and browsers (hydration mismatch)
+  const [int, dec] = Math.abs(n).toFixed(2).split(".");
+  const grouped = int.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  return `${n < 0 ? "-" : ""}${grouped},${dec} ₾`;
 }
+
+const TBILISI_TZ = "Asia/Tbilisi";
 
 export function formatDate(value: Date | string | null | undefined, withTime = false): string {
   if (!value) return "—";
   const d = typeof value === "string" ? new Date(value) : value;
   if (Number.isNaN(d.getTime())) return "—";
-  return new Intl.DateTimeFormat("ka-GE", {
+  // en-GB + formatToParts is available everywhere and gives identical output on server and client
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: TBILISI_TZ,
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
-    ...(withTime ? { hour: "2-digit", minute: "2-digit" } : {}),
-  }).format(d);
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(d);
+  const get = (type: Intl.DateTimeFormatPartTypes) => parts.find((p) => p.type === type)?.value ?? "";
+  const date = `${get("day")}.${get("month")}.${get("year")}`;
+  return withTime ? `${date}, ${get("hour")}:${get("minute")}` : date;
 }
