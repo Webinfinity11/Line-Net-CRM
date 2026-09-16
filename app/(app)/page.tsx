@@ -89,26 +89,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
         kicker={kickerFor(tbilisiToday())}
         title="სამუშაო დაფა"
         subtitle="დღევანდელი პრიორიტეტები და გუნდის საქმეები"
-        actions={
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="inline-flex rounded-lg border border-border bg-white p-0.5" role="group" aria-label="პერიოდი">
-              {RANGES.map((r) => (
-                <Link
-                  key={r.key}
-                  href={`/?range=${r.key}`}
-                  aria-current={r.key === range ? "page" : undefined}
-                  className={cn(
-                    "rounded-md px-3 py-1.5 font-heading text-[11.5px] font-medium uppercase tracking-wide transition-colors duration-150",
-                    r.key === range ? "bg-[#eef2ff] text-[#3457d5]" : "text-muted-foreground hover:bg-[#f8faff] hover:text-foreground",
-                  )}
-                >
-                  {r.label}
-                </Link>
-              ))}
-            </div>
-            <QuickCreate clients={clients} />
-          </div>
-        }
+        actions={<QuickCreate clients={clients} />}
       />
 
       <DashboardBoard
@@ -125,9 +106,26 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
 
       {/* finance: secondary, precise labels, no derived percentage */}
       <section className="grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-2" aria-label="თანხები">
-        <div className="bg-white px-[18px] py-[14px]">
-          <div className="text-[11px] text-muted-foreground">მიღებული · {rangeDef.period}</div>
-          <div className="tabular mt-1 font-heading text-[19px] font-medium text-foreground">{formatMoney(s.money.paid)}</div>
+        <div className="flex flex-wrap items-end justify-between gap-3 bg-white px-[18px] py-[14px]">
+          <div>
+            <div className="text-[11px] text-muted-foreground">მიღებული · {rangeDef.period}</div>
+            <div className="tabular mt-1 font-heading text-[19px] font-medium text-foreground">{formatMoney(s.money.paid)}</div>
+          </div>
+          <div className="inline-flex rounded-md border border-border bg-white p-0.5" role="group" aria-label="პერიოდი">
+            {RANGES.map((r) => (
+              <Link
+                key={r.key}
+                href={`/?range=${r.key}`}
+                aria-current={r.key === range ? "page" : undefined}
+                className={cn(
+                  "rounded px-2.5 py-1 text-[11px] transition-colors duration-150",
+                  r.key === range ? "bg-[#eef2ff] font-medium text-[#3457d5]" : "text-muted-foreground hover:bg-[#f8faff] hover:text-foreground",
+                )}
+              >
+                {r.label}
+              </Link>
+            ))}
+          </div>
         </div>
         <div className="bg-white px-[18px] py-[14px]">
           <div className="text-[11px] text-muted-foreground">გადაუხდელი ნაშთი · ყველა შეკვეთა</div>

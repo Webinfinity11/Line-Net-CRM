@@ -2,7 +2,7 @@
 
 import { LogOut, Menu, Plus, Search, UserCircle } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,8 +36,10 @@ export function Topbar({
   bellItems: BellItem[];
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const staff = user.role !== "executor";
+  const onDashboard = pathname === "/"; // the dashboard has its own quick-create button
 
   async function logout() {
     await signOut();
@@ -74,7 +76,7 @@ export function Topbar({
       )}
       <div className="flex-1 sm:hidden" />
 
-      {staff && (
+      {staff && !onDashboard && (
         <Button render={<Link href="/orders/new" />} size="default">
           <Plus className="size-4" />
           <span className="hidden sm:inline">{t.order.new}</span>

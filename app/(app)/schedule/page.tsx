@@ -188,7 +188,7 @@ export default async function SchedulePage({ searchParams }: PageProps<"/schedul
       </div>
 
       <div className="ln-stagger grid gap-[18px] lg:grid-cols-[minmax(260px,3fr)_minmax(0,7fr)]">
-        <Card>
+        <Card className="self-start">
           <CardHeader className="flex-row items-center justify-between">
             <CardTitle>დაუნიშნავი / დაუგეგმავი</CardTitle>
             <span className="text-[11px] text-muted-foreground tabular">{queue.length}</span>

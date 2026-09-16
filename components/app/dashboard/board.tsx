@@ -160,35 +160,33 @@ export function DashboardBoard({
                 {rows.map((o) => {
                   const lead = o.assignees[0];
                   return (
-                    <tr key={o.id} className="border-t border-border align-top transition-colors duration-150 hover:bg-[#f8faff]">
-                      <td className="py-[13px] pr-2">
+                    <tr key={o.id} className="border-t border-border align-middle transition-colors duration-150 hover:bg-[#f8faff]">
+                      <td className="py-[9px] pr-2">
                         <button type="button" onClick={() => setSelectedId(o.id)} className="group/row flex w-full items-start gap-[9px] text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3457d5]">
-                          <JobIcon system={o.systemType} className="mt-0.5" />
+                          <JobIcon system={o.systemType} />
                           <span className="min-w-0">
                             <span className="flex flex-wrap items-center gap-x-1.5">
                               <span className="font-medium text-foreground transition-colors group-hover/row:text-[#3457d5]">{o.title}</span>
                               {o.priority === "urgent" && <span className="text-[10px] font-semibold text-[#b13f32]">სასწრაფო</span>}
                             </span>
-                            <small className="mt-[3px] block text-[11px] text-muted-foreground">
+                            <small className="mt-[2px] block truncate text-[11px] text-muted-foreground">
                               {o.number}
                               {o.client ? ` · ${o.client.name}` : ""}
                             </small>
-                            <small className="mt-[3px] block text-[11px] text-muted-foreground md:hidden">
+                            <small className="mt-[2px] block text-[11px] text-muted-foreground md:hidden">
                               {lead ? `${firstName(lead.name)} · ${o.timeLabel ?? "დაუგეგმავი"}` : "დაუნიშნავი"}
                             </small>
                           </span>
                         </button>
                       </td>
-                      <td className="hidden py-[13px] pr-2 md:table-cell">
+                      <td className="hidden whitespace-nowrap py-[9px] pr-2 md:table-cell">
                         {lead ? (
-                          <>
-                            <span className="flex items-center gap-1.5 text-[11px]">
-                              <UserAvatar name={lead.name} image={lead.image} size="sm" />
-                              {firstName(lead.name)}
-                              {o.assignees.length > 1 && <span className="text-muted-foreground">+{o.assignees.length - 1}</span>}
-                            </span>
-                            <small className="mt-[3px] block text-[11px] text-muted-foreground">{o.timeLabel ?? "დაუგეგმავი"}</small>
-                          </>
+                          <span className="flex items-center gap-1.5 text-[11px]">
+                            <UserAvatar name={lead.name} image={lead.image} size="sm" />
+                            {firstName(lead.name)}
+                            {o.assignees.length > 1 && <span className="text-muted-foreground">+{o.assignees.length - 1}</span>}
+                            <span className="text-muted-foreground">· {o.timeLabel ?? "დაუგეგმავი"}</span>
+                          </span>
                         ) : ACTIVE.has(o.status) ? (
                           <button type="button" onClick={() => setSelectedId(o.id)} className="inline-flex items-center gap-1 py-1 text-[11px] text-[#3457d5] hover:underline focus-visible:outline-2 focus-visible:outline-[#3457d5]">
                             <UserPlus className="size-3.5 [stroke-width:1.7]" /> დანიშვნა
@@ -197,9 +195,9 @@ export function DashboardBoard({
                           <span className="text-[11px] text-muted-foreground">—</span>
                         )}
                       </td>
-                      <td className="py-[13px]">
+                      <td className="whitespace-nowrap py-[9px]">
                         <StatusBadge status={o.status} />
-                        {o.overdue && <small className="mt-1 block text-[10px] font-medium text-[#b13f32]">ვადაგადაცილებული</small>}
+                        {o.overdue && <small className="ml-1.5 text-[10px] font-medium text-[#b13f32]">ვადაგადაცილებული</small>}
                       </td>
                     </tr>
                   );
