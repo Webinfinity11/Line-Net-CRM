@@ -53,7 +53,6 @@ export default async function WorkSheetPage({ params }: PageProps<"/orders/[id]/
           {(order.arrivedAt || order.finishedAt) && (
             <Row label="ობიექტზე დრო" value={`${order.arrivedAt ? formatDate(order.arrivedAt, true) : "—"} → ${order.finishedAt ? formatDate(order.finishedAt, true) : "—"}`} />
           )}
-          {order.warrantyMonths ? <Row label="გარანტია" value={`${order.warrantyMonths} თვე${order.warrantyUntil ? " · " + formatDate(order.warrantyUntil) + "-მდე" : ""}`} /> : null}
           {staff && order.amount ? <Row label="თანხა" value={`${formatMoney(order.amount)} · ${PAYMENT_LABELS[order.paymentStatus]}`} /> : null}
         </tbody>
       </table>

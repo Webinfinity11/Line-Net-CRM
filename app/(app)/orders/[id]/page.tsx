@@ -13,7 +13,6 @@ import { MarkSeen } from "@/components/app/order-detail/mark-seen";
 import { Materials } from "@/components/app/order-detail/materials";
 import { Payments } from "@/components/app/order-detail/payments";
 import { StatusActions } from "@/components/app/order-detail/status-actions";
-import { Visits } from "@/components/app/order-detail/visits";
 import { UserAvatar } from "@/components/app/user-avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -206,14 +205,6 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
             readOnly={readOnly}
           />
 
-          <Visits
-            orderId={order.id}
-            visits={order.visits}
-            meId={me.id}
-            canAct={(staff || isAssignee) && !readOnly && order.status !== "cancelled"}
-            legacy={{ arrivedAt: order.arrivedAt, finishedAt: order.finishedAt }}
-            scheduledAt={order.scheduledAt}
-          />
 
           <Materials orderId={order.id} materials={order.materials} financeVisible={financeVisible} meId={me.id} amount={order.amount} readOnly={readOnly} />
 
@@ -275,18 +266,6 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
                     ) : (
                       <span className="text-xs text-muted-foreground">ტელეფონი არ არის</span>
                     )}
-                  </div>
-                </div>
-              )}
-              {(order.warrantyMonths || order.warrantyUntil) && (
-                <div className="flex items-start gap-2.5">
-                  <ShieldCheck className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-                  <div>
-                    <div className="text-xs text-muted-foreground">{t.order.warranty}</div>
-                    <div className="font-medium">
-                      {order.warrantyMonths ? `${order.warrantyMonths} თვე` : ""}
-                      {order.warrantyUntil ? ` · ${formatDate(order.warrantyUntil)}-მდე` : order.warrantyMonths ? " · დაიწყება ჩაბარებისას" : ""}
-                    </div>
                   </div>
                 </div>
               )}

@@ -21,7 +21,6 @@ function mapsHref(o: MyOrderItem) {
 function OrderCard({ o, meId, highlight }: { o: MyOrderItem; meId: string; highlight?: boolean }) {
   const unseen = o.assignees.some((a) => a.userId === meId && !a.seenAt);
   const overdue = isOverdue(o);
-  const myOpenVisit = o.visits.find((v) => v.userId === meId && !v.endedAt) ?? null;
   const requiredLeft = o.checklist.filter((c) => c.required && !c.done).length;
   const done = o.checklist.filter((c) => c.done).length;
   const maps = mapsHref(o);
@@ -86,7 +85,6 @@ function OrderCard({ o, meId, highlight }: { o: MyOrderItem; meId: string; highl
         <MyVisitControls
           orderId={o.id}
           status={o.status}
-          openVisitStartedAt={myOpenVisit?.startedAt ?? null}
           requiredLeft={requiredLeft}
           needsPhoto={o.requiresPhoto}
           phoneHref={phone ? `tel:${phone}` : null}
@@ -137,7 +135,7 @@ export default async function MyOrdersPage() {
       <Section title="დახურული" items={closed} />
       {all.length > 0 && (
         <p className="flex items-center gap-1 text-center text-xs text-muted-foreground">
-          <Timer className="size-3" /> „მივედი“ იწყებს ვიზიტს, „სამუშაო შესრულებულია“ აბარებს შეკვეთას მენეჯერს.
+          <Timer className="size-3" /> „სამუშაო შესრულებულია“ აბარებს შეკვეთას მენეჯერს შესამოწმებლად.
         </p>
       )}
     </div>

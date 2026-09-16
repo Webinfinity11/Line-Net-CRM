@@ -61,7 +61,6 @@ export function DashboardBoard({
   normHours,
   today,
   mail,
-  warrantyCount,
 }: {
   metrics: { active: number; visits: number; overdue: number; review: number };
   orders: BoardOrder[];
@@ -72,7 +71,6 @@ export function DashboardBoard({
   normHours: number;
   today: string;
   mail: MailPeek;
-  warrantyCount: number;
 }) {
   const [filter, setFilter] = useState<BoardFilter>("all");
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -304,13 +302,6 @@ export function DashboardBoard({
               );
             })}
             <p className="pt-[13px] text-[11px] text-muted-foreground">დაგეგმილი დრო · დღეს</p>
-            {warrantyCount > 0 && (
-              <p className="pt-1 text-[11px] text-muted-foreground">
-                <Link href="/orders" className="hover:underline">
-                  გარანტია იწურება · {warrantyCount}
-                </Link>
-              </p>
-            )}
           </div>
         </aside>
       </div>

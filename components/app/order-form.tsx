@@ -190,10 +190,6 @@ export function OrderForm({
             <p className="text-[11px] text-muted-foreground">ცარიელი დატოვებისას დაგეგმილი დღე გამოიყენება</p>
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="warrantyMonths">{t.order.warranty} (თვე)</Label>
-            <Input id="warrantyMonths" name="warrantyMonths" type="number" min="0" max="240" defaultValue={initial?.warrantyMonths ?? ""} placeholder="მაგ. 12" />
-          </div>
-          <div className="space-y-1.5">
             <Label htmlFor="amount">{t.order.amount} (₾)</Label>
             <Input id="amount" name="amount" type="number" step="0.01" min="0" defaultValue={initial?.amount ?? ""} placeholder="0.00" />
             <p className="text-[11px] text-muted-foreground">გადახდები შეკვეთის ბარათზე იწერება; სტატუსი ავტომატურად ითვლება</p>

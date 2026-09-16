@@ -63,7 +63,7 @@ export function Topbar({
       </Sheet>
 
       {staff ? (
-        <form action="/orders" method="get" className="relative hidden max-w-xl flex-1 sm:block">
+        <form action="/orders" method="get" className="relative hidden w-full max-w-[520px] sm:block">
           <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <input
             name="q"
@@ -74,8 +74,7 @@ export function Topbar({
       ) : (
         <div className="flex-1" />
       )}
-      <div className="flex-1 sm:hidden" />
-
+      <div className="ml-auto flex items-center gap-2">
       {staff && !onDashboard && (
         <Button render={<Link href="/orders/new" />} size="default">
           <Plus className="size-4" />
@@ -113,6 +112,7 @@ export function Topbar({
           </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>
+      </div>
     </header>
   );
 }

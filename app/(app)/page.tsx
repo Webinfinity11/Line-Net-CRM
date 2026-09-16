@@ -1,4 +1,4 @@
-import { AlertTriangle, MapPinned, ShieldCheck } from "lucide-react";
+import { AlertTriangle, MapPinned } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { StatusDonut, WeeklyBars } from "@/components/app/dashboard-charts";
@@ -110,7 +110,6 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
         normHours={normHours}
         today={tbilisiToday()}
         mail={{ configured: mail.configured, count: s.inbox.length, connectHref: "/inbox" }}
-        warrantyCount={s.warranty.length}
       />
 
       {/* analytics: status split, weekly dynamics, money */}
@@ -207,7 +206,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
           />
         )}
       </section>
-      {(s.overdue.length > 0 || s.warranty.length > 0) && (
+      {s.overdue.length > 0 && (
         <div className="ln-stagger grid gap-[18px] lg:grid-cols-2">
           {s.overdue.length > 0 && (
             <section className="rounded-xl border border-[#f4e2d7] bg-white p-[18px]" aria-label="ვადაგადაცილებული შეკვეთები">
@@ -231,25 +230,6 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
                   ყველას ნახვა →
                 </Link>
               )}
-            </section>
-          )}
-          {s.warranty.length > 0 && (
-            <section className="rounded-xl border border-border bg-white p-[18px]" aria-label="გარანტია იწურება">
-              <h3 className="mb-2 flex items-center gap-2 font-heading text-[13px] font-medium">
-                <ShieldCheck className="size-4 text-[#25815a] [stroke-width:1.7]" /> {toMtavruli('გარანტია იწურება')}
-                <span className="text-[11px] font-normal text-[#748197]">{toMtavruli('30 დღეში')}</span>
-              </h3>
-              <ul className="divide-y divide-border text-[12px]">
-                {s.warranty.map((o) => (
-                  <li key={o.id} className="flex items-center gap-3 py-2">
-                    <Link href={`/orders/${o.id}`} className="min-w-0 flex-1 truncate font-medium hover:text-[#3457d5]">
-                      {o.title}
-                    </Link>
-                    <span className="hidden truncate text-muted-foreground sm:inline">{o.client?.name ?? o.number}</span>
-                    <span className="tabular shrink-0 font-medium text-[#96610b]">{formatDate(o.warrantyUntil)}</span>
-                  </li>
-                ))}
-              </ul>
             </section>
           )}
         </div>

@@ -103,7 +103,6 @@ export default async function ReportsPage({ searchParams }: PageProps<"/reports"
                   <th className={thr}>შეკვ.</th>
                   <th className={thr}>შესრ.</th>
                   <th className={thr}>ვადაგად.</th>
-                  <th className={thr}>საათები</th>
                 </tr>
               </thead>
               <tbody>
@@ -120,7 +119,6 @@ export default async function ReportsPage({ searchParams }: PageProps<"/reports"
                     <td className={tdr}>{r.total}</td>
                     <td className={tdr}>{r.completed}</td>
                     <td className={`${tdr} ${r.overdue > 0 ? "text-rose-600" : ""}`}>{r.overdue}</td>
-                    <td className={tdr}>{r.hours || "—"}</td>
                   </tr>
                 ))}
               </tbody>
