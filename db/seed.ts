@@ -17,14 +17,22 @@ const USERS: SeedUser[] = [
   { email: "levan@line-net.ge", name: "ლევან კაპანაძე", role: "executor", phone: "599 44 55 66" },
   { email: "dato@line-net.ge", name: "დათო მაისურაძე", role: "executor", phone: "599 77 88 99" },
 ];
-const PASSWORD = process.env.SEED_PASSWORD ?? "linenet123";
+const PASSWORDS: Record<SeedUser["role"], string> = {
+  admin: process.env.SEED_PASSWORD_ADMIN ?? "admin1234",
+  manager: process.env.SEED_PASSWORD_MANAGER ?? "meneger1234",
+  executor: process.env.SEED_PASSWORD_EXECUTOR ?? "user1234",
+};
 
 async function ensureUser(u: SeedUser) {
-  const existing = await db.query.user.findFirst({ where: eq(user.email, u.email) });
-  if (existing) return existing;
   const { auth } = await import("@/lib/auth");
   const ctx = await auth.$context;
-  const hash = await ctx.password.hash(PASSWORD);
+  const hash = await ctx.password.hash(PASSWORDS[u.role]);
+  const existing = await db.query.user.findFirst({ where: eq(user.email, u.email) });
+  if (existing) {
+    // keep demo passwords in sync on re-run
+    await ctx.internalAdapter.updatePassword(existing.id, hash);
+    return existing;
+  }
   const created = await ctx.internalAdapter.createUser({
     email: u.email,
     name: u.name,
@@ -47,7 +55,7 @@ async function main() {
   const admin = seeded[0];
   const manager = seeded[1];
   const executors = seeded.slice(2);
-  console.log(`users: ${seeded.length} (password: ${PASSWORD})`);
+  console.log(`users: ${seeded.length} (admin: ${PASSWORDS.admin}, manager: ${PASSWORDS.manager}, executor: ${PASSWORDS.executor})`);
 
   const existingClients = await db.select().from(clients);
   if (existingClients.length > 0) {
