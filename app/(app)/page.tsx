@@ -1,12 +1,12 @@
-import { AlertTriangle, ArrowRight, CheckCircle2, ClipboardList, Clock3, Inbox, Mail, MapPinned, ShieldCheck } from "lucide-react";
+import { AlertTriangle, ArrowRight, ArrowDownRight, ArrowUpRight, CheckCircle2, ClipboardList, Clock3, Inbox, Mail, MapPinned, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { PriorityLabel } from "@/components/app/badges";
+import { StatusDonut, WeeklyBars } from "@/components/app/dashboard-charts";
+import { MapView } from "@/components/app/map-view";
 import { OrderTable } from "@/components/app/order-table";
 import { PageHeader } from "@/components/app/page-header";
-import { StatusDonut, WeeklyBars } from "@/components/app/dashboard-charts";
 import { UserAvatar } from "@/components/app/user-avatar";
-import { MapView } from "@/components/app/map-view";
-import { PriorityLabel, StatusBadge } from "@/components/app/badges";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { STATUS_HEX, STATUS_LABELS, STATUS_ORDER, formatDate, formatMoney, t } from "@/lib/i18n";
 import { getDashboardStats, type DateRange } from "@/lib/orders";
@@ -15,88 +15,110 @@ import { cn } from "@/lib/utils";
 
 export const metadata = { title: "დაფა" };
 
-const RANGES: { key: DateRange; label: string }[] = [
-  { key: "today", label: t.common.today },
-  { key: "week", label: t.common.week },
-  { key: "month", label: t.common.month },
+const RANGES: { key: DateRange; label: string; prevLabel: string }[] = [
+  { key: "today", label: t.common.today, prevLabel: "vs გუშინ" },
+  { key: "week", label: t.common.week, prevLabel: "vs წინა კვირა" },
+  { key: "month", label: t.common.month, prevLabel: "vs წინა თვე" },
 ];
+
+const CAPACITY = 8;
+
+function trendOf(cur: number, prev: number) {
+  if (prev === 0) return cur > 0 ? 100 : 0;
+  return Math.round(((cur - prev) / prev) * 100);
+}
+
+function timeOf(d: Date) {
+  return new Intl.DateTimeFormat("ka-GE", { timeZone: "Asia/Tbilisi", hour: "2-digit", minute: "2-digit" }).format(d);
+}
 
 export default async function DashboardPage({ searchParams }: PageProps<"/">) {
   const user = await requireUser();
   if (!isStaff(user.role)) redirect("/my");
   const sp = await searchParams;
-  const range = (RANGES.some((r) => r.key === sp.range) ? sp.range : "week") as DateRange;
+  const rangeDef = RANGES.find((r) => r.key === sp.range) ?? RANGES[1];
+  const range = rangeDef.key;
   const s = await getDashboardStats(range);
 
+  const inProgress = (s.counts.assigned ?? 0) + (s.counts.in_progress ?? 0);
   const stat = [
-    { label: "ახალი", value: s.counts.new ?? 0, icon: ClipboardList, tone: "bg-sky-100 text-sky-700", href: "/orders?status=new" },
-    { label: "მიმდინარე", value: (s.counts.assigned ?? 0) + (s.counts.in_progress ?? 0), icon: Clock3, tone: "bg-amber-100 text-amber-700", href: "/orders?status=active" },
-    { label: "შესრულებული", value: s.completed, icon: CheckCircle2, tone: "bg-emerald-100 text-emerald-700", href: "/orders?status=done" },
-    { label: "ვადაგადაცილებული", value: s.overdue.length, icon: AlertTriangle, tone: "bg-rose-100 text-rose-700", href: "/orders?overdue=1" },
+    { label: "ახალი", value: s.counts.new ?? 0, icon: ClipboardList, tone: "bg-blue-50 text-blue-600", href: "/orders?status=new", trend: trendOf(s.created, s.previous.created) },
+    { label: "მიმდინარე", value: inProgress, icon: Clock3, tone: "bg-indigo-50 text-indigo-600", href: "/orders?status=active", trend: null },
+    { label: "შესრულებული", value: s.completed, icon: CheckCircle2, tone: "bg-emerald-50 text-emerald-600", href: "/orders?status=done", trend: trendOf(s.completed, s.previous.completed) },
+    { label: "ვადაგადაცილებული", value: s.overdue.length, icon: AlertTriangle, tone: "bg-amber-50 text-amber-600", href: "/orders?overdue=1", trend: null },
   ];
 
   const donut = STATUS_ORDER.map((k) => ({ name: STATUS_LABELS[k], value: s.counts[k] ?? 0, color: STATUS_HEX[k] }));
   const total = donut.reduce((a, b) => a + b.value, 0);
-  const paidPct = s.money.paid + s.money.unpaid > 0 ? Math.round((s.money.paid / (s.money.paid + s.money.unpaid)) * 100) : 0;
+  const collected = s.money.paid + s.money.unpaid;
+  const paidPct = collected > 0 ? Math.round((s.money.paid / collected) * 100) : 0;
 
   return (
     <div className="space-y-5">
       <PageHeader
         title="დაფა"
-        subtitle={formatDate(new Date())}
+        subtitle="სერვისის ოპერაციების მიმოხილვა"
         actions={
-          <div className="flex rounded-lg border bg-white p-0.5 dark:bg-neutral-900">
-            {RANGES.map((r) => (
-              <Link
-                key={r.key}
-                href={`/?range=${r.key}`}
-                className={cn(
-                  "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
-                  r.key === range ? "bg-sky-600 text-white" : "text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300",
-                )}
-              >
-                {r.label}
-              </Link>
-            ))}
+          <div className="flex items-center gap-3">
+            <span className="hidden text-sm text-muted-foreground md:inline">{formatDate(new Date())}</span>
+            <div className="flex rounded-xl border bg-white p-0.5 dark:bg-neutral-900">
+              {RANGES.map((r) => (
+                <Link
+                  key={r.key}
+                  href={`/?range=${r.key}`}
+                  className={cn(
+                    "rounded-lg px-3 py-1.5 font-heading text-[12.5px] font-medium uppercase tracking-wide transition-colors",
+                    r.key === range ? "bg-blue-600 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100 dark:text-neutral-300",
+                  )}
+                >
+                  {r.label}
+                </Link>
+              ))}
+            </div>
           </div>
         }
       />
 
-      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {stat.map((x) => (
           <Link key={x.label} href={x.href} className="group">
             <Card className="h-full transition-shadow group-hover:shadow-md">
-              <CardContent className="flex items-center gap-4 p-4">
-                <div className={cn("flex size-11 shrink-0 items-center justify-center rounded-full", x.tone)}>
-                  <x.icon className="size-5" />
+              <CardContent className="flex items-center gap-4 px-5 py-1">
+                <div className={cn("flex size-14 shrink-0 items-center justify-center rounded-full", x.tone)}>
+                  <x.icon className="size-6" />
                 </div>
-                <div>
+                <div className="min-w-0 flex-1">
                   <div className="text-sm text-muted-foreground">{x.label}</div>
-                  <div className="text-2xl font-semibold leading-tight">{x.value}</div>
+                  <div className="font-heading text-[28px] font-bold leading-tight">{x.value}</div>
                 </div>
+                {x.trend !== null && (
+                  <div className="shrink-0 border-l pl-3 text-right">
+                    <div className={cn("flex items-center justify-end gap-0.5 text-sm font-semibold", x.trend >= 0 ? "text-emerald-600" : "text-rose-600")}>
+                      {x.trend >= 0 ? <ArrowUpRight className="size-4" /> : <ArrowDownRight className="size-4" />}
+                      {Math.abs(x.trend)}%
+                    </div>
+                    <div className="whitespace-nowrap text-[10.5px] text-muted-foreground">{rangeDef.prevLabel}</div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </Link>
         ))}
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-4 xl:grid-cols-[1fr_1.15fr_1fr]">
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">შეკვეთები სტატუსებით</CardTitle>
+          <CardHeader className="pb-1">
+            <CardTitle>შეკვეთები სტატუსებით</CardTitle>
           </CardHeader>
           <CardContent>
-            {total === 0 ? (
-              <p className="py-10 text-center text-sm text-muted-foreground">ამ პერიოდში შეკვეთები არ არის</p>
-            ) : (
-              <StatusDonut data={donut} total={total} />
-            )}
+            {total === 0 ? <p className="py-10 text-center text-sm text-muted-foreground">ამ პერიოდში შეკვეთები არ არის</p> : <StatusDonut data={donut} total={total} />}
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">ბოლო 7 დღე</CardTitle>
+          <CardHeader className="pb-1">
+            <CardTitle>კვირის დინამიკა</CardTitle>
           </CardHeader>
           <CardContent>
             <WeeklyBars data={s.weekly} />
@@ -104,38 +126,35 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
         </Card>
 
         <Card>
-          <CardHeader className="flex-row items-center justify-between pb-2">
-            <CardTitle className="text-base">დღევანდელი ვადები</CardTitle>
-            <Link href="/orders?status=active" className="text-xs text-sky-600 hover:underline">
-              ყველა →
+          <CardHeader className="flex-row items-center justify-between pb-1">
+            <CardTitle>დღევანდელი განრიგი</CardTitle>
+            <Link href="/schedule" className="flex items-center gap-1 text-xs font-medium text-blue-600 hover:underline">
+              განრიგი <ArrowRight className="size-3" />
             </Link>
           </CardHeader>
           <CardContent className="space-y-2">
             {s.today.length === 0 && <p className="py-6 text-center text-sm text-muted-foreground">დღეს ვადა არცერთ შეკვეთას არ აქვს</p>}
             {s.today.map((o) => (
-              <Link
-                key={o.id}
-                href={`/orders/${o.id}`}
-                className="flex items-center gap-3 rounded-lg border p-2.5 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800"
-              >
+              <Link key={o.id} href={`/orders/${o.id}`} className="flex items-center gap-3 rounded-xl border p-2.5 transition-colors hover:bg-slate-50 dark:hover:bg-neutral-800">
+                <span className="h-9 w-1 shrink-0 rounded-full" style={{ background: STATUS_HEX[o.status] }} />
+                <div className="w-12 shrink-0 text-xs font-semibold text-slate-700">{o.scheduledAt ? timeOf(o.scheduledAt) : "—"}</div>
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-medium">{o.title}</div>
-                  <div className="truncate text-xs text-muted-foreground">
-                    {o.client?.name ?? "—"} · {o.assignees.map((a) => a.user.name).join(", ") || "დაუნიშნავი"}
-                  </div>
+                  <div className="truncate text-xs text-muted-foreground">{o.client?.name ?? "—"}</div>
                 </div>
-                <PriorityLabel priority={o.priority} />
+                <div className="hidden shrink-0 text-right text-xs text-muted-foreground sm:block">{o.assignees.map((a) => a.user.name.split(" ")[0]).join(", ") || "დაუნიშნავი"}</div>
+                <PriorityLabel priority={o.priority} className="hidden 2xl:inline-flex" />
               </Link>
             ))}
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
-          <CardHeader className="flex-row items-center justify-between pb-2">
-            <CardTitle className="text-base">ბოლო შეკვეთები</CardTitle>
-            <Link href="/orders" className="flex items-center gap-1 text-xs text-sky-600 hover:underline">
+      <div className="grid gap-4 xl:grid-cols-[2fr_1fr_1fr]">
+        <Card>
+          <CardHeader className="flex-row items-center justify-between pb-1">
+            <CardTitle>ბოლო შეკვეთები</CardTitle>
+            <Link href="/orders" className="flex items-center gap-1 text-xs font-medium text-blue-600 hover:underline">
               ყველა <ArrowRight className="size-3" />
             </Link>
           </CardHeader>
@@ -144,68 +163,111 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
           </CardContent>
         </Card>
 
-        <div className="space-y-4">
-          <Card>
-            <CardHeader className="flex-row items-center justify-between pb-2">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Mail className="size-4 text-sky-600" /> შემოსული წერილები
-              </CardTitle>
-              <Link href="/inbox" className="text-xs text-sky-600 hover:underline">
-                ყველა →
-              </Link>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {s.inbox.length === 0 && (
-                <p className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
-                  <Inbox className="size-4" /> დაუმუშავებელი წერილები არ არის
-                </p>
-              )}
-              {s.inbox.map((o) => (
-                <Link key={o.id} href={`/orders/${o.id}`} className="block rounded-lg border p-2.5 hover:bg-neutral-50 dark:hover:bg-neutral-800">
+        <Card>
+          <CardHeader className="flex-row items-center justify-between pb-1">
+            <CardTitle>შემოსული წერილები</CardTitle>
+            <Link href="/inbox" className="flex items-center gap-1 text-xs font-medium text-blue-600 hover:underline">
+              ყველა <ArrowRight className="size-3" />
+            </Link>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div className="flex items-start gap-3 rounded-xl bg-blue-50/70 p-3 dark:bg-blue-950/30">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white">
+                <Mail className="size-5" />
+              </div>
+              <div className="text-xs leading-snug">
+                <div className="font-semibold text-slate-800 dark:text-slate-100">მოთხოვნები Microsoft 365-დან</div>
+                <div className="text-muted-foreground">წერილები ავტომატურად ხდება შეკვეთა და აქ ჩნდება დასამუშავებლად.</div>
+              </div>
+            </div>
+            {s.inbox.length === 0 && (
+              <p className="flex items-center gap-2 py-3 text-sm text-muted-foreground">
+                <Inbox className="size-4" /> დაუმუშავებელი წერილები არ არის
+              </p>
+            )}
+            {s.inbox.map((o) => (
+              <Link key={o.id} href={`/orders/${o.id}`} className="flex items-start gap-2.5 rounded-lg px-1 py-1.5 hover:bg-slate-50 dark:hover:bg-neutral-800">
+                <Mail className="mt-0.5 size-4 shrink-0 text-slate-400" />
+                <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-medium">{o.emailSubject ?? o.title}</div>
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span className="truncate">{o.emailFrom}</span>
-                    <span>{formatDate(o.emailReceivedAt ?? o.createdAt, true)}</span>
-                  </div>
-                </Link>
-              ))}
-            </CardContent>
-          </Card>
+                  <div className="truncate text-xs text-muted-foreground">{o.emailFrom}</div>
+                </div>
+                <span className="shrink-0 text-[11px] text-muted-foreground">{timeOf(o.emailReceivedAt ?? o.createdAt)}</span>
+              </Link>
+            ))}
+          </CardContent>
+        </Card>
 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">თანხები</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-lg bg-emerald-50 p-3 dark:bg-emerald-950/30">
-                  <div className="text-xs text-emerald-700 dark:text-emerald-300">შემოსული ({RANGES.find((r) => r.key === range)?.label})</div>
-                  <div className="text-lg font-semibold text-emerald-800 dark:text-emerald-200">{formatMoney(s.money.paid)}</div>
+        <Card>
+          <CardHeader className="pb-1">
+            <CardTitle>თანხები</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-xl border bg-slate-50/60 p-3 dark:bg-neutral-800/40">
+                <div className="mb-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <span className="flex size-6 items-center justify-center rounded-md bg-emerald-100 text-emerald-700">₾</span> შემოსული
                 </div>
-                <div className="rounded-lg bg-rose-50 p-3 dark:bg-rose-950/30">
-                  <div className="text-xs text-rose-700 dark:text-rose-300">გადაუხდელი (სულ)</div>
-                  <div className="text-lg font-semibold text-rose-800 dark:text-rose-200">{formatMoney(s.money.unpaid)}</div>
-                </div>
+                <div className="font-heading text-lg font-bold">{formatMoney(s.money.paid)}</div>
+                <div className="text-[11px] text-muted-foreground">{rangeDef.label}</div>
               </div>
-              <div className="mt-3">
-                <div className="mb-1 flex justify-between text-xs text-muted-foreground">
-                  <span>გადახდილის წილი</span>
-                  <span>{paidPct}%</span>
+              <div className="rounded-xl border bg-slate-50/60 p-3 dark:bg-neutral-800/40">
+                <div className="mb-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <span className="flex size-6 items-center justify-center rounded-md bg-rose-100 text-rose-700">₾</span> გადაუხდელი
                 </div>
-                <div className="h-2 overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-800">
-                  <div className="h-full rounded-full bg-emerald-500" style={{ width: `${paidPct}%` }} />
-                </div>
+                <div className="font-heading text-lg font-bold">{formatMoney(s.money.unpaid)}</div>
+                <div className="text-[11px] text-muted-foreground">სულ</div>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+            <div className="mt-4">
+              <div className="mb-1.5 flex justify-between text-sm">
+                <span className="font-medium">გადახდის მაჩვენებელი</span>
+                <span className="font-semibold">{paidPct}%</span>
+              </div>
+              <div className="h-2.5 overflow-hidden rounded-full bg-slate-200 dark:bg-neutral-800">
+                <div className="h-full rounded-full bg-emerald-500" style={{ width: `${paidPct}%` }} />
+              </div>
+              <div className="mt-1 text-[11px] text-muted-foreground">
+                {formatMoney(s.money.paid)} მიღებულია / {formatMoney(collected)} სულ
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
-          <CardHeader className="flex-row items-center justify-between pb-2">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <MapPinned className="size-4 text-sky-600" /> აქტიური შეკვეთები რუკაზე
+      <div className="grid gap-4 xl:grid-cols-[1fr_1.4fr_1fr]">
+        <Card>
+          <CardHeader className="flex-row items-center justify-between pb-1">
+            <CardTitle>შემსრულებლების დატვირთვა</CardTitle>
+            <Link href="/settings/users" className="flex items-center gap-1 text-xs font-medium text-blue-600 hover:underline">
+              გუნდი <ArrowRight className="size-3" />
+            </Link>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {s.executorLoad.length === 0 && <p className="text-sm text-muted-foreground">შემსრულებლები არ არიან დამატებული</p>}
+            {s.executorLoad.map((e) => {
+              const pct = Math.min(100, Math.round((e.active / CAPACITY) * 100));
+              return (
+                <Link key={e.id} href={`/orders?assignee=${e.id}&status=active`} className="flex items-center gap-3">
+                  <UserAvatar name={e.name} image={e.image} size="md" />
+                  <div className="w-28 truncate text-sm font-medium">{e.name}</div>
+                  <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-slate-200 dark:bg-neutral-800">
+                    <div className={cn("h-full rounded-full bg-gradient-to-r", pct >= 90 ? "from-rose-500 to-orange-400" : "from-blue-500 to-teal-400")} style={{ width: `${pct}%` }} />
+                  </div>
+                  <div className="w-20 text-right text-xs text-muted-foreground">
+                    {e.active}/{CAPACITY}
+                  </div>
+                  <div className="w-10 text-right text-xs font-semibold">{pct}%</div>
+                </Link>
+              );
+            })}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex-row items-center justify-between pb-1">
+            <CardTitle className="flex items-center gap-2">
+              <MapPinned className="size-4 text-blue-600" /> აქტიური შეკვეთები რუკაზე
             </CardTitle>
             <span className="text-xs text-muted-foreground">{s.mapPoints.length} ობიექტი</span>
           </CardHeader>
@@ -214,7 +276,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
               <p className="py-8 text-center text-sm text-muted-foreground">ობიექტებს კოორდინატები არ აქვს. დაამატეთ ობიექტის ბარათზე.</p>
             ) : (
               <MapView
-                height={300}
+                height={260}
                 markers={s.mapPoints.map((p) => ({
                   id: p.id,
                   lat: p.lat,
@@ -227,16 +289,17 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
             )}
           </CardContent>
         </Card>
+
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <ShieldCheck className="size-4 text-emerald-600" /> გარანტია იწურება (30 დღე)
+          <CardHeader className="pb-1">
+            <CardTitle className="flex items-center gap-2">
+              <ShieldCheck className="size-4 text-emerald-600" /> გარანტია იწურება
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             {s.warranty.length === 0 && <p className="py-6 text-center text-sm text-muted-foreground">უახლოეს 30 დღეში გარანტია არ იწურება</p>}
             {s.warranty.map((o) => (
-              <Link key={o.id} href={`/orders/${o.id}`} className="block rounded-lg border p-2.5 hover:bg-neutral-50 dark:hover:bg-neutral-800">
+              <Link key={o.id} href={`/orders/${o.id}`} className="block rounded-xl border p-2.5 hover:bg-slate-50 dark:hover:bg-neutral-800">
                 <div className="truncate text-sm font-medium">{o.title}</div>
                 <div className="flex justify-between text-xs text-muted-foreground">
                   <span className="truncate">{o.client?.name ?? o.number}</span>
@@ -248,37 +311,10 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
         </Card>
       </div>
 
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">შემსრულებლების დატვირთვა</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {s.executorLoad.length === 0 ? (
-            <p className="text-sm text-muted-foreground">შემსრულებლები არ არიან დამატებული</p>
-          ) : (
-            <div className="grid gap-x-8 gap-y-3 md:grid-cols-2">
-              {s.executorLoad.map((e) => (
-                <Link key={e.id} href={`/orders?assignee=${e.id}&status=active`} className="flex items-center gap-3">
-                  <UserAvatar name={e.name} image={e.image} size="md" />
-                  <div className="w-36 truncate text-sm font-medium">{e.name}</div>
-                  <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-800">
-                    <div
-                      className={cn("h-full rounded-full", e.active >= 5 ? "bg-rose-500" : e.active >= 3 ? "bg-amber-500" : "bg-sky-500")}
-                      style={{ width: `${Math.round((e.active / s.maxLoad) * 100)}%` }}
-                    />
-                  </div>
-                  <div className="w-24 text-right text-xs text-muted-foreground">{e.active} აქტიური</div>
-                </Link>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
       {s.overdue.length > 0 && (
-        <Card className="border-rose-200 dark:border-rose-900">
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-base text-rose-700 dark:text-rose-300">
+        <Card className="ring-rose-200 dark:ring-rose-900">
+          <CardHeader className="pb-1">
+            <CardTitle className="flex items-center gap-2 text-rose-700 dark:text-rose-300">
               <AlertTriangle className="size-4" /> ვადაგადაცილებული შეკვეთები
             </CardTitle>
           </CardHeader>
@@ -287,9 +323,6 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
           </CardContent>
         </Card>
       )}
-      <span className="hidden">
-        <StatusBadge status="new" />
-      </span>
     </div>
   );
 }

@@ -56,7 +56,7 @@ export default async function ClientPage({ params }: PageProps<"/clients/[id]">)
                 <Trash2 className="size-3.5" /> {t.common.delete}
               </ConfirmButton>
             )}
-            <Button render={<Link href={`/orders/new?client=${client.id}`} />} size="sm" className="bg-sky-600 hover:bg-sky-700">
+            <Button render={<Link href={`/orders/new?client=${client.id}`} />} size="sm">
               <Plus className="size-4" /> {t.order.new}
             </Button>
           </>

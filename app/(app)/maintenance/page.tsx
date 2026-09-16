@@ -130,7 +130,7 @@ export default async function MaintenancePage() {
       </div>
       <p className="mt-3 text-xs text-muted-foreground">
         ავტომატური გენერაცია: cron ყოველდღე იძახებს <code>/api/cron/schedules</code>-ს. გრაფიკით შექმნილი შეკვეთები{" "}
-        <Link href="/orders?status=all" className="text-sky-600 hover:underline">
+        <Link href="/orders?status=all" className="text-blue-600 hover:underline">
           შეკვეთებში
         </Link>{" "}
         ჩანს წყაროთი „გრაფიკი“.

@@ -63,7 +63,7 @@ export function StatusActions({ orderId, status, role }: { orderId: number; stat
           size="sm"
           disabled={pending}
           variant={a.variant ?? "default"}
-          className={a.primary ? "bg-sky-600 hover:bg-sky-700" : undefined}
+          className={a.primary ? "bg-blue-600 hover:bg-blue-700" : undefined}
           onClick={() => run(a.to)}
         >
           <a.icon className="size-3.5" /> {a.label}

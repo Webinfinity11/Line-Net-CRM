@@ -46,7 +46,7 @@ export default async function ClientsPage({ searchParams }: PageProps<"/clients"
             </Button>
             <ImportClientsDialog />
           <FormDialog
-            trigger={<Button className="bg-sky-600 hover:bg-sky-700" />}
+            trigger={<Button />}
             triggerLabel={
               <>
                 <Plus className="size-4" /> ახალი კლიენტი
@@ -66,7 +66,7 @@ export default async function ClientsPage({ searchParams }: PageProps<"/clients"
           name="q"
           defaultValue={q}
           placeholder="ძებნა კლიენტებში..."
-          className="h-9 w-full max-w-sm rounded-lg border bg-white px-3 text-sm outline-none focus:border-sky-500 dark:bg-neutral-900"
+          className="h-9 w-full max-w-sm rounded-lg border bg-white px-3 text-sm outline-none focus:border-blue-500 dark:bg-neutral-900"
         />
       </form>
       <div className="overflow-x-auto rounded-xl border bg-white dark:bg-neutral-900">
@@ -92,7 +92,7 @@ export default async function ClientsPage({ searchParams }: PageProps<"/clients"
             {rows.map((c) => (
               <tr key={c.id} className="border-b last:border-0 hover:bg-neutral-50 dark:hover:bg-neutral-800/60">
                 <td className="px-4 py-2.5">
-                  <Link href={`/clients/${c.id}`} className="font-medium hover:text-sky-700">
+                  <Link href={`/clients/${c.id}`} className="font-medium hover:text-blue-700">
                     {c.name}
                   </Link>
                 </td>

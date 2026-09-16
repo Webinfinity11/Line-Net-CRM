@@ -32,7 +32,7 @@ export function OrderFilters({
           name="q"
           defaultValue={values.q}
           placeholder={t.common.search}
-          className="h-8 w-full rounded-lg border bg-neutral-50 pl-8 pr-3 text-sm outline-none focus:border-sky-500 dark:bg-neutral-800"
+          className="h-8 w-full rounded-lg border bg-neutral-50 pl-8 pr-3 text-sm outline-none focus:border-blue-500 dark:bg-neutral-800"
         />
       </div>
       {values.view !== "kanban" && (

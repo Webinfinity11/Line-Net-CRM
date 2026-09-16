@@ -49,8 +49,8 @@ export function Comments({ orderId, comments, meId }: { orderId: number; comment
             return (
               <div key={c.id} className={cn("flex gap-2.5", mine && "flex-row-reverse")}>
                 <UserAvatar name={c.user?.name ?? "?"} image={c.user?.image} size="md" />
-                <div className={cn("max-w-[85%] rounded-xl px-3 py-2 text-sm", mine ? "bg-sky-600 text-white" : "bg-neutral-100 dark:bg-neutral-800")}>
-                  <div className={cn("mb-0.5 text-[11px]", mine ? "text-sky-100" : "text-muted-foreground")}>
+                <div className={cn("max-w-[85%] rounded-xl px-3 py-2 text-sm", mine ? "bg-blue-600 text-white" : "bg-neutral-100 dark:bg-neutral-800")}>
+                  <div className={cn("mb-0.5 text-[11px]", mine ? "text-blue-100" : "text-muted-foreground")}>
                     {c.user?.name ?? "—"} · {formatDate(c.createdAt, true)}
                   </div>
                   <div className="whitespace-pre-wrap">{c.body}</div>
@@ -69,7 +69,7 @@ export function Comments({ orderId, comments, meId }: { orderId: number; comment
               if ((e.metaKey || e.ctrlKey) && e.key === "Enter") submit(e);
             }}
           />
-          <Button type="submit" size="icon" className="self-end bg-sky-600 hover:bg-sky-700" disabled={pending} aria-label="გაგზავნა">
+          <Button type="submit" size="icon" className="self-end" disabled={pending} aria-label="გაგზავნა">
             <Send className="size-4" />
           </Button>
         </form>

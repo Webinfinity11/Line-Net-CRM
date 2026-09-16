@@ -31,13 +31,13 @@ export default async function NotificationsPage() {
                 </div>
                 {n.body && <div className="mt-0.5 text-sm text-neutral-600 dark:text-neutral-300">{n.body}</div>}
                 {n.order && (
-                  <div className="mt-1 text-xs text-sky-700">
+                  <div className="mt-1 text-xs text-blue-700">
                     {n.order.number} · {n.order.title}
                   </div>
                 )}
               </>
             );
-            const cls = cn("block rounded-lg border bg-white p-3 dark:bg-neutral-900", !n.readAt && "border-sky-300 bg-sky-50/60 dark:bg-sky-950/20");
+            const cls = cn("block rounded-lg border bg-white p-3 dark:bg-neutral-900", !n.readAt && "border-blue-300 bg-blue-50/60 dark:bg-blue-950/20");
             return (
               <li key={n.id}>
                 {n.orderId ? (

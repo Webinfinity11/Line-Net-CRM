@@ -60,17 +60,17 @@ export default async function OrdersPage({ searchParams }: PageProps<"/orders">)
         actions={
           <>
             <div className="flex rounded-lg border bg-white p-0.5 dark:bg-neutral-900">
-              <Link href={listHref} className={cn("rounded-md p-1.5", view === "list" ? "bg-sky-600 text-white" : "text-neutral-500 hover:bg-neutral-100")} title="სია">
+              <Link href={listHref} className={cn("rounded-md p-1.5", view === "list" ? "bg-blue-600 text-white" : "text-neutral-500 hover:bg-neutral-100")} title="სია">
                 <List className="size-4" />
               </Link>
-              <Link href={kanbanHref} className={cn("rounded-md p-1.5", view === "kanban" ? "bg-sky-600 text-white" : "text-neutral-500 hover:bg-neutral-100")} title="Kanban">
+              <Link href={kanbanHref} className={cn("rounded-md p-1.5", view === "kanban" ? "bg-blue-600 text-white" : "text-neutral-500 hover:bg-neutral-100")} title="Kanban">
                 <LayoutGrid className="size-4" />
               </Link>
             </div>
             <Button render={<a href="/api/export?type=orders&all=1" />} variant="outline" title="ყველა შეკვეთა Excel-ად">
               <Download className="size-4" /> Excel
             </Button>
-            <Button render={<Link href="/orders/new" />} className="bg-sky-600 hover:bg-sky-700">
+            <Button render={<Link href="/orders/new" />}>
               <Plus className="size-4" /> {t.order.new}
             </Button>
           </>

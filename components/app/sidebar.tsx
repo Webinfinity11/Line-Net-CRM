@@ -31,10 +31,10 @@ export function NavLinks({
             href={item.href}
             onClick={onNavigate}
             className={cn(
-              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+              "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
               active
-                ? "bg-sky-600 text-white shadow-sm shadow-sky-600/30"
-                : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800",
+                ? "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-200"
+                : "text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-neutral-300 dark:hover:bg-neutral-800",
             )}
           >
             <Icon className="size-4 shrink-0" />
@@ -43,7 +43,7 @@ export function NavLinks({
               <span
                 className={cn(
                   "rounded-full px-1.5 py-0.5 text-[11px] font-semibold leading-none",
-                  active ? "bg-white/20 text-white" : "bg-rose-500 text-white",
+                  active ? "bg-blue-600 text-white" : "bg-rose-500 text-white",
                 )}
               >
                 {item.badge}
@@ -59,11 +59,11 @@ export function NavLinks({
 export function Sidebar(props: { user: SessionUser; inboxCount: number; unseenCount: number }) {
   return (
     <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r bg-white dark:bg-neutral-900 md:flex">
-      <div className="flex h-16 items-center gap-2.5 border-b px-5">
-        <div className="flex size-8 items-center justify-center rounded-lg bg-sky-600 text-sm font-bold text-white">LN</div>
+      <div className="flex h-16 items-center gap-2.5 px-5">
+        <div className="flex size-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-400 font-heading text-sm font-bold text-white shadow-sm shadow-blue-500/30">LN</div>
         <div className="leading-tight">
-          <div className="text-sm font-semibold">{t.appName}</div>
-          <div className="text-[11px] text-muted-foreground">შეკვეთების მართვა</div>
+          <div className="font-heading text-[15px] font-bold text-blue-700">{t.appName}</div>
+          <div className="whitespace-nowrap text-[11px] text-muted-foreground">სერვისის მართვა</div>
         </div>
       </div>
       <div className="flex-1 overflow-y-auto p-3">

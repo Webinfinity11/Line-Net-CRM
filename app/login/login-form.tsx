@@ -29,7 +29,7 @@ export function LoginForm({ next, microsoft }: { next: string; microsoft: boolea
   }
 
   return (
-    <Card className="shadow-xl shadow-sky-900/5">
+    <Card className="shadow-xl shadow-blue-900/5">
       <CardContent className="pt-6">
         <form onSubmit={submit} className="space-y-4">
           <div className="space-y-1.5">

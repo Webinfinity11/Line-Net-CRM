@@ -62,7 +62,7 @@ export default async function SchedulePage({ searchParams }: PageProps<"/schedul
   const Item = ({ o }: { o: (typeof dayOrders)[number] }) => (
     <Link href={`/orders/${o.id}`} className="block rounded-lg border bg-white p-2.5 text-sm shadow-sm hover:shadow-md dark:bg-neutral-800">
       <div className="mb-1 flex items-center justify-between">
-        <span className="font-semibold text-sky-700">{o.scheduledAt ? timeLabel(o.scheduledAt) : "—"}</span>
+        <span className="font-semibold text-blue-700">{o.scheduledAt ? timeLabel(o.scheduledAt) : "—"}</span>
         <StatusBadge status={o.status} className="px-1.5 py-0 text-[10px]" />
       </div>
       <div className="line-clamp-2 font-medium leading-snug">{o.title}</div>
@@ -87,7 +87,7 @@ export default async function SchedulePage({ searchParams }: PageProps<"/schedul
             <Link href={`/schedule?date=${shift(day, -1)}`} className="rounded-lg border bg-white p-1.5 hover:bg-neutral-50 dark:bg-neutral-900" aria-label="წინა დღე">
               <ChevronLeft className="size-4" />
             </Link>
-            <Link href="/schedule" className={cn("rounded-lg border px-3 py-1.5 text-sm", day === today ? "bg-sky-600 text-white" : "bg-white hover:bg-neutral-50 dark:bg-neutral-900")}>
+            <Link href="/schedule" className={cn("rounded-lg border px-3 py-1.5 text-sm", day === today ? "bg-blue-600 text-white" : "bg-white hover:bg-neutral-50 dark:bg-neutral-900")}>
               დღეს
             </Link>
             <Link href={`/schedule?date=${shift(day, 1)}`} className="rounded-lg border bg-white p-1.5 hover:bg-neutral-50 dark:bg-neutral-900" aria-label="შემდეგი დღე">
@@ -106,7 +106,7 @@ export default async function SchedulePage({ searchParams }: PageProps<"/schedul
               href={`/schedule?date=${w}`}
               className={cn(
                 "min-w-[84px] flex-1 rounded-lg border px-2 py-1.5 text-center text-xs",
-                w === day ? "border-sky-600 bg-sky-600 text-white" : w === today ? "border-sky-300 bg-white dark:bg-neutral-900" : "bg-white hover:bg-neutral-50 dark:bg-neutral-900",
+                w === day ? "border-blue-600 bg-blue-600 text-white" : w === today ? "border-blue-300 bg-white dark:bg-neutral-900" : "bg-white hover:bg-neutral-50 dark:bg-neutral-900",
               )}
             >
               <div className="opacity-80">{DAY_NAMES[wd.getUTCDay()].slice(0, 3)}</div>

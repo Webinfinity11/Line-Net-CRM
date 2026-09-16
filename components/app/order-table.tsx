@@ -12,9 +12,9 @@ export function OrderTable({ orders, compact = false, showMoney = true }: { orde
   }
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-sm">
+      <table className="ln-table w-full text-sm">
         <thead>
-          <tr className="border-b text-left text-xs text-muted-foreground">
+          <tr className="border-b text-left">
             <th className="px-4 py-2.5 font-medium">{t.order.number}</th>
             <th className="px-3 py-2.5 font-medium">{t.order.title}</th>
             <th className="px-3 py-2.5 font-medium">{t.order.client}</th>
@@ -38,7 +38,7 @@ export function OrderTable({ orders, compact = false, showMoney = true }: { orde
                 </td>
                 <td className="max-w-[320px] px-3 py-2.5">
                   <Link href={`/orders/${o.id}`} className="block">
-                    <div className="truncate font-medium group-hover:text-sky-700">{o.title}</div>
+                    <div className="truncate font-medium group-hover:text-blue-700">{o.title}</div>
                     <div className="mt-0.5 flex flex-wrap gap-1">
                       {compact && <TypeBadge type={o.type} className="px-1.5 py-0 text-[10px]" />}
                       <SystemBadge system={o.systemType} className="px-1.5 py-0 text-[10px]" />

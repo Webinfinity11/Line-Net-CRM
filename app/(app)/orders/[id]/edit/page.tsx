@@ -25,8 +25,8 @@ export default async function EditOrderPage({ params }: PageProps<"/orders/[id]/
         subtitle={!order.triaged ? "შემოსული წერილი: შეავსეთ კლიენტი, ობიექტი და დანიშნეთ შემსრულებელი" : order.title}
       />
       {!order.triaged && order.description && (
-        <div className="mb-4 rounded-xl border border-sky-200 bg-sky-50 p-4 text-sm dark:border-sky-900 dark:bg-sky-950/30">
-          <div className="mb-1 text-xs font-medium text-sky-700 dark:text-sky-300">
+        <div className="mb-4 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm dark:border-blue-900 dark:bg-blue-950/30">
+          <div className="mb-1 text-xs font-medium text-blue-700 dark:text-blue-300">
             წერილი: {order.emailFrom} · {order.emailSubject}
           </div>
           <pre className="max-h-48 overflow-auto whitespace-pre-wrap font-sans text-neutral-700 dark:text-neutral-300">{order.description}</pre>

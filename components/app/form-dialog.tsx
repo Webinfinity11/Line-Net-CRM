@@ -63,7 +63,7 @@ export function FormDialog({
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               {t.common.cancel}
             </Button>
-            <Button type="submit" className="bg-sky-600 hover:bg-sky-700" disabled={pending}>
+            <Button type="submit" disabled={pending}>
               {pending ? "ინახება..." : submitLabel}
             </Button>
           </div>

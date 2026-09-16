@@ -39,7 +39,7 @@ export function UserFields({ initial }: { initial?: Partial<User> }) {
         <div className="grid grid-cols-2 gap-1.5 rounded-lg border p-2 text-sm">
           {SYSTEM_ORDER.map((k) => (
             <label key={k} className="flex cursor-pointer items-center gap-2">
-              <input type="checkbox" name="specializations" value={k} defaultChecked={initial?.specializations?.includes(k)} className="accent-sky-600" />
+              <input type="checkbox" name="specializations" value={k} defaultChecked={initial?.specializations?.includes(k)} className="accent-blue-600" />
               {SYSTEM_LABELS[k]}
             </label>
           ))}

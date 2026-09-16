@@ -172,12 +172,22 @@ export async function getUnseenAssignmentCount(userId: string) {
 // Dashboard
 // ---------------------------------------------------------------------------
 
+function previousRange(range: DateRange): { start: Date; end: Date } | null {
+  const start = rangeStart(range);
+  if (!start) return null;
+  const days = range === "today" ? 1 : range === "week" ? 7 : 30;
+  const prevStart = new Date(start);
+  prevStart.setDate(prevStart.getDate() - days);
+  return { start: prevStart, end: start };
+}
+
 export async function getDashboardStats(range: DateRange = "week") {
   const start = rangeStart(range);
+  const prev = previousRange(range);
   const rangeWhere = start ? gte(orders.createdAt, start) : undefined;
   const notInbox = eq(orders.triaged, true);
 
-  const [byStatusRows, createdRow, completedRow, overdueList, loadRows, users, paidRow, unpaidRow, recent, inbox, todayList, weekly, warranty, mapPoints] =
+  const [byStatusRows, createdRow, completedRow, overdueList, loadRows, users, paidRow, unpaidRow, recent, inbox, todayList, weekly, prevRow, warranty, mapPoints] =
     await Promise.all([
       db
         .select({ status: orders.status, n: count() })
@@ -214,6 +224,15 @@ export async function getDashboardStats(range: DateRange = "week") {
         limit: 10,
       }),
       getWeeklySeries(),
+      prev
+        ? db
+            .select({
+              created: sql<number>`count(*)`.mapWith(Number),
+              completed: sql<number>`count(*) filter (where ${orders.completedAt} >= ${prev.start} and ${orders.completedAt} < ${prev.end})`.mapWith(Number),
+            })
+            .from(orders)
+            .where(and(notInbox, gte(orders.createdAt, prev.start), lt(orders.createdAt, prev.end)))
+        : Promise.resolve([{ created: 0, completed: 0 }]),
       db.query.orders.findMany({
         where: and(notInbox, sql`${orders.warrantyUntil} between current_date and current_date + 30`),
         columns: { id: true, number: true, title: true, warrantyUntil: true },
@@ -263,6 +282,7 @@ export async function getDashboardStats(range: DateRange = "week") {
     inbox,
     today: todayList,
     weekly,
+    previous: { created: prevRow[0]?.created ?? 0, completed: prevRow[0]?.completed ?? 0 },
     warranty,
     mapPoints: mapPoints.map((p) => ({ ...p, lat: Number(p.lat), lng: Number(p.lng) })),
   };

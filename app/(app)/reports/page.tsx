@@ -43,7 +43,7 @@ export default async function ReportsPage({ searchParams }: PageProps<"/reports"
             <input type="date" name="from" defaultValue={p.from} className="h-8 rounded-lg border bg-white px-2 dark:bg-neutral-900" />
             <span className="text-muted-foreground">—</span>
             <input type="date" name="to" defaultValue={p.to} className="h-8 rounded-lg border bg-white px-2 dark:bg-neutral-900" />
-            <button type="submit" className="h-8 rounded-lg bg-sky-600 px-3 text-sm font-medium text-white hover:bg-sky-700">
+            <button type="submit" className="h-8 rounded-lg bg-blue-600 px-3 text-sm font-medium text-white hover:bg-blue-700">
               ჩვენება
             </button>
             <ExportLink type="orders" p={p} label="შეკვეთები Excel" />

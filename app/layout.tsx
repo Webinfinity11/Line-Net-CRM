@@ -1,12 +1,24 @@
 import type { Metadata } from "next";
 import { Noto_Sans_Georgian } from "next/font/google";
+import localFont from "next/font/local";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
-const font = Noto_Sans_Georgian({
+const body = Noto_Sans_Georgian({
   variable: "--font-sans",
   subsets: ["georgian", "latin"],
   weight: ["400", "500", "600", "700"],
+});
+
+const firago = localFont({
+  variable: "--font-firago",
+  display: "swap",
+  src: [
+    { path: "./fonts/FiraGO-Regular.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/FiraGO-Medium.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/FiraGO-SemiBold.woff2", weight: "600", style: "normal" },
+    { path: "./fonts/FiraGO-Bold.woff2", weight: "700", style: "normal" },
+  ],
 });
 
 export const metadata: Metadata = {
@@ -16,7 +28,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="ka" className={`${font.variable} h-full antialiased`} suppressHydrationWarning>
+    <html lang="ka" className={`${body.variable} ${firago.variable} h-full antialiased`} suppressHydrationWarning>
       <body className="min-h-full flex flex-col bg-background text-foreground font-sans">
         {children}
         <Toaster richColors position="top-right" />

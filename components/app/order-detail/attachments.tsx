@@ -77,7 +77,7 @@ export function Attachments({ orderId, attachments, canDelete }: { orderId: numb
                       </span>
                     )}
                     <span className="min-w-0">
-                      <span className="block truncate text-sm font-medium hover:text-sky-700">{a.fileName}</span>
+                      <span className="block truncate text-sm font-medium hover:text-blue-700">{a.fileName}</span>
                       <span className="block text-xs text-muted-foreground">
                         {fmtSize(a.size)} · {formatDate(a.createdAt)}
                       </span>

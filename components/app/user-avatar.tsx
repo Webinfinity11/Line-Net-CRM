@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-const PALETTE = ["bg-sky-500", "bg-violet-500", "bg-emerald-500", "bg-amber-500", "bg-rose-500", "bg-teal-500", "bg-indigo-500"];
+const PALETTE = ["bg-blue-500", "bg-violet-500", "bg-emerald-500", "bg-amber-500", "bg-rose-500", "bg-teal-500", "bg-indigo-500"];
 
 export function initials(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean);

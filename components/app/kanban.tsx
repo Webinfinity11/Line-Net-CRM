@@ -52,7 +52,7 @@ export function Kanban({ orders }: { orders: OrderListItem[] }) {
             onDrop={() => drop(status)}
             className={cn(
               "flex w-72 shrink-0 flex-col rounded-xl border bg-neutral-100/70 transition-colors dark:bg-neutral-900",
-              overCol === status && dragId !== null && "border-sky-400 bg-sky-50 dark:bg-sky-950/30",
+              overCol === status && dragId !== null && "border-blue-400 bg-blue-50 dark:bg-blue-950/30",
             )}
           >
             <div className="flex items-center gap-2 px-3 py-2.5">

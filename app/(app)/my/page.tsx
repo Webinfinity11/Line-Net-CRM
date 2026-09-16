@@ -25,7 +25,7 @@ function Group({ title, items, meId }: { title: string; items: OrderListItem[]; 
             href={`/orders/${o.id}`}
             className={cn(
               "block rounded-xl border bg-white p-4 transition-shadow hover:shadow-md dark:bg-neutral-900",
-              unseen && "border-sky-400 ring-2 ring-sky-100 dark:ring-sky-900",
+              unseen && "border-blue-400 ring-2 ring-blue-100 dark:ring-blue-900",
             )}
           >
             <div className="mb-1 flex flex-wrap items-center gap-2">
@@ -33,7 +33,7 @@ function Group({ title, items, meId }: { title: string; items: OrderListItem[]; 
               <StatusBadge status={o.status} />
               <TypeBadge type={o.type} />
               {overdue && <OverdueBadge />}
-              {unseen && <span className="rounded-md bg-sky-600 px-2 py-0.5 text-xs font-medium text-white">ახალი</span>}
+              {unseen && <span className="rounded-md bg-blue-600 px-2 py-0.5 text-xs font-medium text-white">ახალი</span>}
             </div>
             <div className="text-base font-medium leading-snug">{o.title}</div>
             <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">

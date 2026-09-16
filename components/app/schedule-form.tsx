@@ -105,7 +105,7 @@ export function ScheduleFields({
         <div className="max-h-40 space-y-1 overflow-y-auto rounded-lg border p-2">
           {users.map((u) => (
             <label key={u.id} className="flex cursor-pointer items-center gap-2 text-sm">
-              <input type="checkbox" name="assigneeIds" value={u.id} defaultChecked={initial?.assigneeIds?.includes(u.id)} className="accent-sky-600" />
+              <input type="checkbox" name="assigneeIds" value={u.id} defaultChecked={initial?.assigneeIds?.includes(u.id)} className="accent-blue-600" />
               <UserAvatar name={u.name} image={u.image} />
               {u.name}
               {u.specializations?.includes(system) && <span className="text-[11px] text-emerald-600">სპეც.</span>}

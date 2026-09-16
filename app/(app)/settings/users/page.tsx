@@ -25,7 +25,7 @@ export default async function UsersPage() {
         subtitle={`${users.length} მომხმარებელი · ადმინი, მენეჯერი, შემსრულებელი`}
         actions={
           <FormDialog
-            trigger={<Button className="bg-sky-600 hover:bg-sky-700" />}
+            trigger={<Button />}
             triggerLabel={
               <>
                 <Plus className="size-4" /> ახალი მომხმარებელი

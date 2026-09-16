@@ -70,7 +70,7 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
             <SystemBadge system={order.systemType} />
             <PriorityLabel priority={order.priority} />
             {overdue && <OverdueBadge />}
-            {!order.triaged && <span className="rounded-md bg-sky-600 px-2 py-0.5 text-xs font-medium text-white">შემოსული წერილი</span>}
+            {!order.triaged && <span className="rounded-md bg-blue-600 px-2 py-0.5 text-xs font-medium text-white">შემოსული წერილი</span>}
           </div>
           <h1 className="text-xl font-semibold leading-snug md:text-2xl">{order.title}</h1>
         </div>
@@ -107,7 +107,7 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
             </CardHeader>
             <CardContent>
               {order.source === "email" && (
-                <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg bg-sky-50 px-3 py-2 text-xs text-sky-800 dark:bg-sky-950/30 dark:text-sky-200">
+                <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg bg-blue-50 px-3 py-2 text-xs text-blue-800 dark:bg-blue-950/30 dark:text-blue-200">
                   <span className="flex items-center gap-1">
                     <Mail className="size-3.5" /> {order.emailFrom}
                   </span>
@@ -162,7 +162,7 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
                   <div className="text-xs text-muted-foreground">{t.order.client}</div>
                   {order.client ? (
                     staff ? (
-                      <Link href={`/clients/${order.client.id}`} className="font-medium hover:text-sky-700">
+                      <Link href={`/clients/${order.client.id}`} className="font-medium hover:text-blue-700">
                         {order.client.name}
                       </Link>
                     ) : (
@@ -173,7 +173,7 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
                   )}
                   {order.client?.contactName && <div className="text-xs text-muted-foreground">{order.client.contactName}</div>}
                   {order.client?.phone && (
-                    <a href={`tel:${order.client.phone}`} className="flex items-center gap-1 text-xs text-sky-700">
+                    <a href={`tel:${order.client.phone}`} className="flex items-center gap-1 text-xs text-blue-700">
                       <Phone className="size-3" /> {order.client.phone}
                     </a>
                   )}
@@ -189,7 +189,7 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
                       href={`https://maps.google.com/?q=${siteCoords ? `${siteCoords.lat},${siteCoords.lng}` : encodeURIComponent(order.address ?? order.site?.address ?? "")}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-xs text-sky-700 hover:underline"
+                      className="text-xs text-blue-700 hover:underline"
                     >
                       {order.address ?? order.site?.address}
                     </a>
@@ -268,7 +268,7 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm font-medium">{a.user.name}</div>
                     {a.user.phone && (
-                      <a href={`tel:${a.user.phone}`} className="text-xs text-muted-foreground hover:text-sky-700">
+                      <a href={`tel:${a.user.phone}`} className="text-xs text-muted-foreground hover:text-blue-700">
                         {a.user.phone}
                       </a>
                     )}

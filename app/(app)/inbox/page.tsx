@@ -39,11 +39,11 @@ export default async function InboxPage() {
         <div className="space-y-2">
           {items.map((o) => (
             <div key={o.id} className="flex flex-wrap items-start gap-3 rounded-xl border bg-white p-4 dark:bg-neutral-900">
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-sky-100 text-sky-700 dark:bg-sky-950/40">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-700 dark:bg-blue-950/40">
                 <Mail className="size-5" />
               </div>
               <div className="min-w-0 flex-1">
-                <Link href={`/orders/${o.id}`} className="block truncate text-base font-medium hover:text-sky-700">
+                <Link href={`/orders/${o.id}`} className="block truncate text-base font-medium hover:text-blue-700">
                   {o.emailSubject ?? o.title}
                 </Link>
                 <div className="flex flex-wrap gap-x-3 text-xs text-muted-foreground">
@@ -58,7 +58,7 @@ export default async function InboxPage() {
                 {o.description && <p className="mt-1.5 line-clamp-2 text-sm text-neutral-600 dark:text-neutral-300">{o.description}</p>}
               </div>
               <div className="flex shrink-0 gap-2">
-                <Button render={<Link href={`/orders/${o.id}/edit`} />} size="sm" className="bg-sky-600 hover:bg-sky-700">
+                <Button render={<Link href={`/orders/${o.id}/edit`} />} size="sm">
                   დამუშავება
                 </Button>
                 <ConfirmButton
