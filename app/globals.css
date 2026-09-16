@@ -205,8 +205,13 @@ body {
 h1, h2, h3, h4, .font-heading {
   font-family: var(--font-firago), var(--font-sans);
 }
+/* headings in FiraGO Mtavruli (TT), like the buttons */
+h1, h2, h3, [data-slot="card-title"], [data-slot="dialog-title"], [data-slot="sheet-title"] {
+  font-family: var(--font-firago), var(--font-sans);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
 h1, h2, h3 {
-  letter-spacing: -0.01em;
   color: var(--foreground);
 }
 .ln-table thead th {

@@ -9,6 +9,7 @@ import { ConfirmButton } from "@/components/app/confirm-button";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/i18n";
 import type { MailSyncState } from "@/lib/graph-mail";
+import { toMtavruli } from "@/lib/mtavruli";
 
 export function MailSyncStatus({ state, canManage }: { state: MailSyncState; canManage: boolean }) {
   const router = useRouter();
@@ -24,7 +25,7 @@ export function MailSyncStatus({ state, canManage }: { state: MailSyncState; can
       <div className="mb-5 rounded-xl border bg-white p-4 dark:bg-neutral-900">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-2xl space-y-1.5">
-            <h2 className="flex items-center gap-2 text-sm font-medium"><Mail className="size-4 text-blue-600" /> Outlook ფოსტა</h2>
+            <h2 className="flex items-center gap-2 text-sm font-medium"><Mail className="size-4 text-blue-600" /> {toMtavruli('Outlook ფოსტა')}</h2>
             <p className="text-sm text-muted-foreground">შეგიძლიათ გამოიყენოთ უფასო Outlook.com ან Hotmail ფოსტა — Microsoft 365-ის ფასიანი გამოწერა საჭირო არ არის.</p>
             <p className="text-xs text-muted-foreground">პირველად დაკავშირების შემდეგ მიღებული წერილები შეიქმნება დაუმუშავებელ შეკვეთებად და ხელმისაწვდომი იქნება CRM-ის ადმინისტრატორებისა და მენეჯერებისთვის.</p>
           </div>

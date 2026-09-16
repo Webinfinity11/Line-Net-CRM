@@ -15,6 +15,7 @@ import { tbilisiToday } from "@/lib/schedule-utils";
 import { isStaff, requireUser } from "@/lib/session";
 import { getWorkHoursPerDay } from "@/lib/settings";
 import { cn } from "@/lib/utils";
+import { toMtavruli } from "@/lib/mtavruli";
 
 export const metadata = { title: "დაფა" };
 
@@ -116,19 +117,19 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
       <div className="ln-stagger grid gap-[18px] lg:grid-cols-3">
         <section className="rounded-xl border border-border bg-white p-[18px]" aria-label="შეკვეთები სტატუსებით">
           <h3 className="mb-3 font-heading text-[13px] font-medium">
-            შეკვეთები სტატუსებით <span className="text-[11px] font-normal text-[#748197]">{rangeDef.period}</span>
+            {toMtavruli('შეკვეთები სტატუსებით')} <span className="text-[11px] font-normal text-[#748197]">{rangeDef.period}</span>
           </h3>
           {donutTotal === 0 ? <p className="py-6 text-center text-[12px] text-muted-foreground">ამ პერიოდში შეკვეთა არ არის</p> : <StatusDonut data={donut} total={donutTotal} />}
         </section>
         <section className="rounded-xl border border-border bg-white p-[18px]" aria-label="კვირის დინამიკა">
           <h3 className="mb-3 font-heading text-[13px] font-medium">
-            კვირის დინამიკა <span className="text-[11px] font-normal text-[#748197]">ბოლო 7 დღე</span>
+            {toMtavruli('კვირის დინამიკა')} <span className="text-[11px] font-normal text-[#748197]">{toMtavruli('ბოლო 7 დღე')}</span>
           </h3>
           <WeeklyBars data={s.weekly} />
         </section>
         <section className="rounded-xl border border-border bg-white p-[18px]" aria-label="თანხები">
           <div className="mb-3 flex items-center justify-between gap-2">
-            <h3 className="font-heading text-[13px] font-medium">თანხები</h3>
+            <h3 className="font-heading text-[13px] font-medium">{toMtavruli('თანხები')}</h3>
             <div className="inline-flex rounded-md border border-border bg-white p-0.5" role="group" aria-label="პერიოდი">
               {RANGES.map((r) => (
                 <Link
@@ -174,7 +175,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
       <section className="rounded-xl border border-border bg-white p-[18px]" aria-label="აქტიური ობიექტები რუკაზე">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <h3 className="flex items-center gap-[7px] font-heading text-[13px] font-medium">
-            <MapPinned className="size-4 text-muted-foreground [stroke-width:1.7]" /> აქტიური ობიექტები რუკაზე
+            <MapPinned className="size-4 text-muted-foreground [stroke-width:1.7]" /> {toMtavruli('აქტიური ობიექტები რუკაზე')}
             <span className="text-[11px] font-normal text-[#748197]">{s.mapPoints.length} ობიექტი</span>
           </h3>
           <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
@@ -211,7 +212,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
           {s.overdue.length > 0 && (
             <section className="rounded-xl border border-[#f4e2d7] bg-white p-[18px]" aria-label="ვადაგადაცილებული შეკვეთები">
               <h3 className="mb-2 flex items-center gap-2 font-heading text-[13px] font-medium text-[#a84630]">
-                <AlertTriangle className="size-4 [stroke-width:1.7]" /> ვადაგადაცილებული შეკვეთები
+                <AlertTriangle className="size-4 [stroke-width:1.7]" /> {toMtavruli('ვადაგადაცილებული შეკვეთები')}
                 <span className="text-[11px] font-normal text-[#748197]">{s.overdueCount}</span>
               </h3>
               <ul className="divide-y divide-border text-[12px]">
@@ -235,8 +236,8 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
           {s.warranty.length > 0 && (
             <section className="rounded-xl border border-border bg-white p-[18px]" aria-label="გარანტია იწურება">
               <h3 className="mb-2 flex items-center gap-2 font-heading text-[13px] font-medium">
-                <ShieldCheck className="size-4 text-[#25815a] [stroke-width:1.7]" /> გარანტია იწურება
-                <span className="text-[11px] font-normal text-[#748197]">30 დღეში</span>
+                <ShieldCheck className="size-4 text-[#25815a] [stroke-width:1.7]" /> {toMtavruli('გარანტია იწურება')}
+                <span className="text-[11px] font-normal text-[#748197]">{toMtavruli('30 დღეში')}</span>
               </h3>
               <ul className="divide-y divide-border text-[12px]">
                 {s.warranty.map((o) => (

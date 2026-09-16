@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { JobIcon } from "./job-icon";
 import { OrderDrawer } from "./order-drawer";
 import type { BoardFilter, BoardOrder, Executor, MailPeek, Visit, WorkloadRow } from "./types";
+import { toMtavruli } from "@/lib/mtavruli";
 
 /** The board is a short working list; the full list lives on /orders. */
 const MAX_ROWS = 8;
@@ -124,7 +125,7 @@ export function DashboardBoard({
         <section className="min-w-0 rounded-xl border border-border bg-white p-[18px]" aria-label="შეკვეთები">
           <div className="mb-[13px] flex flex-wrap items-center justify-between gap-2">
             <h3 className="font-heading text-[14px] font-medium">
-              შეკვეთები <span className="ml-1 text-[11px] font-normal text-[#748197]">მოკლე სია</span>
+              {toMtavruli('შეკვეთები')} <span className="ml-1 text-[11px] font-normal text-[#748197]">{toMtavruli('მოკლე სია')}</span>
             </h3>
             <span className="text-[12px] text-muted-foreground">
               {rows.length < filtered.length ? `${rows.length} / ${filtered.length}` : rows.length} ნაჩვენებია
@@ -218,7 +219,7 @@ export function DashboardBoard({
 
         <aside className="min-w-0 rounded-xl border border-border bg-white p-[18px] text-[12px]" aria-label="დღევანდელი ვიზიტები და გუნდი">
           <h3 className="mb-2 flex items-center gap-[7px] font-heading text-[13px] font-medium">
-            <CalendarDays className="size-4 text-muted-foreground [stroke-width:1.7]" /> დღევანდელი ვიზიტები
+            <CalendarDays className="size-4 text-muted-foreground [stroke-width:1.7]" /> {toMtavruli('დღევანდელი ვიზიტები')}
           </h3>
           {visits.length === 0 && <p className="py-[11px] text-muted-foreground">დღეს დაგეგმილი ვიზიტი არ არის</p>}
           {visits.map((v) => {
@@ -279,7 +280,7 @@ export function DashboardBoard({
 
           <div className="mt-[18px] border-t border-border pt-[19px]">
             <h3 className="mb-1 flex items-center gap-[7px] font-heading text-[13px] font-medium">
-              <Users className="size-4 text-muted-foreground [stroke-width:1.7]" /> გუნდის დატვირთვა
+              <Users className="size-4 text-muted-foreground [stroke-width:1.7]" /> {toMtavruli('გუნდის დატვირთვა')}
             </h3>
             {workload.length === 0 && <p className="py-2 text-muted-foreground">შემსრულებლები არ არიან დამატებული</p>}
             {workload.map((w) => {

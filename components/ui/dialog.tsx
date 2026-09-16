@@ -3,6 +3,7 @@
 import * as React from "react"
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"
 import { cn } from "cn"
+import { mtavruliNodes } from "@/lib/mtavruli"
 
 import { Button } from "@/components/ui/button"
 import { XIcon } from "lucide-react"
@@ -117,7 +118,7 @@ function DialogFooter({
   )
 }
 
-function DialogTitle({ className, ...props }: DialogPrimitive.Title.Props) {
+function DialogTitle({ className, children, ...props }: DialogPrimitive.Title.Props) {
   return (
     <DialogPrimitive.Title
       data-slot="dialog-title"
@@ -126,7 +127,9 @@ function DialogTitle({ className, ...props }: DialogPrimitive.Title.Props) {
         className
       )}
       {...props}
-    />
+    >
+      {mtavruliNodes(children)}
+    </DialogPrimitive.Title>
   )
 }
 

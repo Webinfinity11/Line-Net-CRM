@@ -2,6 +2,7 @@
 
 import { RotateCcw, TriangleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toMtavruli } from "@/lib/mtavruli";
 
 /** Recoverable data error state for app pages. */
 export default function AppError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
@@ -10,7 +11,7 @@ export default function AppError({ error, reset }: { error: Error & { digest?: s
       <span className="mx-auto mb-3 grid size-10 place-items-center rounded-lg bg-[#fff0ed] text-[#b13f32]">
         <TriangleAlert className="size-5 [stroke-width:1.7]" />
       </span>
-      <h2 className="font-heading text-lg font-medium">მონაცემების ჩატვირთვა ვერ მოხერხდა</h2>
+      <h2 className="font-heading text-lg font-medium">{toMtavruli('მონაცემების ჩატვირთვა ვერ მოხერხდა')}</h2>
       <p className="mt-1 text-[13px] text-muted-foreground">სცადეთ თავიდან. თუ პრობლემა მეორდება, გადაუგზავნეთ ეს კოდი ადმინისტრატორს.</p>
       {error.digest && <p className="mt-2 font-mono text-[11px] text-muted-foreground">{error.digest}</p>}
       <Button className="mt-4" onClick={() => reset()}>

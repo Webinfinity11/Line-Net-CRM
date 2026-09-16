@@ -3,6 +3,7 @@
 import * as React from "react"
 import { Dialog as SheetPrimitive } from "@base-ui/react/dialog"
 import { cn } from "cn"
+import { mtavruliNodes } from "@/lib/mtavruli"
 
 import { Button } from "@/components/ui/button"
 import { XIcon } from "lucide-react"
@@ -100,7 +101,7 @@ function SheetFooter({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
-function SheetTitle({ className, ...props }: SheetPrimitive.Title.Props) {
+function SheetTitle({ className, children, ...props }: SheetPrimitive.Title.Props) {
   return (
     <SheetPrimitive.Title
       data-slot="sheet-title"
@@ -109,7 +110,9 @@ function SheetTitle({ className, ...props }: SheetPrimitive.Title.Props) {
         className
       )}
       {...props}
-    />
+    >
+      {mtavruliNodes(children)}
+    </SheetPrimitive.Title>
   )
 }
 
