@@ -13,10 +13,15 @@ import {
 } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
-const base = "inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium whitespace-nowrap";
+const base = "inline-flex items-center gap-1.5 rounded-[5px] px-1.5 py-[3px] text-[11px] font-medium whitespace-nowrap";
 
 export function StatusBadge({ status, className }: { status: OrderStatus; className?: string }) {
-  return <span className={cn(base, STATUS_COLORS[status], className)}>{STATUS_LABELS[status]}</span>;
+  return (
+    <span className={cn(base, STATUS_COLORS[status], className)}>
+      <i className="size-[5px] rounded-full bg-current" aria-hidden />
+      {STATUS_LABELS[status]}
+    </span>
+  );
 }
 
 export function PaymentBadge({ status, className }: { status: PaymentStatus; className?: string }) {

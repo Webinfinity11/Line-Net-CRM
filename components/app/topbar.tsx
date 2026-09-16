@@ -46,7 +46,7 @@ export function Topbar({
   }
 
   return (
-    <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b bg-white/95 px-4 backdrop-blur dark:bg-neutral-900/90 md:px-6">
+    <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-[#e6ebf2] bg-white/95 px-4 backdrop-blur dark:bg-neutral-900/90 md:px-6">
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger render={<Button variant="ghost" size="icon" className="md:hidden" aria-label="მენიუ" />}>
           <Menu className="size-5" />
@@ -66,7 +66,7 @@ export function Topbar({
           <input
             name="q"
             placeholder="ძებნა: შეკვეთა, კლიენტი, მისამართი..."
-            className="h-10 w-full rounded-xl border border-transparent bg-slate-100 pl-10 pr-3 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-500/15 dark:bg-neutral-800"
+            className="h-9 w-full rounded-lg border border-[#e6ebf2] bg-[#f6f8fc] pl-10 pr-3 text-sm outline-none transition focus:border-[#7f97e6] focus:bg-white focus:ring-2 focus:ring-[#3457d5]/15 dark:bg-neutral-800"
           />
         </form>
       ) : (
@@ -85,7 +85,7 @@ export function Topbar({
 
       <DropdownMenu>
         <DropdownMenuTrigger
-          render={<button className="flex items-center gap-2 rounded-xl py-1 pl-1 pr-2 hover:bg-slate-100 dark:hover:bg-neutral-800" />}
+          render={<button className="flex items-center gap-2 rounded-lg py-1 pl-1 pr-2 transition-colors hover:bg-[#f3f6fb] dark:hover:bg-neutral-800" />}
         >
           <UserAvatar name={user.name} image={user.image} size="md" />
           <div className="hidden text-left leading-tight md:block">

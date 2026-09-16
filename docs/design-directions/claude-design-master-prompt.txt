@@ -1,0 +1,111 @@
+LINE NET CRM — მთავარი დაფის 4 დიზაინის მიმართულება
+
+როგორ გამოიყენო: ქვემოთ მოცემული პრომპტი მთლიანად გადაიტანე Claude Design-ში. სურვილის შემთხვევაში დაურთე არსებული დაფის screenshot. მოითხოვე ოთხივე ვარიანტი ერთ პროექტში, ერთმანეთზე გადასართავად.
+
+================ პრომპტის დასაწყისი ================
+
+Act as a senior product designer. Create FOUR genuinely distinct, high-fidelity, interactive visual directions for the MAIN ADMIN / MANAGER DASHBOARD of “Line Net CRM”. Deliver actual visual prototypes, not a written design proposal. The interface must be in Georgian.
+
+PRODUCT CONTEXT
+Line Net is a Georgian technical installation and maintenance company. Its teams work on CCTV, fire safety, access control, networking, structured cabling and electrical systems. The CRM manages incoming service requests, orders, client sites, technician assignments, visits, maintenance schedules and payments.
+
+This is a daily working tool for an operations manager, not a marketing website. The first screen must quickly answer:
+1. What needs attention now?
+2. Who is assigned to today's work, and who has capacity?
+3. Which orders should I open or assign next?
+
+SCOPE
+Design the admin/manager homepage only, with enough local interactions to evaluate the design. Show all four concepts in a clearly labelled prototype selector outside the product UI. Each concept needs a 1440px desktop design and a 390px mobile adaptation. Desktop artboards must have different composition, information hierarchy, navigation treatment and density, not merely different colors on one template.
+
+Use the same underlying sample data and business rules across all four concepts. Data is illustrative, not live. Do not replace the current app's functionality with a generic sales CRM.
+
+SHARED NAVIGATION AND LANGUAGE
+Use these Georgian labels:
+დაფა · შეკვეთები · შემოსულები · განრიგი · ტექმომსახურება · კლიენტები · ანგარიშები · პარამეტრები.
+Primary action: “ახალი შეკვეთა”.
+Other useful labels: “მოქმედება სჭირდება”, “დაუნიშნავი”, “დღევანდელი ვიზიტები”, “შემსრულებლების დატვირთვა”, “ჩასაბარებელი”, “ბოლო შეკვეთები”, “დანიშვნა”, “ყველას ნახვა”.
+Order statuses: ახალი → დანიშნული → მიმდინარე → შესრულებული → დახურული; გაუქმებული is separate.
+“შესრულებული” and “დახურული” must remain distinct: work may be finished but awaiting manager review.
+“სასწრაფო” is a priority, “ვადაგადაცილებული” is a due-date condition. Neither should be invented as a mutually exclusive order status.
+
+CONSISTENT SAMPLE DATA
+Use clearly labelled demo data:
+- Active orders: 24 = 6 new + 8 assigned + 10 in progress.
+- Overdue active orders: 3; this is a subset of 24, not another group added to the total.
+- Completed this week: 18; 4 of these await closure/review.
+- Today's visits: 7.
+- Unprocessed incoming email requests: 5.
+- Payments received this week: ₾12,400.
+- Outstanding balance across all orders: ₾8,700.
+The two financial figures have different time scopes: label them precisely and do not divide them into a misleading collection percentage. Do not invent growth percentages without a previous-period baseline.
+
+Sample clients: “ალფა ოფისი”, “დელტა სასტუმრო”, “ბეტა კლინიკა”. These are fictional examples.
+Sample technicians: გიორგი, ლევანი, ნიკა.
+Example orders:
+LN-1042 — კამერების დიაგნოსტიკა — ალფა ოფისი, ვაკე — 10:30 — გიორგი — მიმდინარე — მაღალი.
+LN-1043 — სახანძრო სისტემის შემოწმება — ბეტა კლინიკა, საბურთალო — 12:00 — ლევანი — დანიშნული — საშუალო.
+LN-1044 — კარის კონტროლერის გაუმართაობა — დელტა სასტუმრო, ავლაბარი — ვადაგადაცილებული — დაუნიშნავი — ახალი — სასწრაფო.
+LN-1045 — ქსელის კაბელის შეცვლა — ალფა ოფისი, ვაკე — 15:00 — ნიკა — შესრულებული — საშუალო.
+Rows shown on the homepage are a preview, not the entire 24-order dataset.
+Daily planned capacity examples: გიორგი 6/8 საათი, ლევანი 7/8 საათი, ნიკა 3/8 საათი. Label these as planned hours, not GPS-derived or live productivity scores.
+
+DIRECTION 1 — QUIET PRECISION / მშვიდი მინიმალიზმი
+Create a calm, crisp, light work surface with a narrow pale sidebar, subtle separators, generous but disciplined spacing and a single confident blue accent.
+Suggested palette: background #F6F7F9, surfaces #FFFFFF, primary text #17212B, accent #2554DB, borders #E5E9EF. Colors are proposed design choices, not claimed official brand colors.
+Use 8–12px corners, almost no shadow, small outlined icons, aligned tabular numbers and strong Georgian typography.
+Composition: clean title/action row → compact inline operational counts → a dominant actionable order table taking roughly two-thirds of the page → a quieter side column with today's next visits and technician capacity. Put the urgent unassigned order directly above the table as one clear action row.
+The table is the main working surface. Avoid a wall of equally prominent cards or charts. Keep finance secondary, lower on the page.
+Feeling: precise, quiet, polished and easy to use for an entire workday.
+
+DIRECTION 2 — DISPATCH DESK / დისპეტჩერის სამუშაო დაფა
+Build a practical, moderately dense dispatch workspace organized around scheduling and assigning technicians. Use a dark navy navigation rail and a bright working canvas; warm orange is the primary dispatch/action accent.
+Suggested palette: navigation #152A3A, background #F3F5F6, surfaces #FFFFFF, accent #C45B12, text #172C3B. Keep status colors restrained and text-labelled.
+Composition: compact attention strip → an unassigned-order queue on the left (about 30%) → today's technician schedule on the right (about 70%) → short follow-up section for closure and overdue items. This layout must visibly differ from direction 1.
+Show three named technician lanes on one readable time axis. Each visit block shows the job, client and time. Make overlaps visible without assuming route optimization exists.
+Implement “დანიშვნა” with an accessible selector or drawer. A drag-and-drop interaction is optional; never make dragging the only way to assign work.
+Finance should be behind a secondary overview section, not dominate dispatch.
+Feeling: a clear workplace for coordinating a field team, with high information density and quick decisions.
+
+DIRECTION 3 — ENGINEERING CONSOLE / მუქი საინჟინრო სტილი
+Create a restrained dark interface that feels appropriate for a technical service company. Use graphite surfaces, crisp type, subtle borders and a restrained cyan accent. Avoid neon glow, gamer styling, glassmorphism and decorative gradients.
+Suggested palette: background #11171C, panels #192229, text #EDF3F5, muted text #A9B7C0, accent #68D7D0. Use dark text on bright filled accent buttons.
+Composition: horizontal navigation and compact operational summary → three structured work queues for attention, in-progress visits and work awaiting closure → a full-width compact order list below. Use stronger grid alignment and narrower corner radii than the other concepts.
+Use “სამუშაოების მდგომარეობა” as the operational focus. Display the timestamp of the last refresh where relevant. Do not label data “live” or draw pulsing connection indicators without a real source.
+An optional compact site-location section can show order locations. Site coordinates are not technician GPS tracking; do not invent vehicle tracking or route optimization.
+Feeling: technical, composed, focused and readable over long sessions.
+
+DIRECTION 4 — EXECUTIVE WORKSPACE / მენეჯერის მიმოხილვა
+Create a warmer, more editorial light dashboard with off-white surfaces, dark ink typography and a deep green accent. The hierarchy should be quieter and more spacious than direction 2, but still operational.
+Suggested palette: background #F5F3EE, surfaces #FFFFFF, text #24352D, accent #27634A, separators #DEDCD4.
+Use a clean white sidebar, 12–16px corners and varied panel proportions. Make the date and “დღის მიმოხილვა” prominent; do not waste the first screen on a giant greeting.
+Composition: asymmetrical upper section with a short daily operational summary on the left and “მოქმედება სჭირდება” on the right → a readable visit timeline → technician workload and a small finance summary → latest order rows.
+If you include a trend chart, give it a defined period, axis labels and a useful comparison. One focused chart is enough. Avoid repeated donut charts and decorative sparklines.
+Feeling: polished, approachable and suitable for a manager reviewing operations and finances together.
+
+TYPOGRAPHY AND UI QUALITY
+Use FiraGO or another font with complete Georgian support, with an appropriate fallback. Prefer 14–16px body text, clear labels and 24–30px page headings. Do not squeeze Georgian labels into tiny uppercase controls or truncate essential client names.
+Use a consistent spacing scale and an intentional hierarchy. Add icons only where they help scanning. Status must remain understandable without relying on color. Provide visible focus states and readable contrast.
+Mobile needs prioritization, not a shrunken desktop: use compact navigation, stacked visit/order rows and usable touch targets. Keep urgent work and “ახალი შეკვეთა” easy to reach.
+Show an honest empty inbox state, a loading state and a recoverable data error state as separate prototype states. A disconnected mailbox should say “ფოსტა არ არის დაკავშირებული”, not pretend to receive messages.
+
+LOCAL PROTOTYPE INTERACTIONS
+- Order selection opens a useful detail drawer.
+- “დანიშვნა” lets the manager select a technician and updates the sample row/schedule locally.
+- “ახალი შეკვეთა” opens a compact example form with required-field validation.
+- If a time-period selector is shown, make it switch the illustrative data coherently. Current active/overdue counts remain explicitly labelled as current totals.
+- Keep finance for admin/manager views. Do not add financial data to a technician view.
+- Do not make real API calls, send emails, register accounts, change subscriptions or deploy anything.
+
+DELIVERABLE
+Produce four visibly distinct dashboard prototypes, with desktop and mobile versions and the core local interactions above. Label the concept names outside the CRM product chrome. Keep the prototype selector separate from production navigation. Show each concept's design system through the actual screens: typography, surfaces, spacing, table treatment, statuses, buttons and drawer.
+Start with the visual prototypes. Do not substitute a long explanation for the deliverable. Preserve the Georgian UI, realistic service-company workflows and the same underlying data across all four options.
+
+================ პრომპტის დასასრული ================
+
+სწრაფი არჩევანი:
+1. მშვიდი მინიმალიზმი — ყველაზე უნივერსალური სამუშაო ინტერფეისი.
+2. დისპეტჩერის დაფა — თუ მთავარი ამოცანა გუნდისა და ვიზიტების განაწილებაა.
+3. მუქი საინჟინრო — გამოკვეთილი ტექნიკური ხასიათი და მუქი გარემო.
+4. მენეჯერის მიმოხილვა — ყოველდღიური სამუშაოსა და ფინანსების მშვიდი საერთო ხედი.
+
+ჩემი საწყისი არჩევანი: #1, ხოლო ვიზიტების დაგეგმვისთვის — #2-ის განრიგის კომპოზიცია.

@@ -268,7 +268,7 @@ export async function getDashboardStats(range: DateRange = "week") {
   const notInbox = eq(orders.triaged, true);
 
   const today = tbilisiDayBounds(tbilisiToday());
-  const [byStatusRows, createdRow, completedRow, overdueList, loadRows, users, paidRow, unpaidRow, recent, inbox, todayList, weekly, prevRow, warranty, mapPoints, overdueCountRow, urgentUnassigned, awaitingClosure, reviewRow] =
+  const [byStatusRows, createdRow, completedRow, overdueList, loadRows, users, paidRow, unpaidRow, recent, inbox, todayList, weekly, prevRow, warranty, mapPoints, overdueCountRow, urgentUnassigned, awaitingClosure, reviewRow, board, plannedTodayRows, activeTotalRow, awaitingClosureRow, todayTotalRow] =
     await Promise.all([
       db
         .select({ status: orders.status, n: count() })
@@ -359,6 +359,28 @@ export async function getDashboardStats(range: DateRange = "week") {
         limit: 8,
       }),
       db.select({ n: count() }).from(orders).where(and(notInbox, eq(orders.paymentReviewNeeded, true))),
+      // dashboard work board: current active work plus finished work awaiting closure
+      db.query.orders.findMany({
+        where: and(notInbox, inArray(orders.status, ["new", "assigned", "in_progress", "done"])),
+        columns: { id: true, number: true, title: true, status: true, priority: true, type: true, systemType: true, dueDate: true, scheduledAt: true, plannedMinutes: true, description: true },
+        with: {
+          client: { columns: { id: true, name: true } },
+          site: { columns: { id: true, name: true, address: true } },
+          assignees: { with: { user: { columns: { id: true, name: true, image: true } } } },
+        },
+        orderBy: [desc(orders.updatedAt)],
+        limit: 30,
+      }),
+      // planned minutes per executor for today's scheduled visits (planned time, not tracked time)
+      db
+        .select({ userId: orderAssignees.userId, minutes: sql<number>`coalesce(sum(coalesce(${orders.plannedMinutes}, 120)), 0)`.mapWith(Number) })
+        .from(orderAssignees)
+        .innerJoin(orders, eq(orders.id, orderAssignees.orderId))
+        .where(and(notInbox, gte(orders.scheduledAt, today.start), lt(orders.scheduledAt, today.end), ne(orders.status, "cancelled")))
+        .groupBy(orderAssignees.userId),
+      db.select({ n: count() }).from(orders).where(and(notInbox, inArray(orders.status, ACTIVE_STATUSES))),
+      db.select({ n: count() }).from(orders).where(and(notInbox, eq(orders.status, "done"))),
+      db.select({ n: count() }).from(orders).where(and(notInbox, gte(orders.scheduledAt, today.start), lt(orders.scheduledAt, today.end), ne(orders.status, "cancelled"))),
     ]);
 
   const counts = Object.fromEntries(byStatusRows.map((r) => [r.status, r.n])) as Partial<Record<OrderStatus, number>>;
@@ -392,6 +414,11 @@ export async function getDashboardStats(range: DateRange = "week") {
     previous: { created: prevRow[0]?.created ?? 0, completed: prevRow[0]?.completed ?? 0 },
     warranty,
     mapPoints: mapPoints.map((p) => ({ ...p, lat: Number(p.lat), lng: Number(p.lng) })),
+    board,
+    plannedToday: Object.fromEntries(plannedTodayRows.map((r) => [r.userId, r.minutes])) as Record<string, number>,
+    activeTotal: activeTotalRow[0]?.n ?? 0,
+    awaitingClosureCount: awaitingClosureRow[0]?.n ?? 0,
+    todayTotal: todayTotalRow[0]?.n ?? 0,
   };
 }
 

@@ -14,21 +14,21 @@ export const ACTIVE_STATUSES: OrderStatus[] = ["new", "assigned", "in_progress"]
 export const KANBAN_STATUSES: OrderStatus[] = ["new", "assigned", "in_progress", "done", "closed"];
 
 export const STATUS_COLORS: Record<OrderStatus, string> = {
-  new: "bg-blue-50 text-blue-700 dark:bg-blue-900/40 dark:text-blue-200",
-  assigned: "bg-violet-50 text-violet-700 dark:bg-violet-900/40 dark:text-violet-200",
-  in_progress: "bg-amber-50 text-amber-700 dark:bg-amber-900/40 dark:text-amber-200",
-  done: "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200",
-  closed: "bg-slate-100 text-slate-600 dark:bg-neutral-800 dark:text-neutral-300",
-  cancelled: "bg-rose-50 text-rose-700 dark:bg-rose-900/40 dark:text-rose-200",
+  new: "bg-[#edf2ff] text-[#3457d5] dark:bg-blue-900/40 dark:text-blue-200",
+  assigned: "bg-[#f0ecfc] text-[#7251ad] dark:bg-violet-900/40 dark:text-violet-200",
+  in_progress: "bg-[#fff4df] text-[#96610b] dark:bg-amber-900/40 dark:text-amber-200",
+  done: "bg-[#eaf6ef] text-[#23764f] dark:bg-emerald-900/40 dark:text-emerald-200",
+  closed: "bg-[#eef1f5] text-[#5e6b7a] dark:bg-neutral-800 dark:text-neutral-300",
+  cancelled: "bg-[#fdeeee] text-[#a33f3f] dark:bg-rose-900/40 dark:text-rose-200",
 };
 
 export const STATUS_HEX: Record<OrderStatus, string> = {
-  new: "#2563eb",
-  assigned: "#7c3aed",
-  in_progress: "#f59e0b",
-  done: "#059669",
-  closed: "#94a3b8",
-  cancelled: "#e11d48",
+  new: "#3457d5",
+  assigned: "#7251ad",
+  in_progress: "#d18a12",
+  done: "#23764f",
+  closed: "#93a0b0",
+  cancelled: "#c2504f",
 };
 
 export const TYPE_LABELS: Record<OrderType, string> = {

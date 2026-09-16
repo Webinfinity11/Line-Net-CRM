@@ -15,7 +15,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
   ]);
 
   return (
-    <div className="flex min-h-screen bg-neutral-50 dark:bg-neutral-950">
+    <div className="flex min-h-screen bg-background dark:bg-neutral-950">
       <Sidebar user={user} inboxCount={inboxCount} unseenCount={unseenCount} />
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar
@@ -25,7 +25,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
           unread={unread}
           bellItems={bellItems.map((n) => ({ id: n.id, title: n.title, body: n.body, readAt: n.readAt, createdAt: n.createdAt, orderId: n.orderId }))}
         />
-        <main className="flex-1 px-4 py-4 md:px-6 md:py-6">{children}</main>
+        <main className="flex-1 px-4 py-4 md:px-6 md:py-6 lg:px-7">{children}</main>
       </div>
     </div>
   );

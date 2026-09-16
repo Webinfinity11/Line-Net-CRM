@@ -52,3 +52,51 @@ export function tbilisiToday(now = new Date()): string {
 export function tbilisiTime(d: Date): string {
   return new Intl.DateTimeFormat("ka-GE", { timeZone: "Asia/Tbilisi", hour: "2-digit", minute: "2-digit" }).format(d);
 }
+
+export type LaneSlot = { id: number; start: Date; end: Date };
+export type LanePlacement = { id: number; col: number; cols: number };
+
+/**
+ * Side-by-side layout for one lane: slots that overlap in time share a cluster and get
+ * separate columns; `cols` is the cluster width so blocks can be sized as 1/cols.
+ */
+export function layoutLane(slots: LaneSlot[]): LanePlacement[] {
+  const sorted = [...slots].sort((a, b) => a.start.getTime() - b.start.getTime() || a.end.getTime() - b.end.getTime());
+  const out: LanePlacement[] = [];
+  let cluster: { id: number; col: number }[] = [];
+  let colEnds: number[] = [];
+  let clusterEnd = -Infinity;
+  const flush = () => {
+    const cols = Math.max(1, colEnds.length);
+    for (const c of cluster) out.push({ id: c.id, col: c.col, cols });
+    cluster = [];
+    colEnds = [];
+  };
+  for (const s of sorted) {
+    if (s.start.getTime() >= clusterEnd) {
+      flush();
+      clusterEnd = -Infinity;
+    }
+    let col = colEnds.findIndex((e) => e <= s.start.getTime());
+    if (col === -1) {
+      col = colEnds.length;
+      colEnds.push(s.end.getTime());
+    } else colEnds[col] = s.end.getTime();
+    cluster.push({ id: s.id, col });
+    clusterEnd = Math.max(clusterEnd, s.end.getTime());
+  }
+  flush();
+  return out;
+}
+
+/** Minutes between a day's local midnight (Tbilisi) and the given instant. */
+export function minutesIntoDay(d: Date, dayStart: Date): number {
+  return Math.round((d.getTime() - dayStart.getTime()) / 60_000);
+}
+
+/** 615 → "10:15" (minutes counted from local midnight). */
+export function formatMinutes(min: number): string {
+  const h = Math.floor(min / 60);
+  const m = ((min % 60) + 60) % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}

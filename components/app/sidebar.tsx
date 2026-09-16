@@ -33,19 +33,19 @@ export function NavLinks({
             href={item.href}
             onClick={onNavigate}
             className={cn(
-              "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+              "flex items-center gap-2.5 rounded-md px-2.5 py-2 text-[13px] transition-colors duration-150",
               active
-                ? "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-200"
-                : "text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-neutral-300 dark:hover:bg-neutral-800",
+                ? "bg-[#eef2ff] font-medium text-[#3457d5] shadow-[inset_3px_0_0_#3457d5] dark:bg-blue-950/40 dark:text-blue-200"
+                : "text-[#4a5a6c] hover:bg-[#f3f6fb] hover:text-[#17212b] dark:text-neutral-300 dark:hover:bg-neutral-800",
             )}
           >
-            <Icon className="size-4 shrink-0" />
+            <Icon className="size-4 shrink-0 [stroke-width:1.7]" />
             <span className="flex-1">{item.label}</span>
             {item.badge ? (
               <span
                 className={cn(
                   "rounded-full px-1.5 py-0.5 text-[11px] font-semibold leading-none",
-                  active ? "bg-blue-600 text-white" : "bg-rose-500 text-white",
+                  active ? "bg-[#3457d5] text-white" : "bg-[#d95c4c] text-white",
                 )}
               >
                 {item.badge}
@@ -72,8 +72,8 @@ export function SidebarFooter({ user, onNavigate }: { user: SessionUser; onNavig
         href="/profile"
         onClick={onNavigate}
         className={cn(
-          "flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition-colors",
-          pathname === "/profile" ? "bg-blue-50 text-blue-700" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900",
+          "flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm transition-colors",
+          pathname === "/profile" ? "bg-[#eef2ff] text-[#3457d5]" : "text-[#4a5a6c] hover:bg-[#f3f6fb] hover:text-[#17212b]",
         )}
       >
         <UserCircle className="size-4 shrink-0" />
@@ -85,7 +85,7 @@ export function SidebarFooter({ user, onNavigate }: { user: SessionUser; onNavig
       <button
         type="button"
         onClick={logout}
-        className="mt-1 flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm text-slate-600 transition-colors hover:bg-rose-50 hover:text-rose-700 focus-visible:outline-2 focus-visible:outline-blue-500"
+        className="mt-1 flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-sm text-[#4a5a6c] transition-colors hover:bg-[#fff1ed] hover:text-[#a73b2d] focus-visible:outline-2 focus-visible:outline-[#3457d5]"
       >
         <LogOut className="size-4 shrink-0" />
         <span className="font-heading uppercase tracking-wide">{t.nav.logout}</span>
@@ -96,15 +96,15 @@ export function SidebarFooter({ user, onNavigate }: { user: SessionUser; onNavig
 
 export function Sidebar(props: { user: SessionUser; inboxCount: number; unseenCount: number }) {
   return (
-    <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r bg-white dark:bg-neutral-900 md:flex">
-      <div className="flex h-16 items-center gap-2.5 px-5">
-        <div className="flex size-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-400 font-heading text-sm font-bold text-white shadow-sm shadow-blue-500/30">LN</div>
+    <aside className="sticky top-0 hidden h-screen w-[212px] shrink-0 flex-col border-r border-[#e6ebf2] bg-white dark:bg-neutral-900 md:flex">
+      <div className="flex h-16 items-center gap-2.5 px-4">
+        <div className="flex size-8 items-center justify-center rounded-[10px] bg-[#3457d5] font-heading text-xs font-bold text-white shadow-[0_3px_7px_rgba(52,87,213,0.14)]">LN</div>
         <div className="leading-tight">
-          <div className="font-heading text-[15px] font-bold text-blue-700">{t.appName}</div>
+          <div className="font-heading text-[15px] font-semibold text-foreground">{t.appName}</div>
           <div className="whitespace-nowrap text-[11px] text-muted-foreground">სერვისის მართვა</div>
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto p-3">
+      <div className="flex-1 overflow-y-auto px-3 pt-2">
         <NavLinks {...props} />
       </div>
       <SidebarFooter user={props.user} />

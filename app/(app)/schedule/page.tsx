@@ -1,15 +1,16 @@
 import { and, asc, eq, gte, inArray, isNull, lt, notInArray } from "drizzle-orm";
-import { AlertTriangle, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
-import { PriorityLabel, StatusBadge, SystemBadge } from "@/components/app/badges";
 import { PageHeader } from "@/components/app/page-header";
-import { QuickPlanDialog } from "@/components/app/quick-plan-dialog";
-import { UserAvatar } from "@/components/app/user-avatar";
+import { Queue, type QueueItem } from "@/components/app/schedule/queue";
+import { Timeline, type TimelineBlock, type TimelineLane } from "@/components/app/schedule/timeline";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { db } from "@/db";
 import { orders } from "@/db/schema";
-import { ACTIVE_STATUSES, formatDuration, t } from "@/lib/i18n";
+import { ACTIVE_STATUSES, formatDate, formatDuration, t } from "@/lib/i18n";
 import { listAssignableUsers } from "@/lib/orders";
-import { findOverlaps, plannedEnd, tbilisiDayBounds, tbilisiTime, tbilisiToday, workload, type Slot } from "@/lib/schedule-utils";
+import { findOverlaps, layoutLane, minutesIntoDay, plannedEnd, tbilisiDayBounds, tbilisiToday, workload, type Slot } from "@/lib/schedule-utils";
 import { getWorkHoursPerDay } from "@/lib/settings";
 import { requireUser } from "@/lib/session";
 import { cn } from "@/lib/utils";
@@ -18,6 +19,8 @@ export const metadata = { title: "განრიგი" };
 
 const DAY_NAMES = ["კვირა", "ორშაბათი", "სამშაბათი", "ოთხშაბათი", "ხუთშაბათი", "პარასკევი", "შაბათი"];
 const MONTHS = ["იანვარი", "თებერვალი", "მარტი", "აპრილი", "მაისი", "ივნისი", "ივლისი", "აგვისტო", "სექტემბერი", "ოქტომბერი", "ნოემბერი", "დეკემბერი"];
+const AXIS_START = 8 * 60;
+const AXIS_END = 20 * 60;
 
 function shift(iso: string, days: number) {
   const d = new Date(iso + "T00:00:00Z");
@@ -31,21 +34,36 @@ export default async function SchedulePage({ searchParams }: PageProps<"/schedul
   const today = tbilisiToday();
   const day = typeof sp.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(sp.date) ? sp.date : today;
   const { start, end } = tbilisiDayBounds(day);
+  const triaged = eq(orders.triaged, true);
 
-  const [dayOrders, unscheduled, users, normHours] = await Promise.all([
+  const [dayOrders, unscheduled, users, normHours, awaiting, overdue] = await Promise.all([
     db.query.orders.findMany({
-      where: and(eq(orders.triaged, true), gte(orders.scheduledAt, start), lt(orders.scheduledAt, end), notInArray(orders.status, ["cancelled"])),
-      with: { client: { columns: { id: true, name: true } }, site: { columns: { id: true, name: true, address: true } }, assignees: { with: { user: { columns: { id: true, name: true, image: true } } } } },
+      where: and(triaged, gte(orders.scheduledAt, start), lt(orders.scheduledAt, end), notInArray(orders.status, ["cancelled"])),
+      with: { client: { columns: { id: true, name: true } }, site: { columns: { id: true, name: true } }, assignees: { with: { user: { columns: { id: true, name: true, image: true } } } } },
       orderBy: [asc(orders.scheduledAt)],
     }),
     db.query.orders.findMany({
-      where: and(eq(orders.triaged, true), isNull(orders.scheduledAt), inArray(orders.status, ACTIVE_STATUSES)),
+      where: and(triaged, isNull(orders.scheduledAt), inArray(orders.status, ACTIVE_STATUSES)),
       with: { client: { columns: { id: true, name: true } }, assignees: { with: { user: { columns: { id: true, name: true, image: true } } } } },
       orderBy: [asc(orders.priority), asc(orders.dueDate), asc(orders.createdAt)],
       limit: 50,
     }),
     listAssignableUsers(),
     getWorkHoursPerDay(),
+    db.query.orders.findMany({
+      where: and(triaged, eq(orders.status, "done")),
+      columns: { id: true, number: true, title: true, completedAt: true },
+      with: { client: { columns: { id: true, name: true } }, assignees: { with: { user: { columns: { id: true, name: true } } } } },
+      orderBy: [asc(orders.completedAt)],
+      limit: 8,
+    }),
+    db.query.orders.findMany({
+      where: and(triaged, inArray(orders.status, ACTIVE_STATUSES), lt(orders.dueDate, today)),
+      columns: { id: true, number: true, title: true, dueDate: true },
+      with: { client: { columns: { id: true, name: true } } },
+      orderBy: [asc(orders.dueDate)],
+      limit: 8,
+    }),
   ]);
 
   // overlap detection per executor on this day
@@ -55,70 +73,89 @@ export default async function SchedulePage({ searchParams }: PageProps<"/schedul
     for (const a of o.assignees) slots.push({ id: o.id, userId: a.userId, start: o.scheduledAt, end: plannedEnd(o.scheduledAt, o.plannedMinutes) });
   }
   const overlaps = findOverlaps(slots);
+  const numberOf = (id: number) => dayOrders.find((x) => x.id === id)?.number ?? String(id);
+
+  // time axis: 08:00–20:00, widened to fit the day's earliest start / latest end
+  let axisStartMin = AXIS_START;
+  let axisEndMin = AXIS_END;
+  for (const o of dayOrders) {
+    if (!o.scheduledAt) continue;
+    const s = minutesIntoDay(o.scheduledAt, start);
+    const e = minutesIntoDay(plannedEnd(o.scheduledAt, o.plannedMinutes), start);
+    axisStartMin = Math.min(axisStartMin, Math.floor(s / 60) * 60);
+    axisEndMin = Math.max(axisEndMin, Math.ceil(e / 60) * 60);
+  }
+  axisStartMin = Math.max(0, axisStartMin);
+  axisEndMin = Math.min(24 * 60, axisEndMin);
+
+  const toBlocks = (items: typeof dayOrders): TimelineBlock[] => {
+    const laneSlots = items.filter((o) => o.scheduledAt).map((o) => ({ id: o.id, start: o.scheduledAt as Date, end: plannedEnd(o.scheduledAt as Date, o.plannedMinutes) }));
+    const placement = new Map(layoutLane(laneSlots).map((p) => [p.id, p]));
+    return items
+      .filter((o) => o.scheduledAt)
+      .map((o) => {
+        const p = placement.get(o.id) ?? { col: 0, cols: 1 };
+        return {
+          id: o.id,
+          number: o.number,
+          title: o.title,
+          client: o.client?.name ?? o.site?.name ?? null,
+          status: o.status,
+          startMin: minutesIntoDay(o.scheduledAt as Date, start),
+          endMin: minutesIntoDay(plannedEnd(o.scheduledAt as Date, o.plannedMinutes), start),
+          col: p.col,
+          cols: p.cols,
+          clashWith: (overlaps.get(o.id) ?? []).map(numberOf),
+        };
+      });
+  };
 
   const executors = users.filter((u) => u.role === "executor" || dayOrders.some((o) => o.assignees.some((a) => a.userId === u.id)));
-  const columns = executors.map((u) => {
+  const unassignedToday = dayOrders.filter((o) => o.assignees.length === 0);
+  const lanes: TimelineLane[] = [];
+  if (unassignedToday.length > 0) {
+    lanes.push({ key: "unassigned", name: `დაუნიშნავი · ${unassignedToday.length}`, unassigned: true, blocks: toBlocks(unassignedToday) });
+  }
+  for (const u of executors) {
     const items = dayOrders.filter((o) => o.assignees.some((a) => a.userId === u.id));
     const minutes = items.reduce((sum, o) => sum + (o.plannedMinutes ?? 120), 0);
-    return { user: u, items, load: workload(minutes, normHours) };
-  });
-  const unassigned = dayOrders.filter((o) => o.assignees.length === 0);
+    lanes.push({ key: u.id, name: u.name, image: u.image, load: workload(minutes, normHours), blocks: toBlocks(items) });
+  }
+
+  const nowMin = day === today ? minutesIntoDay(new Date(), start) : null;
+  const overlapCount = overlaps.size;
+  const userOptions = users.filter((u) => u.role === "executor").map((u) => ({ id: u.id, name: u.name }));
+  const queue: QueueItem[] = [
+    ...unassignedToday.map((o) => ({ id: o.id, number: o.number, title: o.title, client: o.client?.name ?? null, dueDate: o.dueDate, priority: o.priority, systemType: o.systemType, scheduled: true, currentAssigneeId: null })),
+    ...unscheduled.map((o) => ({ id: o.id, number: o.number, title: o.title, client: o.client?.name ?? null, dueDate: o.dueDate, priority: o.priority, systemType: o.systemType, scheduled: false, currentAssigneeId: o.assignees[0]?.userId ?? null })),
+  ];
+
   const d = new Date(day + "T00:00:00Z");
   const title = `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]}, ${DAY_NAMES[d.getUTCDay()]}`;
   const week = Array.from({ length: 7 }, (_, i) => shift(day, i - 3));
-  const userOptions = users.filter((u) => u.role === "executor").map((u) => ({ id: u.id, name: u.name }));
-
-  const Item = ({ o }: { o: (typeof dayOrders)[number] }) => {
-    const endAt = o.scheduledAt ? plannedEnd(o.scheduledAt, o.plannedMinutes) : null;
-    const clash = overlaps.get(o.id);
-    return (
-      <Link href={`/orders/${o.id}`} className={cn("block rounded-xl border bg-white p-2.5 text-sm shadow-sm hover:shadow-md dark:bg-neutral-800", clash && "border-amber-400 ring-1 ring-amber-200")}>
-        <div className="mb-1 flex items-center justify-between">
-          <span className="font-semibold text-blue-700">
-            {o.scheduledAt ? tbilisiTime(o.scheduledAt) : "—"}
-            {endAt ? `–${tbilisiTime(endAt)}` : ""}
-          </span>
-          <StatusBadge status={o.status} className="px-1.5 py-0 text-[10px]" />
-        </div>
-        <div className="line-clamp-2 font-medium leading-snug">{o.title}</div>
-        <div className="mt-0.5 truncate text-xs text-muted-foreground">
-          {o.client?.name}
-          {o.site ? ` · ${o.site.name}` : ""}
-        </div>
-        <div className="mt-1 flex items-center justify-between">
-          <SystemBadge system={o.systemType} className="px-1.5 py-0 text-[10px]" />
-          <PriorityLabel priority={o.priority} />
-        </div>
-        {clash && (
-          <div className="mt-1.5 flex items-center gap-1 text-[11px] font-medium text-amber-700" role="alert">
-            <AlertTriangle className="size-3" /> ემთხვევა: {clash.map((id) => dayOrders.find((x) => x.id === id)?.number ?? id).join(", ")}
-          </div>
-        )}
-      </Link>
-    );
-  };
 
   return (
     <div>
       <PageHeader
-        title={t.nav2.schedule}
-        subtitle={`${title} · ნორმა ${normHours} სთ/დღე`}
+        kicker={t.nav2.schedule}
+        title={title}
+        subtitle={`ნორმა ${normHours} სთ/დღე · ${dayOrders.length} დაგეგმილი ვიზიტი`}
         actions={
-          <div className="flex items-center gap-1">
-            <Link href={`/schedule?date=${shift(day, -1)}`} className="rounded-lg border bg-white p-1.5 hover:bg-neutral-50 dark:bg-neutral-900" aria-label="წინა დღე">
+          <div className="flex items-center gap-1.5">
+            <Button variant="outline" size="icon-sm" className="h-10 w-10 md:h-8 md:w-8" render={<Link href={`/schedule?date=${shift(day, -1)}`} aria-label="წინა დღე" />}>
               <ChevronLeft className="size-4" />
-            </Link>
-            <Link href="/schedule" className={cn("rounded-lg border px-3 py-1.5 text-sm", day === today ? "bg-blue-600 text-white" : "bg-white hover:bg-neutral-50 dark:bg-neutral-900")}>
+            </Button>
+            <Button variant={day === today ? "default" : "outline"} size="sm" className="h-10 md:h-8" render={<Link href="/schedule" />}>
               დღეს
-            </Link>
-            <Link href={`/schedule?date=${shift(day, 1)}`} className="rounded-lg border bg-white p-1.5 hover:bg-neutral-50 dark:bg-neutral-900" aria-label="შემდეგი დღე">
+            </Button>
+            <Button variant="outline" size="icon-sm" className="h-10 w-10 md:h-8 md:w-8" render={<Link href={`/schedule?date=${shift(day, 1)}`} aria-label="შემდეგი დღე" />}>
               <ChevronRight className="size-4" />
-            </Link>
+            </Button>
           </div>
         }
       />
 
-      <div className="mb-4 flex gap-1 overflow-x-auto">
+      <div className="mb-4 flex gap-1.5 overflow-x-auto pb-1">
         {week.map((w) => {
           const wd = new Date(w + "T00:00:00Z");
           return (
@@ -127,87 +164,96 @@ export default async function SchedulePage({ searchParams }: PageProps<"/schedul
               href={`/schedule?date=${w}`}
               aria-current={w === day ? "date" : undefined}
               className={cn(
-                "min-w-[84px] flex-1 rounded-lg border px-2 py-1.5 text-center text-xs",
-                w === day ? "border-blue-600 bg-blue-600 text-white" : w === today ? "border-blue-300 bg-white dark:bg-neutral-900" : "bg-white hover:bg-neutral-50 dark:bg-neutral-900",
+                "min-w-[72px] flex-1 rounded-md border px-2 py-1.5 text-center text-[11px] transition-colors duration-150",
+                w === day
+                  ? "border-[#3457d5] bg-[#3457d5] text-white"
+                  : w === today
+                    ? "border-[#a5b5ed] bg-white text-foreground hover:bg-[#f8faff]"
+                    : "border-[#e6ebf2] bg-white text-muted-foreground hover:bg-[#f8faff] hover:text-foreground",
               )}
             >
-              <div className="opacity-80">{DAY_NAMES[wd.getUTCDay()].slice(0, 3)}</div>
-              <div className="text-base font-semibold">{wd.getUTCDate()}</div>
+              <div>{DAY_NAMES[wd.getUTCDay()].slice(0, 3)}</div>
+              <div className="text-[15px] font-medium leading-tight tabular">{wd.getUTCDate()}</div>
             </Link>
           );
         })}
       </div>
 
-      {dayOrders.length === 0 ? (
-        <div className="rounded-xl border bg-white py-12 text-center text-sm text-muted-foreground dark:bg-neutral-900">
-          ამ დღეს დაგეგმილი შეკვეთა არ არის. {unscheduled.length > 0 ? "ქვემოთ დაუგეგმავი შეკვეთები „დაგეგმვა“ ღილაკით შეგიძლიათ განათავსოთ." : ""}
-        </div>
-      ) : (
-        <div className="flex gap-3 overflow-x-auto pb-2">
-          {unassigned.length > 0 && (
-            <div className="w-64 shrink-0 rounded-xl border border-dashed bg-neutral-50 p-2 dark:bg-neutral-900">
-              <div className="mb-2 px-1 text-sm font-semibold text-rose-600">დაუნიშნავი · {unassigned.length}</div>
-              <div className="space-y-2">
-                {unassigned.map((o) => (
-                  <div key={o.id} className="space-y-1">
-                    <Item o={o} />
-                    <QuickPlanDialog orderId={o.id} title={o.title} defaultDate={day} users={userOptions} />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-          {columns.map(({ user, items, load }) => (
-            <div key={user.id} className="w-64 shrink-0 rounded-xl border bg-neutral-50 p-2 dark:bg-neutral-900">
-              <div className="mb-1 flex items-center gap-2 px-1">
-                <UserAvatar name={user.name} image={user.image} />
-                <span className="truncate text-sm font-semibold">{user.name}</span>
-                <span className="ml-auto text-xs text-muted-foreground">{items.length}</span>
-              </div>
-              <div className="mb-2 px-1" title={`დაგეგმილი ${load.hours} სთ / ნორმა ${normHours} სთ`}>
-                <div className="flex justify-between text-[11px] text-muted-foreground">
-                  <span>დატვირთვა</span>
-                  <span className={cn(load.over && "font-semibold text-rose-600")}>
-                    {load.hours} სთ / {normHours} სთ ({load.over ? "100%+" : `${load.pct}%`})
-                  </span>
-                </div>
-                <div className="mt-0.5 h-1.5 overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-800" role="progressbar" aria-valuenow={load.pct} aria-valuemin={0} aria-valuemax={100}>
-                  <div className={cn("h-full rounded-full", load.over ? "bg-rose-500" : load.pct >= 80 ? "bg-amber-500" : "bg-blue-500")} style={{ width: `${load.pct}%` }} />
-                </div>
-              </div>
-              <div className="min-h-[60px] space-y-2">
-                {items.map((o) => (
-                  <Item key={o.id} o={o} />
-                ))}
-                {items.length === 0 && <div className="px-1 text-xs text-muted-foreground">თავისუფალია</div>}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+      <div className="mb-4 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border border-[#e6ebf2] bg-white px-4 py-2.5 text-xs" role="status">
+        <span className={cn(unassignedToday.length ? "font-medium text-[#a73b2d]" : "text-muted-foreground")}>დაუნიშნავი დღეს {unassignedToday.length}</span>
+        <span className="text-[#c9d3e3]">·</span>
+        <span className="text-muted-foreground">დაუგეგმავი აქტიური {unscheduled.length}</span>
+        <span className="text-[#c9d3e3]">·</span>
+        <span className={cn(overlapCount ? "font-medium text-[#a73b2d]" : "text-muted-foreground")}>გადაფარვა {overlapCount}</span>
+      </div>
 
-      {unscheduled.length > 0 && (
-        <div className="mt-6">
-          <h2 className="mb-2 text-sm font-semibold text-muted-foreground">დაუგეგმავი აქტიური შეკვეთები · {unscheduled.length}</h2>
-          <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
-            {unscheduled.map((o) => (
-              <div key={o.id} className="flex items-center gap-3 rounded-lg border bg-white p-2.5 text-sm dark:bg-neutral-900">
-                <div className="min-w-0 flex-1">
-                  <Link href={`/orders/${o.id}`} className="block truncate font-medium hover:text-blue-700">
-                    {o.title}
-                  </Link>
-                  <div className="truncate text-xs text-muted-foreground">
-                    {o.client?.name ?? "—"} · ვადა {o.dueDate ?? "—"} · {o.assignees.length ? o.assignees.map((a) => a.user.name.split(" ")[0]).join(", ") : "დაუნიშნავი"}
-                  </div>
-                </div>
-                <PriorityLabel priority={o.priority} />
-                <QuickPlanDialog orderId={o.id} title={o.title} defaultDate={day} users={userOptions} currentAssigneeId={o.assignees[0]?.userId ?? null} />
-              </div>
+      <div className="ln-stagger grid gap-[18px] lg:grid-cols-[minmax(260px,3fr)_minmax(0,7fr)]">
+        <Card>
+          <CardHeader className="flex-row items-center justify-between">
+            <CardTitle>დაუნიშნავი / დაუგეგმავი</CardTitle>
+            <span className="text-[11px] text-muted-foreground tabular">{queue.length}</span>
+          </CardHeader>
+          <CardContent>
+            <Queue items={queue} day={day} users={userOptions} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex-row items-center justify-between">
+            <CardTitle>ტექნიკოსების განრიგი</CardTitle>
+            <span className="text-[11px] text-muted-foreground">დაგეგმილი დრო · ერთი ღერძი</span>
+          </CardHeader>
+          <CardContent>
+            <Timeline lanes={lanes} axisStartMin={axisStartMin} axisEndMin={axisEndMin} normHours={normHours} nowMin={nowMin} />
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="ln-stagger mt-[18px] grid gap-[18px] md:grid-cols-2">
+        <Card>
+          <CardHeader className="flex-row items-center justify-between">
+            <CardTitle>ჩასაბარებელი</CardTitle>
+            <span className="text-[11px] text-muted-foreground">შესრულებული, ელოდება შემოწმებას</span>
+          </CardHeader>
+          <CardContent>
+            {awaiting.length === 0 && <p className="py-4 text-center text-xs text-muted-foreground">ჩასაბარებელი შეკვეთა არ არის</p>}
+            {awaiting.map((o) => (
+              <Link key={o.id} href={`/orders/${o.id}`} className="grid grid-cols-[1fr_auto] items-center gap-3 border-t border-[#e6ebf2] py-2.5 text-xs first:border-t-0 hover:text-[#3457d5]">
+                <span className="min-w-0">
+                  <span className="block truncate text-[13px] font-medium text-foreground">{o.title}</span>
+                  <span className="block truncate text-muted-foreground">
+                    {o.number} · {o.client?.name ?? "—"}
+                    {o.assignees.length ? ` · ${o.assignees.map((a) => a.user.name.split(" ")[0]).join(", ")}` : ""}
+                  </span>
+                </span>
+                <span className="text-muted-foreground tabular">{o.completedAt ? formatDate(o.completedAt, true) : "—"}</span>
+              </Link>
             ))}
-          </div>
-        </div>
-      )}
-      <p className="mt-4 text-xs text-muted-foreground">
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex-row items-center justify-between">
+            <CardTitle>ვადაგადაცილებული</CardTitle>
+            <span className="text-[11px] text-muted-foreground">აქტიური, ვადა გასულია</span>
+          </CardHeader>
+          <CardContent>
+            {overdue.length === 0 && <p className="py-4 text-center text-xs text-muted-foreground">ვადაგადაცილებული შეკვეთა არ არის</p>}
+            {overdue.map((o) => (
+              <Link key={o.id} href={`/orders/${o.id}`} className="grid grid-cols-[1fr_auto] items-center gap-3 border-t border-[#e6ebf2] py-2.5 text-xs first:border-t-0 hover:text-[#3457d5]">
+                <span className="min-w-0">
+                  <span className="block truncate text-[13px] font-medium text-foreground">{o.title}</span>
+                  <span className="block truncate text-muted-foreground">
+                    {o.number} · {o.client?.name ?? "—"}
+                  </span>
+                </span>
+                <span className="font-medium text-[#a73b2d] tabular">{formatDate(o.dueDate)}</span>
+              </Link>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+
+      <p className="mt-4 text-[11px] text-muted-foreground">
         ხანგრძლივობა: {formatDuration(120)} ნაგულისხმევად, თუ შეკვეთაზე არ არის მითითებული. დღის ნორმა იცვლება ადმინის პარამეტრებში.
       </p>
     </div>

@@ -18,7 +18,6 @@ export function OrderTable({ orders, compact = false, showMoney = true }: { orde
             <th className="px-4 py-2.5 font-medium">{t.order.number}</th>
             <th className="px-3 py-2.5 font-medium">{t.order.title}</th>
             {!compact && <th className="px-3 py-2.5 font-medium">{t.order.client}</th>}
-            {!compact && <th className="px-3 py-2.5 font-medium">{t.order.type}</th>}
             {!compact && <th className="px-3 py-2.5 font-medium">{t.order.priority}</th>}
             <th className="px-3 py-2.5 font-medium">{t.order.assignees}</th>
             <th className="px-3 py-2.5 font-medium">{t.order.status}</th>
@@ -49,7 +48,7 @@ export function OrderTable({ orders, compact = false, showMoney = true }: { orde
                       </div>
                     )}
                     <div className="mt-0.5 flex flex-wrap gap-1">
-                      {compact && <TypeBadge type={o.type} className="px-1.5 py-0 text-[10px]" />}
+                      <TypeBadge type={o.type} className="px-1.5 py-0 text-[10px]" />
                       <SystemBadge system={o.systemType} className="px-1.5 py-0 text-[10px]" />
                     </div>
                   </Link>
@@ -58,11 +57,6 @@ export function OrderTable({ orders, compact = false, showMoney = true }: { orde
                   <td className="max-w-[200px] px-3 py-2.5">
                     <div className="truncate">{o.client?.name ?? <span className="text-muted-foreground">—</span>}</div>
                     <div className="truncate text-xs text-muted-foreground">{o.site?.name ?? o.address ?? ""}</div>
-                  </td>
-                )}
-                {!compact && (
-                  <td className="px-3 py-2.5">
-                    <TypeBadge type={o.type} />
                   </td>
                 )}
                 {!compact && (

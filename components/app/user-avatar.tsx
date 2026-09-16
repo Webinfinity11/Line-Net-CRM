@@ -20,11 +20,14 @@ export function UserAvatar({
   image,
   size = "sm",
   className,
+  tone = "neutral",
 }: {
   name: string;
   image?: string | null;
   size?: "xs" | "sm" | "md" | "lg";
   className?: string;
+  /** neutral = pale chip (Direction 1); color = hashed palette for lanes/legends */
+  tone?: "neutral" | "color";
 }) {
   const dims = { xs: "size-5 text-[9px]", sm: "size-6 text-[10px]", md: "size-8 text-xs", lg: "size-12 text-base" }[size];
   if (image) {
@@ -34,7 +37,12 @@ export function UserAvatar({
   return (
     <span
       title={name}
-      className={cn("inline-flex shrink-0 items-center justify-center rounded-full font-semibold text-white", dims, colorFor(name), className)}
+      className={cn(
+        "inline-flex shrink-0 items-center justify-center rounded-full font-semibold",
+        dims,
+        tone === "color" ? cn("text-white", colorFor(name)) : "bg-[#edf1f8] text-[#5e718b]",
+        className,
+      )}
     >
       {initials(name)}
     </span>

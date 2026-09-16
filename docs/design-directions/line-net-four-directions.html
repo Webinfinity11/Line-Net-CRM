@@ -1,0 +1,257 @@
+<div id="ln-design-explorer">
+  <div class="ln-concepts" role="group" aria-label="დიზაინის მიმართულება">
+    <button type="button" data-concept="1" aria-pressed="true">01 · მინიმალიზმი</button>
+    <button type="button" data-concept="2" aria-pressed="false">02 · დისპეტჩერი</button>
+    <button type="button" data-concept="3" aria-pressed="false">03 · საინჟინრო</button>
+    <button type="button" data-concept="4" aria-pressed="false">04 · მენეჯერი</button>
+  </div>
+  <div class="ln-app" data-style="1" aria-label="Line Net CRM-ის მთავარი დაფის დიზაინი">
+    <aside class="ln-sidebar"><div class="ln-brand"><span class="ln-monogram">LN</span><span>Line Net<small>სერვისის მართვა</small></span></div><nav aria-label="დაფის მონახაზის მენიუ"><span class="ln-active"><span class="ln-icon"><i data-lucide="layout-dashboard" aria-hidden="true"></i></span>დაფა</span><span><span class="ln-icon"><i data-lucide="clipboard-list" aria-hidden="true"></i></span>შეკვეთები</span><span><span class="ln-icon"><i data-lucide="inbox" aria-hidden="true"></i></span>შემოსულები <em>5</em></span><span><span class="ln-icon"><i data-lucide="calendar-days" aria-hidden="true"></i></span>განრიგი</span><span><span class="ln-icon"><i data-lucide="wrench" aria-hidden="true"></i></span>ტექმომსახურება</span><span><span class="ln-icon"><i data-lucide="building-2" aria-hidden="true"></i></span>კლიენტები</span><span><span class="ln-icon"><i data-lucide="chart-no-axes-combined" aria-hidden="true"></i></span>ანგარიშები</span></nav><div class="ln-profile">ნინო მენეჯერი<small>ადმინისტრატორი</small></div></aside>
+    <main class="ln-main" aria-live="polite"></main>
+  </div>
+</div>
+<style>
+#ln-design-explorer{font-family:"Noto Sans Georgian",Arial,sans-serif;font-size:14px;line-height:1.55;color:light-dark(#192833,#e8eef2);width:100%}
+#ln-design-explorer *{box-sizing:border-box}
+#ln-design-explorer .ln-concepts{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+#ln-design-explorer .ln-concepts button{font:inherit;font-size:13px;flex:1 1 170px;border:1px solid light-dark(#d7dee3,#414b53);border-radius:8px;padding:11px 9px;color:inherit;background:transparent;cursor:pointer}
+#ln-design-explorer .ln-concepts button[aria-pressed=true]{background:light-dark(#192833,#e8eef2);color:light-dark(#fff,#192833);border-color:transparent}
+#ln-design-explorer .ln-app{--ln-bg:#f6f7f9;--ln-panel:#fff;--ln-ink:#17212b;--ln-muted:#596676;--ln-line:#e3e8ed;--ln-accent:#2554db;--ln-tint:#edf2ff;--ln-alert:#a73b2d;--ln-alertbg:#fff1ed;--ln-radius:10px;display:flex;background:var(--ln-bg);color:var(--ln-ink);border:1px solid var(--ln-line);border-radius:12px;overflow:hidden;min-height:625px;color-scheme:light}
+#ln-design-explorer .ln-sidebar{width:165px;flex:0 0 165px;background:var(--ln-panel);border-right:1px solid var(--ln-line);padding:23px 12px;display:flex;flex-direction:column}
+#ln-design-explorer .ln-brand{display:flex;gap:9px;align-items:center;font-size:17px;font-weight:500;margin:0 3px 33px}
+#ln-design-explorer .ln-monogram{font-size:12px;display:grid;place-items:center;width:32px;height:32px;background:var(--ln-accent);color:#fff;border-radius:8px;flex-shrink:0}
+#ln-design-explorer small{display:block;font-size:11px;color:var(--ln-muted);font-weight:400}
+#ln-design-explorer nav{display:flex;flex-direction:column;gap:5px;font-size:12px}
+#ln-design-explorer nav>span{padding:9px 10px;border-radius:6px;display:flex;justify-content:space-between;gap:6px}
+#ln-design-explorer nav .ln-active{color:var(--ln-accent);background:var(--ln-tint);font-weight:500}
+#ln-design-explorer nav em{font-size:11px;font-style:normal}
+#ln-design-explorer .ln-profile{margin-top:auto;padding:35px 8px 0;font-size:12px}
+#ln-design-explorer .ln-main{padding:25px;flex:1;min-width:0}
+#ln-design-explorer h2{font-size:24px;font-weight:500;line-height:1.35;margin:4px 0 6px;letter-spacing:-.4px}
+#ln-design-explorer h3{font-size:14px;font-weight:500;margin:0 0 15px}
+#ln-design-explorer p{margin:0}
+#ln-design-explorer .ln-kicker{font-size:11px;letter-spacing:.3px;color:var(--ln-muted)}
+#ln-design-explorer .ln-head{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:25px}
+#ln-design-explorer .ln-caption{font-size:12px;color:var(--ln-muted)}
+#ln-design-explorer .ln-create{font:inherit;font-size:12px;padding:10px 14px;background:var(--ln-accent);color:#fff;border:0;border-radius:7px;white-space:nowrap;cursor:pointer}
+#ln-design-explorer .ln-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin:0 0 24px;gap:12px}
+#ln-design-explorer .ln-metric{padding:13px 0;border-bottom:1px solid var(--ln-line)}
+#ln-design-explorer .ln-metric strong{display:block;font-size:28px;font-weight:500;letter-spacing:-.7px}
+#ln-design-explorer .ln-metric span{font-size:11px;color:var(--ln-muted)}
+#ln-design-explorer .ln-attention{display:flex;gap:10px;align-items:center;justify-content:space-between;background:var(--ln-alertbg);color:var(--ln-alert);border-radius:7px;padding:12px 14px;font-size:12px;margin-bottom:22px}
+#ln-design-explorer .ln-grid{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(190px,1fr);gap:21px}
+#ln-design-explorer .ln-panel{background:var(--ln-panel);padding:18px;border:1px solid var(--ln-line);border-radius:var(--ln-radius);min-width:0}
+#ln-design-explorer .ln-table{width:100%;border-collapse:collapse;font-size:12px}
+#ln-design-explorer .ln-table th{text-align:left;color:var(--ln-muted);font-size:11px;font-weight:400;padding:0 8px 10px 0}
+#ln-design-explorer .ln-table td{padding:13px 8px 13px 0;border-top:1px solid var(--ln-line);vertical-align:top;overflow-wrap:anywhere}
+#ln-design-explorer .ln-table small{margin-top:3px}
+#ln-design-explorer .ln-pill{display:inline-block;font-size:11px;white-space:nowrap;padding:3px 7px;background:var(--ln-tint);color:var(--ln-accent);border-radius:5px}
+#ln-design-explorer .ln-visit{display:grid;grid-template-columns:40px 1fr;gap:10px;padding:11px 0;border-top:1px solid var(--ln-line);font-size:12px}
+#ln-design-explorer .ln-visit time{color:var(--ln-accent)}
+#ln-design-explorer .ln-team{padding-top:10px;font-size:12px}
+#ln-design-explorer .ln-team>div{display:flex;justify-content:space-between;gap:8px;margin:9px 0 5px}
+#ln-design-explorer .ln-track{height:4px;background:var(--ln-line);border-radius:2px;overflow:hidden}
+#ln-design-explorer .ln-track i{display:block;background:var(--ln-accent);height:100%}
+#ln-design-explorer .ln-foot{font-size:11px;color:var(--ln-muted);margin-top:21px;display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between}
+#ln-design-explorer .ln-dispatch{display:grid;grid-template-columns:minmax(175px,1fr) minmax(0,2fr);gap:18px}
+#ln-design-explorer .ln-job{background:var(--ln-panel);border:1px solid var(--ln-line);border-radius:6px;padding:13px;margin-bottom:9px;font-size:12px}
+#ln-design-explorer .ln-job p{margin:7px 0}
+#ln-design-explorer .ln-job small{margin-top:5px}
+#ln-design-explorer .ln-job button{font:inherit;font-size:11px;color:var(--ln-accent);background:var(--ln-tint);border:0;border-radius:4px;padding:6px 10px;margin-top:10px;cursor:pointer}
+#ln-design-explorer .ln-timeline{display:grid;grid-template-columns:65px repeat(3,minmax(0,1fr));gap:8px;align-items:stretch;font-size:11px}
+#ln-design-explorer .ln-time{color:var(--ln-muted);text-align:center;padding:0 0 8px}
+#ln-design-explorer .ln-tech{padding:17px 0;font-size:12px}
+#ln-design-explorer .ln-slot{border-left:1px dashed var(--ln-line);min-height:110px;padding:9px 5px}
+#ln-design-explorer .ln-task{background:var(--ln-tint);color:var(--ln-ink);border-left:3px solid var(--ln-accent);border-radius:3px;padding:8px;line-height:1.7;font-size:11px}
+#ln-design-explorer .ln-task small{font-size:11px;margin-top:7px}
+#ln-design-explorer [data-style="2"]{--ln-accent:#a8490b;--ln-tint:#fff0e3;--ln-bg:#f2f5f7;--ln-radius:6px}
+#ln-design-explorer [data-style="2"] .ln-sidebar{background:#152a3a;color:#e9f0f5;--ln-muted:#b0c2ce;--ln-tint:#2b4252;--ln-accent:#ffd3ad;border-color:#152a3a}
+#ln-design-explorer [data-style="2"] .ln-monogram{background:#d67a31;color:#fff}
+#ln-design-explorer [data-style="2"] .ln-metrics{background:var(--ln-panel);padding:4px 15px;border:1px solid var(--ln-line);border-radius:6px}
+#ln-design-explorer [data-style="2"] .ln-metric{border:0;padding:8px 0}
+#ln-design-explorer [data-style="2"] .ln-metric strong{font-size:23px}
+#ln-design-explorer [data-style="3"]{--ln-bg:#11171c;--ln-panel:#192229;--ln-ink:#edf3f5;--ln-muted:#a9b7c0;--ln-line:#34414a;--ln-accent:#68d7d0;--ln-tint:#223c40;--ln-alert:#f1b49a;--ln-alertbg:#382925;--ln-radius:4px;flex-direction:column;color-scheme:dark}
+#ln-design-explorer [data-style="3"] .ln-sidebar{width:auto;flex-basis:auto;flex-direction:row;align-items:center;padding:15px 22px;gap:25px;border-right:0;border-bottom:1px solid var(--ln-line)}
+#ln-design-explorer [data-style="3"] .ln-brand{margin:0;flex-shrink:0}
+#ln-design-explorer [data-style="3"] nav{flex-direction:row;flex-wrap:wrap}
+#ln-design-explorer [data-style="3"] nav>span:nth-child(n+5){display:none}
+#ln-design-explorer [data-style="3"] .ln-profile{display:none}
+#ln-design-explorer [data-style="3"] .ln-create,#ln-design-explorer [data-style="3"] .ln-monogram{color:#13262a}
+#ln-design-explorer .ln-queues{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:20px}
+#ln-design-explorer .ln-queue h3{display:flex;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid var(--ln-line)}
+#ln-design-explorer .ln-queue h3 span{color:var(--ln-muted);font-weight:400}
+#ln-design-explorer [data-style="4"]{--ln-bg:#f5f3ee;--ln-panel:#fff;--ln-ink:#24352d;--ln-muted:#626d65;--ln-line:#dedfd7;--ln-accent:#27634a;--ln-tint:#edf3ed;--ln-radius:14px}
+#ln-design-explorer [data-style="4"] h2{font-size:29px}
+#ln-design-explorer .ln-editorial{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:20px;margin-bottom:20px}
+#ln-design-explorer .ln-summary{padding:23px;background:#e7ece3;border-radius:14px;color:#24352d}
+#ln-design-explorer .ln-summary h3{font-size:19px;line-height:1.7;margin-bottom:15px}
+#ln-design-explorer .ln-summary .ln-metrics{margin:0;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+#ln-design-explorer .ln-summary .ln-metric{border-color:#cbd6c9}
+#ln-design-explorer .ln-action{font-size:12px;border-top:1px solid var(--ln-line);padding:11px 0;display:flex;justify-content:space-between;gap:14px}
+#ln-design-explorer .ln-money{display:flex;gap:25px;padding:20px 0 0;font-size:19px;font-weight:500}
+#ln-design-explorer .ln-feedback{padding:12px;margin-top:15px;background:var(--ln-tint);border-radius:6px;font-size:12px;color:var(--ln-ink)}
+@media(max-width:800px){#ln-design-explorer .ln-sidebar{width:135px;flex-basis:135px;padding:20px 8px}#ln-design-explorer .ln-brand{font-size:14px;gap:6px}#ln-design-explorer .ln-main{padding:20px}#ln-design-explorer .ln-grid{grid-template-columns:minmax(0,1fr)}#ln-design-explorer .ln-grid>.ln-panel:last-child{display:grid;grid-template-columns:1fr 1fr;gap:10px}#ln-design-explorer .ln-dispatch{grid-template-columns:1fr}#ln-design-explorer .ln-dispatch>section:first-child{display:grid;grid-template-columns:1fr 1fr;gap:8px}#ln-design-explorer .ln-dispatch>section:first-child>h3{grid-column:1/-1}}
+@media(max-width:580px){#ln-design-explorer .ln-app{display:block}#ln-design-explorer .ln-sidebar{width:100%;padding:13px 16px;border-right:0;border-bottom:1px solid var(--ln-line)}#ln-design-explorer .ln-brand{margin:0;font-size:16px}#ln-design-explorer nav,#ln-design-explorer .ln-profile{display:none}#ln-design-explorer .ln-main{padding:18px 14px}#ln-design-explorer .ln-head{align-items:flex-start;gap:8px;flex-wrap:wrap}#ln-design-explorer h2,#ln-design-explorer [data-style="4"] h2{font-size:23px}#ln-design-explorer .ln-metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 18px}#ln-design-explorer .ln-grid>.ln-panel:last-child{display:block}#ln-design-explorer .ln-queues,#ln-design-explorer .ln-editorial{grid-template-columns:1fr}#ln-design-explorer .ln-table .ln-optional{display:none}#ln-design-explorer .ln-table th,#ln-design-explorer .ln-table td{padding-right:5px}#ln-design-explorer .ln-panel{padding:14px}#ln-design-explorer .ln-dispatch>section:first-child{display:block}#ln-design-explorer [data-style="3"] nav{display:none}#ln-design-explorer .ln-timeline{grid-template-columns:48px repeat(3,minmax(0,1fr));gap:4px}#ln-design-explorer .ln-task{padding:5px;overflow-wrap:anywhere}#ln-design-explorer .ln-concepts button{flex-basis:130px}#ln-design-explorer .ln-attention{align-items:flex-start}}
+@media(pointer:coarse){#ln-design-explorer button{min-height:44px}}
+</style>
+<style>
+#ln-design-explorer [data-style="1"]{--ln-accent:#3457d5;--ln-tint:#eef2ff;--ln-muted:#617084;--ln-line:#e6ebf2;--ln-bg:#f6f8fc;--ln-radius:12px}
+#ln-design-explorer [data-style="1"] .ln-sidebar{padding-top:24px}
+#ln-design-explorer [data-style="1"] .ln-brand{margin-bottom:31px}
+#ln-design-explorer [data-style="1"] .ln-monogram{border-radius:10px;box-shadow:0 3px 7px #3457d524}
+#ln-design-explorer nav>span{align-items:center;justify-content:flex-start;gap:8px}
+#ln-design-explorer nav>span em{margin-left:auto}
+#ln-design-explorer [data-style="1"] .ln-active{box-shadow:inset 3px 0 var(--ln-accent)}
+#ln-design-explorer .ln-icon{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+#ln-design-explorer .ln-icon svg{width:16px;height:16px;stroke-width:1.7}
+#ln-design-explorer .ln-header-actions{display:flex;align-items:center;gap:8px}
+#ln-design-explorer .ln-round-btn{position:relative;border:1px solid var(--ln-line);background:var(--ln-panel);border-radius:9px;width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;color:var(--ln-muted);cursor:pointer}
+#ln-design-explorer .ln-round-btn>i{height:16px;width:16px}
+#ln-design-explorer .ln-dot{position:absolute;right:7px;top:6px;width:6px;height:6px;border-radius:50%;background:#d95c4c;border:1px solid #fff}
+#ln-design-explorer [data-style="1"] .ln-create{display:inline-flex;align-items:center;justify-content:center;gap:7px;box-shadow:0 3px 8px #3457d522;transition:background .16s,box-shadow .16s,transform .16s}
+#ln-design-explorer [data-style="1"] .ln-create:hover{background:#2846b7;box-shadow:0 5px 12px #3457d52a;transform:translateY(-1px)}
+#ln-design-explorer [data-style="1"] .ln-create:active{transform:translateY(0)}
+#ln-design-explorer .ln-richmetrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:19px}
+#ln-design-explorer .ln-richmetric{border:1px solid var(--ln-line);background:var(--ln-panel);border-radius:11px;padding:14px;text-align:left;font:inherit;color:var(--ln-ink);cursor:pointer;transition:border-color .16s,box-shadow .16s}
+#ln-design-explorer .ln-richmetric:hover{border-color:#a5b5ed;box-shadow:0 4px 14px #26396808}
+#ln-design-explorer .ln-richmetric>div{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px}
+#ln-design-explorer .ln-richmetric strong{font-size:27px;font-weight:500;line-height:1.2;letter-spacing:-.6px;font-variant-numeric:tabular-nums}
+#ln-design-explorer .ln-richmetric>span{font-size:11px;color:var(--ln-muted)}
+#ln-design-explorer .ln-stat-icon{display:grid;place-items:center;width:30px;height:30px;border-radius:8px;background:#edf2ff;color:#3457d5}
+#ln-design-explorer .ln-stat-icon.orange{background:#fff3df;color:#a96308}
+#ln-design-explorer .ln-stat-icon.red{background:#fff0ed;color:#b13f32}
+#ln-design-explorer .ln-stat-icon.green{background:#eaf6ef;color:#25815a}
+#ln-design-explorer [data-style="1"] .ln-attention{background:#fff6f1;color:#a84630;border:1px solid #f4e2d7;border-radius:10px;margin-bottom:21px;padding:11px 13px}
+#ln-design-explorer .ln-alert-content{display:flex;align-items:center;gap:9px;min-width:0}
+#ln-design-explorer .ln-alert-link{font:inherit;font-size:11px;border:0;color:#98452f;background:transparent;display:flex;align-items:center;gap:5px;white-space:nowrap;cursor:pointer;padding:5px}
+#ln-design-explorer .ln-section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:13px;flex-wrap:wrap}
+#ln-design-explorer .ln-section-head h3{margin:0}
+#ln-design-explorer .ln-count{color:#748197;font-size:11px;font-weight:400;margin-left:4px}
+#ln-design-explorer .ln-filters{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px}
+#ln-design-explorer .ln-filter{font:inherit;font-size:11px;background:transparent;border:1px solid var(--ln-line);border-radius:6px;padding:5px 8px;color:var(--ln-muted);cursor:pointer;transition:background .16s,color .16s}
+#ln-design-explorer .ln-filter[aria-pressed="true"]{background:#eef2ff;border-color:#dbe3fd;color:#3457d5}
+#ln-design-explorer .ln-orderbutton{display:flex;gap:9px;align-items:flex-start;width:100%;text-align:left;border:0;background:transparent;padding:0;color:inherit;font:inherit;cursor:pointer}
+#ln-design-explorer .ln-job-icon{width:29px;height:31px;border-radius:7px;background:#f1f4f9;color:#66809a;display:grid;place-items:center;flex-shrink:0;margin-top:2px}
+#ln-design-explorer .ln-orderbutton:hover .ln-order-title{color:var(--ln-accent)}
+#ln-design-explorer [data-style="1"] .ln-table tbody tr{transition:background .14s}
+#ln-design-explorer [data-style="1"] .ln-table tbody tr:hover{background:#f8faff}
+#ln-design-explorer .ln-status{display:inline-flex;align-items:center;gap:5px;font-size:11px;border-radius:5px;padding:3px 6px;white-space:nowrap;background:#edf2ff;color:#3457d5}
+#ln-design-explorer .ln-status>i{height:5px;width:5px;background:currentColor;border-radius:50%;display:inline-block}
+#ln-design-explorer .ln-status[data-status="assigned"]{background:#f0ecfc;color:#7251ad}
+#ln-design-explorer .ln-status[data-status="progress"]{background:#fff4df;color:#96610b}
+#ln-design-explorer .ln-status[data-status="done"]{background:#eaf6ef;color:#23764f}
+#ln-design-explorer .ln-avatar{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#edf1f8;color:#5e718b;font-size:10px;margin-right:5px;vertical-align:middle}
+#ln-design-explorer .ln-person{display:flex;align-items:center;font-size:11px;gap:4px}
+#ln-design-explorer .ln-side-title{display:flex;align-items:center;gap:7px;font-size:13px}
+#ln-design-explorer .ln-visitbutton{font:inherit;color:inherit;text-align:left;border:0;background:transparent;padding:0;cursor:pointer}
+#ln-design-explorer .ln-visitbutton:hover{color:var(--ln-accent)}
+#ln-design-explorer [data-style="1"] .ln-team{margin-top:18px;border-top:1px solid var(--ln-line);padding-top:19px}
+#ln-design-explorer [data-style="1"] .ln-track{height:5px;background:#eef1f6}
+#ln-design-explorer [data-style="1"] .ln-track i{background:#748fdc;transition:width .3s ease}
+#ln-design-explorer .ln-softlink{font:inherit;font-size:11px;color:var(--ln-accent);background:transparent;border:0;padding:4px 0;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+#ln-design-explorer .ln-mutednote{font-size:11px;color:var(--ln-muted);padding-top:13px}
+#ln-design-explorer .ln-mailpeek{display:flex;align-items:center;justify-content:space-between;gap:9px;margin-top:17px;padding-top:15px;border-top:1px solid var(--ln-line);font-size:12px}
+#ln-design-explorer .ln-toast{margin-top:15px;background:#edf7f0;color:#256342;border:1px solid #d8eddf;border-radius:8px;padding:10px 13px;font-size:12px;animation:ln-toast-in .2s ease}
+#ln-design-explorer .ln-detail{margin-top:20px;border:1px solid #dbe3f5;border-radius:12px;background:#fff;padding:20px;box-shadow:0 8px 25px #1c356009;animation:ln-panel-in .2s ease;color:#17212b}
+#ln-design-explorer .ln-detail .ln-section-head{align-items:flex-start}
+#ln-design-explorer .ln-detail h3{font-size:18px;margin:5px 0 7px;line-height:1.5}
+#ln-design-explorer .ln-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:17px;margin-top:18px}
+#ln-design-explorer .ln-detail label{display:grid;gap:6px;font-size:12px;color:#4a5e73}
+#ln-design-explorer .ln-detail input,#ln-design-explorer .ln-detail select,#ln-design-explorer .ln-detail textarea{font:inherit;font-size:14px;width:100%;min-width:0;border:1px solid #d7dfe9;border-radius:7px;background:#fff;color:#17212b;padding:9px 10px}
+#ln-design-explorer .ln-detail textarea{min-height:70px;resize:vertical}
+#ln-design-explorer .ln-detail .ln-span{grid-column:1/-1}
+#ln-design-explorer .ln-formactions{display:flex;align-items:center;gap:12px;margin-top:16px;flex-wrap:wrap}
+#ln-design-explorer .ln-cancel{font:inherit;font-size:12px;padding:9px 13px;background:#fff;border:1px solid #dbe1ec;border-radius:7px;color:#566b7d;cursor:pointer}
+#ln-design-explorer .ln-event{display:flex;align-items:center;gap:8px;font-size:12px;margin-top:16px;padding-top:12px;border-top:1px solid #e6ebf2;color:#566b7d}
+#ln-design-explorer .ln-event .ln-icon{color:#2b8260}
+#ln-design-explorer .ln-empty{padding:30px 10px;text-align:center;color:#617084;font-size:13px}
+@keyframes ln-panel-in{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+@keyframes ln-toast-in{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:850px){#ln-design-explorer [data-style="1"] .ln-grid{grid-template-columns:minmax(0,1fr)}#ln-design-explorer [data-style="1"] .ln-grid>.ln-panel:last-child{display:grid;grid-template-columns:1fr 1fr;gap:22px}#ln-design-explorer [data-style="1"] .ln-team{margin-top:0;padding-top:0;border-top:0}#ln-design-explorer .ln-richmetric{padding:12px}}
+@media(max-width:580px){#ln-design-explorer .ln-richmetrics{grid-template-columns:repeat(2,minmax(0,1fr))}#ln-design-explorer [data-style="1"] .ln-grid>.ln-panel:last-child{display:block}#ln-design-explorer [data-style="1"] .ln-team{padding-top:16px;margin-top:16px;border-top:1px solid var(--ln-line)}#ln-design-explorer .ln-detail-grid{grid-template-columns:1fr}#ln-design-explorer .ln-alert-content{align-items:flex-start}#ln-design-explorer .ln-attention{flex-wrap:wrap}#ln-design-explorer .ln-detail input,#ln-design-explorer .ln-detail select,#ln-design-explorer .ln-detail textarea{font-size:16px}#ln-design-explorer .ln-table th,#ln-design-explorer .ln-table td{font-size:12px}#ln-design-explorer .ln-detail{padding:15px}}
+@media(prefers-reduced-motion:reduce){#ln-design-explorer *,#ln-design-explorer *::before,#ln-design-explorer *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+</style>
+<script>
+(function(){
+const root=document.getElementById('ln-design-explorer');
+const app=root.querySelector('.ln-app');
+const main=root.querySelector('.ln-main');
+const state={concept:'1'};
+const metrics=()=>'<div class="ln-metrics"><div class="ln-metric"><span>აქტიური შეკვეთები</span><strong>24</strong></div><div class="ln-metric"><span>დღევანდელი ვიზიტები</span><strong>7</strong></div><div class="ln-metric"><span>ვადაგადაცილებული</span><strong>3</strong></div><div class="ln-metric"><span>ჩასაბარებელი</span><strong>4</strong></div></div>';
+const table=()=>'<table class="ln-table"><thead><tr><th>შეკვეთა / ობიექტი</th><th class="ln-optional">შემსრულებელი</th><th>სტატუსი</th></tr></thead><tbody><tr><td>კამერების დიაგნოსტიკა<small>LN-1042 · ალფა ოფისი</small></td><td class="ln-optional">გიორგი<small>10:30</small></td><td><span class="ln-pill">მიმდინარე</span></td></tr><tr><td>სახანძრო სისტემის შემოწმება<small>LN-1043 · ბეტა კლინიკა</small></td><td class="ln-optional">ლევანი<small>12:00</small></td><td><span class="ln-pill">დანიშნული</span></td></tr><tr><td>კარის კონტროლერი<small>LN-1044 · დელტა სასტუმრო</small></td><td class="ln-optional">დაუნიშნავი<small>სასწრაფო</small></td><td><span class="ln-pill">ახალი</span></td></tr><tr><td>ქსელის კაბელის შეცვლა<small>LN-1045 · ალფა ოფისი</small></td><td class="ln-optional">ნიკა<small>15:00</small></td><td><span class="ln-pill">შესრულებული</span></td></tr></tbody></table>';
+const visits=()=>'<div><h3>დღევანდელი ვიზიტები</h3><div class="ln-visit"><time>10:30</time><div>ალფა ოფისი<small>გიორგი · კამერები</small></div></div><div class="ln-visit"><time>12:00</time><div>ბეტა კლინიკა<small>ლევანი · სახანძრო</small></div></div><div class="ln-visit"><time>15:00</time><div>ალფა ოფისი<small>ნიკა · ქსელი</small></div></div></div>';
+const team=()=>'<div class="ln-team"><h3>დაგეგმილი დატვირთვა</h3><div><span>გიორგი</span><span>6 / 8 სთ</span></div><div class="ln-track" role="img" aria-label="გიორგი, 8 საათიდან 6 დაგეგმილია"><i style="width:75%"></i></div><div><span>ლევანი</span><span>7 / 8 სთ</span></div><div class="ln-track" role="img" aria-label="ლევანი, 8 საათიდან 7 დაგეგმილია"><i style="width:87.5%"></i></div><div><span>ნიკა</span><span>3 / 8 სთ</span></div><div class="ln-track" role="img" aria-label="ნიკა, 8 საათიდან 3 დაგეგმილია"><i style="width:37.5%"></i></div></div>';
+const job=(id,title,client,extra,button=false)=>'<div class="ln-job"><small>'+id+'</small><p>'+title+'</p><small>'+client+'</small><span class="ln-pill">'+extra+'</span>'+(button?'<br><button type="button" data-demo="assign">დანიშვნა</button>':'')+'</div>';
+const heading=(title,sub)=>'<header class="ln-head"><div><div class="ln-kicker">16 სექტემბერი, ოთხშაბათი</div><h2>'+title+'</h2><p class="ln-caption">'+sub+'</p></div><button type="button" class="ln-create" data-demo="create">+ ახალი შეკვეთა</button></header>';
+const attention='<div class="ln-attention"><span>სასწრაფო დაუნიშნავი · კარის კონტროლერი</span><span>LN-1044 ↗</span></div>';
+const foot='<div class="ln-foot"><span>კონცეფცია · სადემონსტრაციო მონაცემები</span><span>Line Net CRM</span></div><div class="ln-feedback" hidden role="status"></div>';
+const richState={filter:'all',detail:null,selected:null,toast:'',added:0};
+const richJobs=[
+{id:'LN-1042',title:'კამერების დიაგნოსტიკა',client:'ალფა ოფისი',area:'ვაკე',person:'გიორგი',basePerson:'გიორგი',time:'10:30',status:'progress',icon:'cctv',priority:'მაღალი',overdue:false,description:'სამი კამერის გამოსახულებისა და ჩამწერის მუშაობის შემოწმება.'},
+{id:'LN-1043',title:'სახანძრო სისტემის შემოწმება',client:'ბეტა კლინიკა',area:'საბურთალო',person:'ლევანი',basePerson:'ლევანი',time:'12:00',status:'assigned',icon:'flame',priority:'საშუალო',overdue:false,description:'პანელისა და დეტექტორების გეგმური შემოწმება.'},
+{id:'LN-1044',title:'კარის კონტროლერის გაუმართაობა',client:'დელტა სასტუმრო',area:'ავლაბარი',person:'',basePerson:'',time:'',status:'new',icon:'door-open',priority:'სასწრაფო',overdue:true,description:'შესასვლელი კარის კონტროლერი არ რეაგირებს ბარათზე. საჭიროა შემსრულებლის დანიშვნა.'},
+{id:'LN-1045',title:'ქსელის კაბელის შეცვლა',client:'ალფა ოფისი',area:'ვაკე',person:'ნიკა',basePerson:'ნიკა',time:'15:00',status:'done',icon:'network',priority:'საშუალო',overdue:false,description:'კაბელი შეცვლილია, კავშირი შემოწმებულია. ელოდება მენეჯერის გადახედვას.'}
+];
+const richLabels={new:'ახალი',assigned:'დანიშნული',progress:'მიმდინარე',done:'შესრულებული'};
+const esc=(value)=>String(value).replace(/[&<>"']/g,(c)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ic=(name)=>'<span class="ln-icon"><i data-lucide="'+name+'" aria-hidden="true"></i></span>';
+const richStatus=(job)=>'<span class="ln-status" data-status="'+job.status+'"><i></i>'+richLabels[job.status]+'</span>';
+function richTable(){
+const jobs=richJobs.filter(j=>richState.filter==='all'||(richState.filter==='unassigned'&&!j.person)||(richState.filter==='overdue'&&j.overdue)||(richState.filter==='review'&&j.status==='done'));
+return '<section class="ln-panel"><div class="ln-section-head"><h3>შეკვეთები <span class="ln-count">მოკლე სია</span></h3><span class="ln-caption">'+jobs.length+' ნაჩვენებია</span></div><div class="ln-filters">'+[['all','ყველა'],['unassigned','დაუნიშნავი'],['overdue','ვადაგადაცილებული'],['review','ჩასაბარებელი']].map(([k,l])=>'<button type="button" class="ln-filter" data-rich-filter="'+k+'" aria-pressed="'+(richState.filter===k)+'">'+l+'</button>').join('')+'</div>'+(jobs.length?'<table class="ln-table"><thead><tr><th>შეკვეთა / ობიექტი</th><th class="ln-optional">შემსრულებელი</th><th>სტატუსი</th></tr></thead><tbody>'+jobs.map(j=>'<tr><td><button type="button" class="ln-orderbutton" data-rich-open="'+j.id+'"><span class="ln-job-icon">'+ic(j.icon)+'</span><span><span class="ln-order-title">'+esc(j.title)+'</span><small>'+j.id+' · '+esc(j.client)+'</small></span></button></td><td class="ln-optional">'+(j.person?'<span class="ln-person"><span class="ln-avatar">'+esc(j.person[0])+'</span>'+esc(j.person)+'</span><small>'+esc(j.time||'დაუგეგმავი')+'</small>':'<button type="button" class="ln-softlink" data-rich-open="'+j.id+'">'+ic('user-plus')+'დანიშვნა</button>')+'</td><td>'+richStatus(j)+'</td></tr>').join('')+'</tbody></table>':'<div class="ln-empty">'+ic('circle-check')+'<p>ამ ფილტრში შეკვეთა არ არის</p></div>')+'</section>';
+}
+function richSide(){
+const scheduled=richJobs.filter(j=>j.time);
+const planned={'გიორგი':6,'ლევანი':7,'ნიკა':3};
+richJobs.forEach(j=>{if(j.time&&j.basePerson&&j.person!==j.basePerson){planned[j.basePerson]-=2;if(j.person)planned[j.person]+=2;}});
+return '<aside class="ln-panel"><div><h3 class="ln-side-title">'+ic('calendar-days')+'დღევანდელი ვიზიტები</h3>'+scheduled.map(j=>'<div class="ln-visit"><time>'+j.time+'</time><button type="button" class="ln-visitbutton" data-rich-open="'+j.id+'">'+esc(j.client)+'<small>'+esc(j.person)+' · '+esc(j.area)+'</small></button></div>').join('')+'<p class="ln-mutednote">ნაჩვენებია 3 / 7 ვიზიტი</p><div class="ln-mailpeek"><span>'+ic('mail')+' შემოსულები</span><button type="button" class="ln-softlink" data-rich-action="inbox">5 წერილი '+ic('arrow-up-right')+'</button></div></div><div class="ln-team"><h3 class="ln-side-title">'+ic('users')+'გუნდის დატვირთვა</h3>'+Object.entries(planned).map(([name,hours])=>'<div><span class="ln-person"><span class="ln-avatar">'+name[0]+'</span>'+name+'</span><span>'+hours+' / 8 სთ</span></div><div class="ln-track" role="img" aria-label="'+name+', დაგეგმილია '+hours+' საათი 8 საათიდან"><i style="width:'+Math.min(100,hours/8*100)+'%;background:'+(hours>8?'#c75e50':hours>6?'#bd9c56':'#738fca')+'"></i></div>').join('')+'<p class="ln-mutednote">დაგეგმილი დრო · დღეს</p></div></aside>';
+}
+function richDetails(){
+if(!richState.detail)return '';
+const close='<button type="button" class="ln-round-btn" data-rich-action="close" aria-label="დეტალების დახურვა">'+ic('x')+'</button>';
+if(richState.detail==='create')return '<section class="ln-detail" aria-label="ახალი შეკვეთის ფორმა"><div class="ln-section-head"><div><small>შეკვეთები / შექმნა</small><h3>ახალი შეკვეთა</h3></div>'+close+'</div><form id="ln-rich-create"><div class="ln-detail-grid"><label class="ln-span">სამუშაოს დასახელება<input name="title" required maxlength="140" placeholder="მაგ. კამერის დიაგნოსტიკა"></label><label>კლიენტი<input name="client" required maxlength="80" placeholder="კლიენტის სახელი"></label><label>პრიორიტეტი<select name="priority"><option>საშუალო</option><option>მაღალი</option><option>სასწრაფო</option></select></label><label class="ln-span">აღწერა<textarea name="description" maxlength="500" placeholder="რა სამუშაოა შესასრულებელი?"></textarea></label></div><div class="ln-formactions"><button type="submit" class="ln-create">'+ic('check')+'შეკვეთის შექმნა</button><button type="button" class="ln-cancel" data-rich-action="close">გაუქმება</button><small>ინახება მხოლოდ ამ მონახაზში</small></div></form></section>';
+if(richState.detail==='inbox')return '<section class="ln-detail"><div class="ln-section-head"><div><small>შემოსულები · 5 დაუმუშავებელი</small><h3>შემოსული წერილები</h3></div>'+close+'</div><div class="ln-visit"><span>'+ic('mail')+'</span><div>კამერის დამატების მოთხოვნა<small>ბეტა კლინიკა · 16:05</small></div></div><div class="ln-visit"><span>'+ic('mail')+'</span><div>მომსახურების დაგეგმვა<small>ალფა ოფისი · 15:40</small></div></div><p class="ln-mutednote">ნაჩვენებია 2 / 5 საცდელი წერილი; რეალურ ფოსტასთან კავშირი ამ მონახაზს არ აქვს.</p></section>';
+if(richState.detail==='notifications')return '<section class="ln-detail"><div class="ln-section-head"><h3>შეტყობინებები</h3>'+close+'</div><div class="ln-event">'+ic('triangle-alert')+'LN-1044 — სასწრაფო შეკვეთას შემსრულებელი სჭირდება</div><div class="ln-event">'+ic('circle-check')+'LN-1045 — ნიკამ სამუშაო დაასრულა</div><div class="ln-event">'+ic('mail')+'შემოსულებში 5 მოთხოვნაა დასამუშავებელი</div></section>';
+const j=richJobs.find(j=>j.id===richState.selected);if(!j)return '';
+return '<section class="ln-detail" aria-label="შეკვეთის დეტალები"><div class="ln-section-head"><div><small>'+j.id+' · '+esc(j.client)+' · '+esc(j.area)+'</small><h3>'+esc(j.title)+'</h3>'+richStatus(j)+'</div>'+close+'</div><p class="ln-caption">'+esc(j.description)+'</p><form id="ln-rich-assign"><div class="ln-detail-grid"><label>შემსრულებელი<select name="person" required><option value="">აირჩიე შემსრულებელი</option>'+['გიორგი','ლევანი','ნიკა'].map(p=>'<option'+(p===j.person?' selected':'')+'>'+p+'</option>').join('')+'</select></label><label>პრიორიტეტი<input value="'+esc(j.priority)+'" readonly></label></div><div class="ln-formactions"><button type="submit" class="ln-create">'+ic('user-check')+'დანიშვნის შენახვა</button><small>ცვლილება აისახება საცდელ სიაში</small></div></form><div class="ln-event">'+ic(j.person?'user-check':'clock-3')+(j.person?'დანიშნულია: '+esc(j.person):'ელოდება შემსრულებლის დანიშვნას')+'</div></section>';
+}
+function renderRefined(){
+const title='<header class="ln-head"><div><div class="ln-kicker">ოთხშაბათი · 16 სექტემბერი</div><h2>სამუშაო დაფა</h2><p class="ln-caption">დღევანდელი პრიორიტეტები და გუნდის საქმეები</p></div><div class="ln-header-actions"><button type="button" class="ln-round-btn" data-rich-action="notifications" aria-label="შეტყობინებები">'+ic('bell')+'<span class="ln-dot"></span></button><button type="button" class="ln-create" data-rich-action="create">'+ic('plus')+'ახალი შეკვეთა</button></div></header>';
+const metricItems=[['all','აქტიური შეკვეთები',24+richState.added,'clipboard-list',''],['visits','დღევანდელი ვიზიტები',7,'calendar-days','orange'],['overdue','ვადაგადაცილებული',3,'triangle-alert','red'],['review','ჩასაბარებელი',4,'circle-check','green']];
+const metricHtml='<div class="ln-richmetrics">'+metricItems.map(([key,label,val,icon,color])=>'<button type="button" class="ln-richmetric" data-rich-metric="'+key+'"><div><strong>'+val+'</strong><span class="ln-stat-icon '+color+'">'+ic(icon)+'</span></div><span>'+label+'</span></button>').join('')+'</div>';
+const urgent=richJobs.find(j=>j.id==='LN-1044');
+const alert=urgent&&!urgent.person?'<div class="ln-attention"><span class="ln-alert-content">'+ic('siren')+'<span>სასწრაფო დაუნიშნავი · კარის კონტროლერი</span></span><button type="button" class="ln-alert-link" data-rich-open="LN-1044">დანიშვნა '+ic('arrow-right')+'</button></div>':'';
+return title+metricHtml+alert+'<div class="ln-grid">'+richTable()+richSide()+'</div>'+(richState.toast?'<div class="ln-toast" role="status">'+ic('circle-check')+' '+esc(richState.toast)+'</div>':'')+richDetails()+'<div class="ln-foot"><span>ინტერაქტიული მონახაზი · საცდელი მონაცემები</span><span>Line Net CRM / 01</span></div>';
+}
+function updateRich(){render();if(globalThis.lucide)lucide.createIcons({attrs:{width:16,height:16}});
+}
+root.addEventListener('click',e=>{
+const b=e.target.closest('button');if(!b||state.concept!=='1')return;
+if(b.dataset.richFilter){richState.filter=b.dataset.richFilter;richState.toast='';updateRich();const target=main.querySelector('[data-rich-filter="'+richState.filter+'"]');if(target)target.focus({preventScroll:true});}
+if(b.dataset.richOpen){richState.detail='order';richState.selected=b.dataset.richOpen;richState.toast='';updateRich();focusRichPanel();}
+if(b.dataset.richAction){const a=b.dataset.richAction;richState.detail=a==='close'?null:a;richState.toast='';updateRich();if(a!=='close')focusRichPanel();}
+if(b.dataset.richMetric){const f=b.dataset.richMetric;if(f==='visits'){richState.detail='order';richState.selected='LN-1042';}else{richState.filter=f;richState.detail=null;}richState.toast='';updateRich();if(f==='visits')focusRichPanel();}
+});
+function focusRichPanel(){const p=main.querySelector('.ln-detail');if(p){p.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'nearest'});const input=p.querySelector('input,select,button');if(input)input.focus({preventScroll:true});}}
+root.addEventListener('submit',e=>{
+const form=e.target;if(!(form instanceof HTMLFormElement)||!form.id.startsWith('ln-rich-'))return;e.preventDefault();if(!form.reportValidity())return;const data=new FormData(form);
+if(form.id==='ln-rich-create'){const title=String(data.get('title')||'').trim();const client=String(data.get('client')||'').trim();if(!title||!client){richState.toast='შეავსე დასახელება და კლიენტი';updateRich();return;}
+richState.added++;const id='LN-'+(1046+richState.added);richJobs.unshift({id,title,client,area:'მისამართი დასაზუსტებელია',person:'',basePerson:'',time:'',status:'new',icon:'wrench',priority:String(data.get('priority')),overdue:false,description:String(data.get('description')||'აღწერა არ არის დამატებული')});richState.toast=id+' დაემატა საცდელ სიას';richState.filter='all';richState.detail=null;
+}else if(form.id==='ln-rich-assign'){const j=richJobs.find(j=>j.id===richState.selected);const p=String(data.get('person'));if(j&&['გიორგი','ლევანი','ნიკა'].includes(p)){j.person=p;if(j.status==='new')j.status='assigned';richState.toast=j.id+' — დანიშნულია '+p;richState.detail=null;}}
+updateRich();
+});
+
+function render(){
+app.dataset.style=state.concept;
+root.querySelectorAll('[data-concept]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.concept===state.concept)));
+if(state.concept==='1')main.innerHTML=renderRefined();
+if(state.concept==='2')main.innerHTML=heading('გუნდი და ვიზიტები','დღის სამუშაოების განაწილება')+metrics()+'<div class="ln-dispatch"><section><h3>დაუნიშნავი · 6</h3>'+job('LN-1044','კარის კონტროლერის გაუმართაობა','დელტა სასტუმრო · ავლაბარი','სასწრაფო',true)+job('LN-1046','კამერის დამატება','ბეტა კლინიკა · საბურთალო','ახალი',true)+'</section><section class="ln-panel"><h3>დღევანდელი განრიგი · 7 ვიზიტი</h3><div class="ln-timeline"><span></span><span class="ln-time">09–12</span><span class="ln-time">12–15</span><span class="ln-time">15–18</span><span class="ln-tech">გიორგი</span><div class="ln-slot"><div class="ln-task">კამერები<small>10:30<br>ალფა ოფისი</small></div></div><div class="ln-slot"></div><div class="ln-slot"></div><span class="ln-tech">ლევანი</span><div class="ln-slot"></div><div class="ln-slot"><div class="ln-task">სახანძრო<small>12:00<br>ბეტა კლინიკა</small></div></div><div class="ln-slot"></div><span class="ln-tech">ნიკა</span><div class="ln-slot"></div><div class="ln-slot"></div><div class="ln-slot"><div class="ln-task">ქსელი<small>15:00<br>ალფა ოფისი</small></div></div></div></section></div>'+foot;
+if(state.concept==='3')main.innerHTML=heading('სამუშაოების მდგომარეობა','ოპერაციები / შემოწმებული 16:20-ზე')+metrics()+'<div class="ln-queues"><section class="ln-queue"><h3>ყურადღება <span>3</span></h3>'+job('LN-1044','კარის კონტროლერი','დელტა სასტუმრო','ვადაგადაცილებული')+'</section><section class="ln-queue"><h3>მიმდინარე <span>10</span></h3>'+job('LN-1042','კამერების დიაგნოსტიკა','ალფა ოფისი · გიორგი','მიმდინარე')+'</section><section class="ln-queue"><h3>ჩასაბარებელი <span>4</span></h3>'+job('LN-1045','ქსელის კაბელის შეცვლა','ალფა ოფისი · ნიკა','შესრულებული')+'</section></div><section class="ln-panel"><h3>ბოლო შეკვეთები</h3>'+table()+'</section>'+foot;
+if(state.concept==='4')main.innerHTML=heading('დღის მიმოხილვა','სამუშაოები, გუნდი და შედეგები')+'<div class="ln-editorial"><section class="ln-summary"><div class="ln-kicker">მიმდინარე სამუშაოები</div><h3>დღეს 7 ვიზიტია<br>დაგეგმილი</h3><div class="ln-metrics"><div class="ln-metric"><span>აქტიური შეკვეთები</span><strong>24</strong></div><div class="ln-metric"><span>შესრულდა ამ კვირაში</span><strong>18</strong></div></div></section><section class="ln-panel"><h3>მოქმედება სჭირდება</h3><div class="ln-action"><span>ვადაგადაცილებული</span><span>3 ↗</span></div><div class="ln-action"><span>ჩასაბარებელი</span><span>4 ↗</span></div><div class="ln-action"><span>შემოსული წერილები</span><span>5 ↗</span></div><div class="ln-action"><span>დაუნიშნავი სასწრაფო</span><span>1 ↗</span></div></section></div><div class="ln-editorial"><section class="ln-panel">'+visits()+'</section><section class="ln-panel">'+team()+'<div class="ln-money"><div>₾12,400<small>მიღებული · კვირა</small></div><div>₾8,700<small>გადაუხდელი · სულ</small></div></div></section></div>'+foot;
+}
+root.addEventListener('click',e=>{const button=e.target.closest('button');if(!button)return;if(button.dataset.concept){state.concept=button.dataset.concept;render()}if(button.dataset.demo){const notice=main.querySelector('.ln-feedback');notice.hidden=false;notice.textContent=button.dataset.demo==='assign'?'ვიზუალური მონახაზი: აქ გაიხსნება შემსრულებლის არჩევა.':'ვიზუალური მონახაზი: აქ გაიხსნება ახალი შეკვეთის ფორმა.'}});
+render();
+if(globalThis.Tweak){const tweak=new Tweak({container:app,onChange:render});tweak.addSelect(state,'concept',{label:'მიმართულება',options:[{label:'1. მშვიდი მინიმალიზმი',value:'1'},{label:'2. დისპეტჩერის დაფა',value:'2'},{label:'3. მუქი საინჟინრო',value:'3'},{label:'4. მენეჯერის მიმოხილვა',value:'4'}]});}
+})();
+</script>
