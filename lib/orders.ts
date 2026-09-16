@@ -154,7 +154,7 @@ export async function listClientsWithSites() {
 export async function getClient(id: number) {
   return db.query.clients.findFirst({
     where: eq(clients.id, id),
-    with: { sites: { orderBy: [asc(sites.name)] } },
+    with: { sites: { orderBy: [asc(sites.name)], with: { equipment: { orderBy: [asc(sql`name`)] } } } },
   });
 }
 

@@ -2,7 +2,7 @@
 
 import "leaflet/dist/leaflet.css";
 import type { Map as LeafletMap } from "leaflet";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export type MapMarker = { id: string | number; lat: number; lng: number; label?: string; color?: string; href?: string };
 
@@ -34,6 +34,7 @@ export function MapView({
   const layerRef = useRef<import("leaflet").LayerGroup | null>(null);
   const onPickRef = useRef(onPick);
   onPickRef.current = onPick;
+  const [ready, setReady] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -49,7 +50,9 @@ export function MapView({
       map.on("click", (e) => onPickRef.current?.(e.latlng.lat, e.latlng.lng));
       mapRef.current = map;
       layerRef.current = L.layerGroup().addTo(map);
+      setReady((r) => r + 1);
       setTimeout(() => map.invalidateSize(), 50);
+      setTimeout(() => map.invalidateSize(), 400);
     })();
     return () => {
       cancelled = true;
@@ -86,7 +89,8 @@ export function MapView({
         map.setView([markers[0].lat, markers[0].lng], Math.max(map.getZoom(), 14));
       }
     })();
-  }, [markers]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [markers, ready]);
 
   return <div ref={ref} style={{ height }} className={className ?? "w-full rounded-lg border"} />;
 }
