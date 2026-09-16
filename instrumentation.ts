@@ -1,11 +1,12 @@
 /**
  * Internal scheduler. Runs inside the Next.js server process, so no external cron is required.
- * - Mailbox polling every 5 minutes (only when GRAPH_* is configured)
+ * - Mailbox polling every 5 minutes (connected Outlook or GRAPH_* business mailbox)
  * - Maintenance order generation once per day (checked hourly)
  * Disable with INTERNAL_CRON=0 (for example when an external scheduler calls /api/cron/* instead).
  */
 export async function register() {
   if (process.env.NEXT_RUNTIME !== "nodejs") return;
+  if (process.env.VERCEL === "1") return; // Serverless instances do not provide a persistent scheduler.
   if (process.env.INTERNAL_CRON === "0") return;
   const g = globalThis as unknown as { __linenetCron?: boolean };
   if (g.__linenetCron) return;
@@ -17,7 +18,7 @@ export async function register() {
   let lastScheduleRun = "";
   const tick = async () => {
     try {
-      if (isGraphConfigured()) {
+      if (await isGraphConfigured()) {
         const r = await pollMailbox();
         if (r.ok && r.created > 0) console.log(`[cron] mail: ${r.created} new orders`);
         if (!r.ok) console.error(`[cron] mail: ${r.error}`);

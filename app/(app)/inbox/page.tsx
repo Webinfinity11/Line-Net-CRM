@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/app/page-header";
 import { Button } from "@/components/ui/button";
 import { formatDate, t } from "@/lib/i18n";
 import { getMailSyncState } from "@/lib/graph-mail";
+import { outlookMessages, type OutlookErrorCode } from "@/lib/outlook-oauth";
 import { listOrders } from "@/lib/orders";
 import { requireUser } from "@/lib/session";
 import { db } from "@/db";
@@ -15,8 +16,11 @@ import { inArray } from "drizzle-orm";
 
 export const metadata = { title: "შემოსულები" };
 
-export default async function InboxPage() {
-  await requireUser(["admin", "manager"]);
+export default async function InboxPage({ searchParams }: PageProps<"/inbox">) {
+  const user = await requireUser(["admin", "manager"]);
+  const params = await searchParams;
+  const outcome = typeof params.outlook === "string" ? params.outlook : "";
+  const connectionError = Object.hasOwn(outlookMessages, outcome) ? outlookMessages[outcome as OutlookErrorCode] : null;
   const [items, mailState] = await Promise.all([listOrders({ inbox: true }, { limit: 200 }), getMailSyncState()]);
   const ids = items.map((i) => i.id);
   const files = ids.length ? await db.select({ orderId: orderAttachments.orderId }).from(orderAttachments).where(inArray(orderAttachments.orderId, ids)) : [];
@@ -28,8 +32,10 @@ export default async function InboxPage() {
       <PageHeader
         title={t.nav.inbox}
         subtitle="ელფოსტიდან ავტომატურად შექმნილი შეკვეთები. დაამუშავეთ: შეავსეთ კლიენტი, ობიექტი და დანიშნეთ შემსრულებელი."
-        actions={<MailSyncStatus state={mailState} />}
       />
+      {outcome === "connected" && <p role="status" className="mb-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200">Outlook ფოსტა დაკავშირებულია. ახალი წერილები გამოჩნდება შემდეგი შემოწმებისას.</p>}
+      {connectionError && <p role="alert" className="mb-4 rounded-lg bg-rose-50 p-3 text-sm text-rose-700 dark:bg-rose-950 dark:text-rose-200">{connectionError}</p>}
+      <MailSyncStatus state={mailState} canManage={user.role === "admin"} />
       {items.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border bg-white py-16 text-center dark:bg-neutral-900">
           <Inbox className="mb-3 size-10 text-neutral-300" />

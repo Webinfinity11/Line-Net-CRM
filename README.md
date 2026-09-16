@@ -14,7 +14,7 @@ Next.js 16 (App Router) · React 19 · TypeScript · PostgreSQL + Drizzle ORM ·
 createdb linenet_crm
 cp .env.example .env.local        # შეავსეთ DATABASE_URL, BETTER_AUTH_SECRET
 npm install
-npm run db:push                   # ცხრილების შექმნა
+npm run db:migrate                # ცხრილების შექმნა / მიგრაციები
 npm run db:seed                   # დემო მომხმარებლები და შეკვეთები
 npm run dev                       # http://localhost:3000
 ```
@@ -39,7 +39,7 @@ npm run dev                       # http://localhost:3000
 
 ## შიდა scheduler
 
-`instrumentation.ts` სერვერის გაშვებისას რთავს ტაიმერს: ყუთის შემოწმება 5 წუთში ერთხელ (თუ GRAPH_* დაყენებულია) და გრაფიკული შეკვეთების გენერაცია დღეში ერთხელ. გამორთვა: `INTERNAL_CRON=0`, მაშინ გარე cron-მა უნდა გამოიძახოს `/api/cron/poll-mail` და `/api/cron/schedules`.
+`instrumentation.ts` სერვერის გაშვებისას რთავს ტაიმერს: ყუთის შემოწმება 5 წუთში ერთხელ (დაკავშირებული Outlook ან GRAPH_* კონფიგურაცია) და გრაფიკული შეკვეთების გენერაცია დღეში ერთხელ. გამორთვა: `INTERNAL_CRON=0`, მაშინ გარე cron-მა უნდა გამოიძახოს `/api/cron/poll-mail` და `/api/cron/schedules`.
 
 ## სტრუქტურა
 
@@ -77,7 +77,17 @@ docs/                 კვლევა, სპეციფიკაცია, 
 
 ## ელფოსტის ინტეგრაცია
 
-იხ. `docs/03-microsoft-365-setup.md`. ორი გზა: Microsoft Graph polling (`/api/cron/poll-mail`) ან webhook (`/api/inbound-email`).
+- **უფასო პირადი Outlook.com / Hotmail:** [დაკავშირების ინსტრუქცია](docs/06-outlook-personal-setup.md). ადმინისტრატორი „შემოსულებიდან“ აძლევს წერილების წაკითხვის ნებართვას; ტოკენები სერვერზე დაშიფრულად ინახება.
+- **ორგანიზაციის Microsoft 365:** [არსებული ინსტრუქცია](docs/03-microsoft-365-setup.md), `GRAPH_*` პარამეტრები.
+- ალტერნატიული webhook: `/api/inbound-email`.
+
+Microsoft-ის აპლიკაციის რეგისტრაცია ცალკე საჭიროა. კოდის დაყენება თავისთავად ფოსტას არ აკავშირებს.
+
+## Vercel-ზე განთავსების წინაპირობები
+
+Vercel Hobby განკუთვნილია პირადი, არაკომერციული გამოყენებისთვის. კომპანიის CRM-ისთვის შეამოწმეთ შესაბამისი გეგმა; ფასიანი გეგმა ავტომატურად არ აქტიურდება ამ რეპოზიტორიიდან.
+
+სრულად სამუშაო განთავსებამდე საჭიროა გარე PostgreSQL ბაზა, დანართების მუდმივი საცავი და serverless გარემოზე მორგებული scheduler (`INTERNAL_CRON=0`). ლოკალური `DATABASE_URL` და `uploads/` Vercel-ზე ვერ გადაიტანება როგორც მოქმედი სერვისები. გასაღებები და ბაზის პაროლი დაამატეთ მხოლოდ ჰოსტინგის დაცულ პარამეტრებში. საჯაროდ ხელმისაწვდომ გარემოში არ გამოიყენოთ ზემოთ მითითებული დემო პაროლები.
 
 ## დეპლოი (Railway)
 

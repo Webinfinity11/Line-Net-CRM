@@ -442,6 +442,18 @@ export const mailSync = pgTable("mail_sync", {
   lastError: text("last_error"),
 });
 
+// One shared inbox connection for this CRM. Tokens are encrypted on the server.
+export const outlookConnection = pgTable("outlook_connection", {
+  id: text("id").primaryKey().default("shared"),
+  accountId: text("account_id").notNull(),
+  mailbox: text("mailbox").notNull(),
+  accessToken: text("access_token").notNull(),
+  refreshToken: text("refresh_token").notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  connectedBy: text("connected_by").references(() => user.id, { onDelete: "set null" }),
+  connectedAt: timestamp("connected_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 // ---------------------------------------------------------------------------
 // Relations
 // ---------------------------------------------------------------------------
