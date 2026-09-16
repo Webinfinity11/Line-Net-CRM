@@ -3,11 +3,11 @@
 # Line Net CRM
 
 Order-dispatch CRM for შპს ლაინნეტი (electrical / low-current contractor, Tbilisi). Georgian UI only.
-Spec: `docs/02-mvp-spec.md`. Anything beyond it is phase 2, do not add unasked.
+Spec: `docs/02-mvp-spec.md` (MVP) + `docs/04-phase-1.5-spec.md` (agreed additions, all implemented except Microsoft integration which waits on Azure credentials). Do not add features beyond these unasked.
 
 ## Commands
 - `npm run dev` (http://localhost:3000), `npm run typecheck`, `npm run build`
-- `npm run db:push` applies `db/schema.ts` to Postgres; `npm run db:seed` creates demo users (password `linenet123`) and orders
+- `npm run db:push` applies `db/schema.ts` to Postgres; `npm run db:seed` creates demo users (admin1234 / meneger1234 / user1234), checklist templates and demo orders; safe to re-run
 - Env lives in `.env.local` (see `.env.example`)
 
 ## Architecture
@@ -25,3 +25,8 @@ Spec: `docs/02-mvp-spec.md`. Anything beyond it is phase 2, do not add unasked.
 - Orders created from email have `source='email'`, `triaged=false` and appear in `/inbox` until a manager saves them via the edit form (sets `triaged=true`) or cancels them.
 - Inbound mail: `POST /api/inbound-email` (Bearer `INBOUND_EMAIL_SECRET`) or Graph polling `GET /api/cron/poll-mail`; both call `lib/inbound-email.ts` which dedupes on `email_message_id`.
 - Attachments are stored on disk under `UPLOAD_DIR` and served through `/api/files/[id]` after an auth check.
+- Maintenance schedules (`service_schedules`) generate orders via `lib/schedules.ts` (idempotent per schedule + due date); triggered by `instrumentation.ts` daily, `/api/cron/schedules`, or the "გენერაცია ახლა" button.
+- Notifications: `lib/notify.ts` `notifyUsers()` writes rows and emails via SMTP when configured. Hook points: assignment, executor marks done, inbound email, schedule generation.
+- Maps: `components/app/map-view.tsx` wraps Leaflet (client-only, dynamic import). Sites carry `lat/lng`; `lib/geocode.ts` uses Nominatim best-effort on site save.
+- Excel: `/api/export?type=...` (SheetJS) and `actions/import.ts` for client import. Reports queries in `lib/reports.ts`.
+- Times: all "today"/day boundaries use Asia/Tbilisi explicitly (server runs in UTC on Railway).

@@ -19,13 +19,27 @@ npm run db:seed                   # დემო მომხმარებლ�
 npm run dev                       # http://localhost:3000
 ```
 
-დემო ანგარიშები (პაროლი `linenet123`):
+დემო ანგარიშები:
 
-| როლი | ელფოსტა |
-|---|---|
-| ადმინი | admin@line-net.ge |
-| მენეჯერი | manager@line-net.ge |
-| შემსრულებელი | giorgi@line-net.ge, levan@line-net.ge, dato@line-net.ge |
+| როლი | ელფოსტა | პაროლი |
+|---|---|---|
+| ადმინი | admin@line-net.ge | admin1234 |
+| მენეჯერი | manager@line-net.ge | meneger1234 |
+| შემსრულებელი | giorgi@line-net.ge, levan@line-net.ge, dato@line-net.ge | user1234 |
+
+## ფუნქციები (ეტაპი 1.5)
+
+- შეკვეთაზე: სისტემა (სახანძრო, CCTV, ელექტრო...), დაგეგმილი დრო, გარანტია, ობიექტზე დრო („მივედი/დავასრულე“), მასალები ხარჯით და მოგებით, ჩეკ-ლისტი შაბლონებით, სამუშაო ფურცელი PDF (`/orders/[id]/sheet`)
+- განრიგი დღის მიხედვით შემსრულებლებზე (`/schedule`)
+- პერიოდული ტექმომსახურება: გრაფიკები, ავტომატური შეკვეთები (`/maintenance`, cron `/api/cron/schedules` ან შიდა scheduler)
+- ობიექტზე აღჭურვილობის რეესტრი და კოორდინატები, რუკა დაფაზე და ბარათებზე (Leaflet + OpenStreetMap, Nominatim გეოკოდინგი)
+- შეტყობინებები სისტემაში და ელფოსტით (SMTP), პროფილი და პაროლის შეცვლა
+- ანგარიშები: კლიენტების, შემსრულებლების, სისტემების მიხედვით, თვის ფინანსური; Excel ექსპორტი (`/api/export`) და კლიენტების იმპორტი Excel-დან
+- შემსრულებლის სპეციალიზაცია სისტემების მიხედვით
+
+## შიდა scheduler
+
+`instrumentation.ts` სერვერის გაშვებისას რთავს ტაიმერს: ყუთის შემოწმება 5 წუთში ერთხელ (თუ GRAPH_* დაყენებულია) და გრაფიკული შეკვეთების გენერაცია დღეში ერთხელ. გამორთვა: `INTERNAL_CRON=0`, მაშინ გარე cron-მა უნდა გამოიძახოს `/api/cron/poll-mail` და `/api/cron/schedules`.
 
 ## სტრუქტურა
 
@@ -70,7 +84,7 @@ docs/                 კვლევა, სპეციფიკაცია, 
 1. Postgres სერვისი → `DATABASE_URL`.
 2. App სერვისი ამ რეპოდან, build `npm run build`, start `npm start`. გარემოს ცვლადები `.env.example`-ის მიხედვით. `BETTER_AUTH_URL` = საიტის სრული მისამართი.
 3. Volume დამაგრებული `/data`-ზე და `UPLOAD_DIR=/data/uploads` დანართებისთვის.
-4. Cron სერვისი (ან Railway cron schedule), რომელიც ყოველ 5 წუთში იძახებს `GET /api/cron/poll-mail` `Authorization: Bearer $INBOUND_EMAIL_SECRET` header-ით.
+4. Cron არ არის საჭირო: შიდა scheduler მუშაობს. სურვილისამებრ `INTERNAL_CRON=0` და გარე cron `/api/cron/*` endpoint-ებზე.
 5. პირველი გაშვების შემდეგ: `npm run db:push` და ადმინის შექმნა `npm run db:seed`-ით (SEED_PASSWORD შეცვალეთ), ან პირდაპირ ბაზაში.
 
 ## სკრიპტები
