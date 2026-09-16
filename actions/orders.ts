@@ -91,6 +91,7 @@ export async function createOrder(fd: FormData): Promise<ActionResult<{ id: numb
         dueDate: v.dueDate,
         amount: v.amount === null ? null : v.amount.toFixed(2),
         paymentStatus: v.paymentStatus,
+        paidAt: v.paymentStatus === "paid" ? new Date() : null,
         status: v.assignees.length ? "assigned" : "new",
         createdBy: me.id,
       })
@@ -139,6 +140,7 @@ export async function updateOrder(id: number, fd: FormData): Promise<ActionResul
         dueDate: v.dueDate,
         amount: v.amount === null ? null : v.amount.toFixed(2),
         paymentStatus: v.paymentStatus,
+        paidAt: v.paymentStatus === "paid" ? (existing.paidAt ?? new Date()) : null,
         status,
         triaged: true,
         updatedAt: new Date(),
@@ -226,10 +228,13 @@ export async function setStatus(id: number, status: OrderStatus): Promise<Action
 
 export async function setPaymentStatus(id: number, paymentStatus: (typeof paymentStatusEnum.enumValues)[number]): Promise<ActionResult> {
   const me = await requireStaff();
-  const existing = await db.query.orders.findFirst({ where: eq(orders.id, id), columns: { paymentStatus: true } });
+  const existing = await db.query.orders.findFirst({ where: eq(orders.id, id), columns: { paymentStatus: true, paidAt: true } });
   if (!existing) return { ok: false, error: "შეკვეთა ვერ მოიძებნა" };
   if (existing.paymentStatus === paymentStatus) return { ok: true };
-  await db.update(orders).set({ paymentStatus, updatedAt: new Date() }).where(eq(orders.id, id));
+  await db
+    .update(orders)
+    .set({ paymentStatus, paidAt: paymentStatus === "paid" ? (existing.paidAt ?? new Date()) : null, updatedAt: new Date() })
+    .where(eq(orders.id, id));
   await logEvent(id, me.id, "payment_changed", { from: existing.paymentStatus, to: paymentStatus });
   revalidateOrder(id);
   return { ok: true };

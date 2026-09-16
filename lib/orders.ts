@@ -195,7 +195,7 @@ export async function getDashboardStats(range: DateRange = "week") {
       db
         .select({ total: sum(orders.amount) })
         .from(orders)
-        .where(and(notInbox, eq(orders.paymentStatus, "paid"), rangeWhere)),
+        .where(and(notInbox, eq(orders.paymentStatus, "paid"), start ? gte(orders.paidAt, start) : undefined)),
       db
         .select({ total: sum(orders.amount) })
         .from(orders)

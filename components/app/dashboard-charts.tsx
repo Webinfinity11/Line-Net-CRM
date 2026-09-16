@@ -9,7 +9,7 @@ export function StatusDonut({ data, total }: { data: { name: string; value: numb
       <div className="relative h-44 w-44 shrink-0">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
-            <Pie data={rows} dataKey="value" nameKey="name" innerRadius={52} outerRadius={80} paddingAngle={2} stroke="none">
+            <Pie data={rows} dataKey="value" nameKey="name" innerRadius={52} outerRadius={80} paddingAngle={2} stroke="none" isAnimationActive={false}>
               {rows.map((d) => (
                 <Cell key={d.name} fill={d.color} />
               ))}
@@ -46,8 +46,8 @@ export function WeeklyBars({ data }: { data: { label: string; created: number; c
           <YAxis allowDecimals={false} tickLine={false} axisLine={false} fontSize={11} />
           <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} cursor={{ fill: "rgba(0,0,0,0.04)" }} />
           <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12 }} />
-          <Bar dataKey="created" name="შექმნილი" fill="#38bdf8" radius={[4, 4, 0, 0]} />
-          <Bar dataKey="completed" name="შესრულებული" fill="#1d4ed8" radius={[4, 4, 0, 0]} />
+          <Bar dataKey="created" name="შექმნილი" fill="#38bdf8" radius={[4, 4, 0, 0]} isAnimationActive={false} />
+          <Bar dataKey="completed" name="შესრულებული" fill="#1d4ed8" radius={[4, 4, 0, 0]} isAnimationActive={false} />
         </BarChart>
       </ResponsiveContainer>
     </div>

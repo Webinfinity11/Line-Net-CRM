@@ -19,6 +19,7 @@ export function OrderTable({ orders, compact = false, showMoney = true }: { orde
             <th className="px-3 py-2.5 font-medium">{t.order.title}</th>
             <th className="px-3 py-2.5 font-medium">{t.order.client}</th>
             {!compact && <th className="px-3 py-2.5 font-medium">{t.order.type}</th>}
+            <th className="px-3 py-2.5 font-medium">{t.order.priority}</th>
             <th className="px-3 py-2.5 font-medium">{t.order.assignees}</th>
             <th className="px-3 py-2.5 font-medium">{t.order.status}</th>
             <th className="px-3 py-2.5 font-medium">{t.order.dueDate}</th>
@@ -38,10 +39,11 @@ export function OrderTable({ orders, compact = false, showMoney = true }: { orde
                 <td className="max-w-[320px] px-3 py-2.5">
                   <Link href={`/orders/${o.id}`} className="block">
                     <div className="truncate font-medium group-hover:text-sky-700">{o.title}</div>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <PriorityLabel priority={o.priority} />
-                      {compact && <TypeBadge type={o.type} className="px-1.5 py-0 text-[10px]" />}
-                    </div>
+                    {compact && (
+                      <div className="mt-0.5">
+                        <TypeBadge type={o.type} className="px-1.5 py-0 text-[10px]" />
+                      </div>
+                    )}
                   </Link>
                 </td>
                 <td className="max-w-[200px] px-3 py-2.5">
@@ -53,6 +55,9 @@ export function OrderTable({ orders, compact = false, showMoney = true }: { orde
                     <TypeBadge type={o.type} />
                   </td>
                 )}
+                <td className="px-3 py-2.5">
+                  <PriorityLabel priority={o.priority} />
+                </td>
                 <td className="px-3 py-2.5">
                   <AvatarStack users={o.assignees.map((a) => a.user)} />
                 </td>

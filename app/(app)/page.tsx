@@ -7,7 +7,7 @@ import { StatusDonut, WeeklyBars } from "@/components/app/dashboard-charts";
 import { UserAvatar } from "@/components/app/user-avatar";
 import { PriorityLabel, StatusBadge } from "@/components/app/badges";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { STATUS_HEX, STATUS_LABELS, formatDate, formatMoney, t } from "@/lib/i18n";
+import { STATUS_HEX, STATUS_LABELS, STATUS_ORDER, formatDate, formatMoney, t } from "@/lib/i18n";
 import { getDashboardStats, type DateRange } from "@/lib/orders";
 import { isStaff, requireUser } from "@/lib/session";
 import { cn } from "@/lib/utils";
@@ -34,11 +34,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
     { label: "ვადაგადაცილებული", value: s.overdue.length, icon: AlertTriangle, tone: "bg-rose-100 text-rose-700", href: "/orders?overdue=1" },
   ];
 
-  const donut = Object.entries(s.counts).map(([k, v]) => ({
-    name: STATUS_LABELS[k as keyof typeof STATUS_LABELS],
-    value: v ?? 0,
-    color: STATUS_HEX[k as keyof typeof STATUS_HEX],
-  }));
+  const donut = STATUS_ORDER.map((k) => ({ name: STATUS_LABELS[k], value: s.counts[k] ?? 0, color: STATUS_HEX[k] }));
   const total = donut.reduce((a, b) => a + b.value, 0);
   const paidPct = s.money.paid + s.money.unpaid > 0 ? Math.round((s.money.paid / (s.money.paid + s.money.unpaid)) * 100) : 0;
 

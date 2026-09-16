@@ -160,6 +160,7 @@ export const orders = pgTable(
     dueDate: date("due_date"),
     amount: numeric("amount", { precision: 12, scale: 2 }),
     paymentStatus: paymentStatusEnum("payment_status").notNull().default("unpaid"),
+    paidAt: timestamp("paid_at", { withTimezone: true }),
     source: orderSourceEnum("source").notNull().default("manual"),
     triaged: boolean("triaged").notNull().default(true),
     emailFrom: text("email_from"),
