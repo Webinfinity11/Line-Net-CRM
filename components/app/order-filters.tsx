@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation";
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
-import { PRIORITY_LABELS, STATUS_LABELS, STATUS_ORDER, TYPE_LABELS, t } from "@/lib/i18n";
+import { PRIORITY_LABELS, STATUS_LABELS, STATUS_ORDER, SYSTEM_LABELS, SYSTEM_ORDER, TYPE_LABELS, t } from "@/lib/i18n";
 
-type Values = { q: string; status: string; type: string; priority: string; assignee: string; client: string; overdue: string; view: string };
+type Values = { q: string; status: string; type: string; priority: string; system: string; assignee: string; client: string; overdue: string; view: string };
 
 export function OrderFilters({
   users,
@@ -21,7 +21,7 @@ export function OrderFilters({
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const submit = () => formRef.current?.requestSubmit();
-  const hasFilters = Boolean(values.q || values.type || values.priority || values.assignee || values.client || values.overdue || (values.status && values.status !== "active"));
+  const hasFilters = Boolean(values.q || values.type || values.priority || values.system || values.assignee || values.client || values.overdue || (values.status && values.status !== "active"));
 
   return (
     <form ref={formRef} method="get" action="/orders" className="flex flex-wrap items-center gap-2 rounded-xl border bg-white p-3 dark:bg-neutral-900">
@@ -51,6 +51,14 @@ export function OrderFilters({
         {Object.entries(TYPE_LABELS).map(([k, v]) => (
           <NativeSelectOption key={k} value={k}>
             {v}
+          </NativeSelectOption>
+        ))}
+      </NativeSelect>
+      <NativeSelect name="system" defaultValue={values.system} onChange={submit} className="h-8 w-auto max-w-[220px] text-sm">
+        <NativeSelectOption value="">{t.order.system}: {t.common.all}</NativeSelectOption>
+        {SYSTEM_ORDER.map((k) => (
+          <NativeSelectOption key={k} value={k}>
+            {SYSTEM_LABELS[k]}
           </NativeSelectOption>
         ))}
       </NativeSelect>

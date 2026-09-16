@@ -1,10 +1,11 @@
-import { AlertTriangle, ArrowRight, CheckCircle2, ClipboardList, Clock3, Inbox, Mail } from "lucide-react";
+import { AlertTriangle, ArrowRight, CheckCircle2, ClipboardList, Clock3, Inbox, Mail, MapPinned, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { OrderTable } from "@/components/app/order-table";
 import { PageHeader } from "@/components/app/page-header";
 import { StatusDonut, WeeklyBars } from "@/components/app/dashboard-charts";
 import { UserAvatar } from "@/components/app/user-avatar";
+import { MapView } from "@/components/app/map-view";
 import { PriorityLabel, StatusBadge } from "@/components/app/badges";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { STATUS_HEX, STATUS_LABELS, STATUS_ORDER, formatDate, formatMoney, t } from "@/lib/i18n";
@@ -198,6 +199,53 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
             </CardContent>
           </Card>
         </div>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-3">
+        <Card className="lg:col-span-2">
+          <CardHeader className="flex-row items-center justify-between pb-2">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <MapPinned className="size-4 text-sky-600" /> აქტიური შეკვეთები რუკაზე
+            </CardTitle>
+            <span className="text-xs text-muted-foreground">{s.mapPoints.length} ობიექტი</span>
+          </CardHeader>
+          <CardContent>
+            {s.mapPoints.length === 0 ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">ობიექტებს კოორდინატები არ აქვს. დაამატეთ ობიექტის ბარათზე.</p>
+            ) : (
+              <MapView
+                height={300}
+                markers={s.mapPoints.map((p) => ({
+                  id: p.id,
+                  lat: p.lat,
+                  lng: p.lng,
+                  color: STATUS_HEX[p.status],
+                  label: `${p.number} · ${p.title}${p.clientName ? " · " + p.clientName : ""}`,
+                  href: `/orders/${p.id}`,
+                }))}
+              />
+            )}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <ShieldCheck className="size-4 text-emerald-600" /> გარანტია იწურება (30 დღე)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {s.warranty.length === 0 && <p className="py-6 text-center text-sm text-muted-foreground">უახლოეს 30 დღეში გარანტია არ იწურება</p>}
+            {s.warranty.map((o) => (
+              <Link key={o.id} href={`/orders/${o.id}`} className="block rounded-lg border p-2.5 hover:bg-neutral-50 dark:hover:bg-neutral-800">
+                <div className="truncate text-sm font-medium">{o.title}</div>
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span className="truncate">{o.client?.name ?? o.number}</span>
+                  <span className="font-medium text-amber-700">{formatDate(o.warrantyUntil)}</span>
+                </div>
+              </Link>
+            ))}
+          </CardContent>
+        </Card>
       </div>
 
       <Card>

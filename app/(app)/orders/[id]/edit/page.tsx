@@ -46,6 +46,9 @@ export default async function EditOrderPage({ params }: PageProps<"/orders/[id]/
           dueDate: order.dueDate,
           amount: order.amount,
           paymentStatus: order.paymentStatus,
+          systemType: order.systemType,
+          scheduledAt: order.scheduledAt,
+          warrantyMonths: order.warrantyMonths,
           assigneeIds: order.assignees.map((a) => a.userId),
         }}
         action={action}

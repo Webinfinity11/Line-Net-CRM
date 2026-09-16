@@ -15,11 +15,15 @@ import {
   orderStatusEnum,
   orderTypeEnum,
   paymentStatusEnum,
+  systemTypeEnum,
+  checklistTemplates,
   user,
   type OrderStatus,
 } from "@/db/schema";
+import { addMonthsIso } from "@/lib/order-utils";
 import { getSession, isStaff, type SessionUser } from "@/lib/session";
 import { deleteStoredFile, saveFile } from "@/lib/storage";
+import { applyTemplateInternal } from "./order-work";
 
 export type ActionResult<T = undefined> = { ok: true; data?: T } | { ok: false; error: string };
 
@@ -34,10 +38,18 @@ const orderInput = z.object({
   siteId: z.preprocess(emptyToNull, z.coerce.number().int().positive().nullable()),
   address: z.preprocess(emptyToNull, z.string().max(300).nullable()),
   dueDate: z.preprocess(emptyToNull, z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable()),
+  systemType: z.preprocess(emptyToNull, z.enum(systemTypeEnum.enumValues).nullable()),
+  scheduledAt: z.preprocess(emptyToNull, z.coerce.date().nullable()),
+  warrantyMonths: z.preprocess(emptyToNull, z.coerce.number().int().min(0).max(240).nullable()),
   amount: z.preprocess(emptyToNull, z.coerce.number().min(0).max(99999999).nullable()),
   paymentStatus: z.enum(paymentStatusEnum.enumValues),
   assignees: z.array(z.string()).default([]),
 });
+
+/** Date → YYYY-MM-DD in Tbilisi time */
+function localDateIso(d: Date): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Tbilisi", year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
+}
 
 function formToObject(fd: FormData) {
   const obj: Record<string, unknown> = {};
@@ -88,7 +100,10 @@ export async function createOrder(fd: FormData): Promise<ActionResult<{ id: numb
         clientId: v.clientId,
         siteId: v.siteId,
         address: v.address,
-        dueDate: v.dueDate,
+        dueDate: v.dueDate ?? (v.scheduledAt ? localDateIso(v.scheduledAt) : null),
+        systemType: v.systemType,
+        scheduledAt: v.scheduledAt,
+        warrantyMonths: v.warrantyMonths,
         amount: v.amount === null ? null : v.amount.toFixed(2),
         paymentStatus: v.paymentStatus,
         paidAt: v.paymentStatus === "paid" ? new Date() : null,
@@ -97,6 +112,13 @@ export async function createOrder(fd: FormData): Promise<ActionResult<{ id: numb
       })
       .returning({ id: orders.id });
     await tx.insert(orderEvents).values({ orderId: row.id, userId: me.id, type: "created" });
+    if (v.systemType) {
+      const [tpl] = await tx
+        .select({ id: checklistTemplates.id })
+        .from(checklistTemplates)
+        .where(and(eq(checklistTemplates.systemType, v.systemType), eq(checklistTemplates.isDefault, true)));
+      if (tpl) await applyTemplateInternal(row.id, tpl.id);
+    }
     if (v.assignees.length) {
       await tx.insert(orderAssignees).values(v.assignees.map((u) => ({ orderId: row.id, userId: u, assignedBy: me.id })));
       const names = await tx.select({ id: user.id, name: user.name }).from(user).where(inArray(user.id, v.assignees));
@@ -137,7 +159,12 @@ export async function updateOrder(id: number, fd: FormData): Promise<ActionResul
         clientId: v.clientId,
         siteId: v.siteId,
         address: v.address,
-        dueDate: v.dueDate,
+        dueDate: v.dueDate ?? (v.scheduledAt ? localDateIso(v.scheduledAt) : null),
+        systemType: v.systemType,
+        scheduledAt: v.scheduledAt,
+        warrantyMonths: v.warrantyMonths,
+        warrantyUntil:
+          v.warrantyMonths && existing.completedAt ? addMonthsIso(existing.completedAt, v.warrantyMonths) : v.warrantyMonths ? existing.warrantyUntil : null,
         amount: v.amount === null ? null : v.amount.toFixed(2),
         paymentStatus: v.paymentStatus,
         paidAt: v.paymentStatus === "paid" ? (existing.paidAt ?? new Date()) : null,
@@ -209,14 +236,17 @@ export async function setStatus(id: number, status: OrderStatus): Promise<Action
   if (existing.status === status) return { ok: true };
 
   const now = new Date();
+  const completedAt = status === "done" ? now : status === "closed" ? (existing.completedAt ?? now) : existing.completedAt;
   await db.transaction(async (tx) => {
     await tx
       .update(orders)
       .set({
         status,
         updatedAt: now,
-        completedAt: status === "done" ? now : status === "closed" ? (existing.completedAt ?? now) : existing.completedAt,
+        completedAt,
         closedAt: status === "closed" ? now : null,
+        finishedAt: status === "done" && !existing.finishedAt && existing.arrivedAt ? now : existing.finishedAt,
+        warrantyUntil: existing.warrantyMonths && completedAt ? addMonthsIso(completedAt, existing.warrantyMonths) : existing.warrantyUntil,
         triaged: true,
       })
       .where(eq(orders.id, id));

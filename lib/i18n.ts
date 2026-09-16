@@ -1,4 +1,4 @@
-import type { OrderPriority, OrderStatus, OrderType, PaymentStatus, UserRole } from "@/db/schema";
+import type { OrderPriority, OrderStatus, OrderType, PaymentStatus, ScheduleFrequency, SystemType, UserRole } from "@/db/schema";
 
 export const STATUS_LABELS: Record<OrderStatus, string> = {
   new: "ახალი",
@@ -62,6 +62,43 @@ export const PAYMENT_COLORS: Record<PaymentStatus, string> = {
   paid: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200",
 };
 
+export const SYSTEM_LABELS: Record<SystemType, string> = {
+  fire: "ხანძარსაწინააღმდეგო",
+  electrical: "ელექტრო",
+  network: "IT / ქსელი",
+  design: "პროექტირება",
+  cctv: "CCTV",
+  access: "წვდომის კონტროლი",
+  lighting: "განათება",
+  cable_trays: "კაბელტრასები",
+  automation: "ავტომატიზაცია (BMS)",
+  structured_cabling: "სტრუქტურული კაბელირება",
+  other: "სხვა",
+};
+export const SYSTEM_ORDER: SystemType[] = ["fire", "electrical", "network", "cctv", "access", "lighting", "automation", "structured_cabling", "cable_trays", "design", "other"];
+
+export const SYSTEM_COLORS: Record<SystemType, string> = {
+  fire: "bg-red-50 text-red-700 ring-1 ring-red-200",
+  electrical: "bg-yellow-50 text-yellow-800 ring-1 ring-yellow-200",
+  network: "bg-blue-50 text-blue-700 ring-1 ring-blue-200",
+  design: "bg-slate-50 text-slate-700 ring-1 ring-slate-200",
+  cctv: "bg-violet-50 text-violet-700 ring-1 ring-violet-200",
+  access: "bg-teal-50 text-teal-700 ring-1 ring-teal-200",
+  lighting: "bg-amber-50 text-amber-700 ring-1 ring-amber-200",
+  cable_trays: "bg-stone-50 text-stone-700 ring-1 ring-stone-200",
+  automation: "bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200",
+  structured_cabling: "bg-cyan-50 text-cyan-700 ring-1 ring-cyan-200",
+  other: "bg-neutral-100 text-neutral-700 ring-1 ring-neutral-200",
+};
+
+export const FREQUENCY_LABELS: Record<ScheduleFrequency, string> = {
+  weekly: "ყოველკვირა",
+  monthly: "ყოველთვე",
+  quarterly: "კვარტალში ერთხელ",
+  semiannual: "6 თვეში ერთხელ",
+  annual: "წელიწადში ერთხელ",
+};
+
 export const ROLE_LABELS: Record<UserRole, string> = {
   admin: "ადმინი",
   manager: "მენეჯერი",
@@ -78,6 +115,12 @@ export const EVENT_LABELS: Record<string, string> = {
   payment_changed: "გადახდის სტატუსი შეიცვალა",
   attachment_added: "დაემატა ფაილი",
   triaged: "დამუშავდა მენეჯერის მიერ",
+  arrived: "მივიდა ობიექტზე",
+  finished: "დაასრულა სამუშაო",
+  material_added: "დაემატა მასალა",
+  material_removed: "წაიშალა მასალა",
+  checklist_done: "ჩეკ-ლისტი შესრულდა",
+  created_from_schedule: "შეიქმნა გრაფიკით",
 };
 
 export const t = {
@@ -136,8 +179,34 @@ export const t = {
     source: "წყარო",
     overdue: "ვადაგადაცილებული",
     unassigned: "დაუნიშნავი",
+    system: "სისტემა",
+    scheduledAt: "დაგეგმილი დრო",
+    warranty: "გარანტია",
+    materials: "მასალები",
+    checklist: "ჩეკ-ლისტი",
+    timeOnSite: "დრო ობიექტზე",
+  },
+  nav2: {
+    schedule: "განრიგი",
+    maintenance: "ტექმომსახურება",
+    reports: "ანგარიშები",
+    notifications: "შეტყობინებები",
+    profile: "პროფილი",
+    checklists: "ჩეკ-ლისტები",
   },
 };
+
+export function formatDateTime(value: Date | string | null | undefined): string {
+  return formatDate(value, true);
+}
+
+export function formatDuration(minutes: number): string {
+  if (!Number.isFinite(minutes) || minutes <= 0) return "—";
+  const h = Math.floor(minutes / 60);
+  const m = Math.round(minutes % 60);
+  if (h === 0) return `${m} წთ`;
+  return m ? `${h} სთ ${m} წთ` : `${h} სთ`;
+}
 
 export function formatMoney(value: string | number | null | undefined): string {
   if (value === null || value === undefined || value === "") return "—";

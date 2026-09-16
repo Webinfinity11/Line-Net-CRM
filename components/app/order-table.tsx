@@ -3,7 +3,7 @@ import { formatDate, formatMoney, t } from "@/lib/i18n";
 import type { OrderListItem } from "@/lib/orders";
 import { isOverdue } from "@/lib/order-utils";
 import { cn } from "@/lib/utils";
-import { OverdueBadge, PaymentBadge, PriorityLabel, StatusBadge, TypeBadge } from "./badges";
+import { OverdueBadge, PaymentBadge, PriorityLabel, StatusBadge, SystemBadge, TypeBadge } from "./badges";
 import { AvatarStack } from "./user-avatar";
 
 export function OrderTable({ orders, compact = false, showMoney = true }: { orders: OrderListItem[]; compact?: boolean; showMoney?: boolean }) {
@@ -39,11 +39,10 @@ export function OrderTable({ orders, compact = false, showMoney = true }: { orde
                 <td className="max-w-[320px] px-3 py-2.5">
                   <Link href={`/orders/${o.id}`} className="block">
                     <div className="truncate font-medium group-hover:text-sky-700">{o.title}</div>
-                    {compact && (
-                      <div className="mt-0.5">
-                        <TypeBadge type={o.type} className="px-1.5 py-0 text-[10px]" />
-                      </div>
-                    )}
+                    <div className="mt-0.5 flex flex-wrap gap-1">
+                      {compact && <TypeBadge type={o.type} className="px-1.5 py-0 text-[10px]" />}
+                      <SystemBadge system={o.systemType} className="px-1.5 py-0 text-[10px]" />
+                    </div>
                   </Link>
                 </td>
                 <td className="max-w-[200px] px-3 py-2.5">

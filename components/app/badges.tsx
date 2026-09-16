@@ -1,5 +1,5 @@
 import { AlertTriangle } from "lucide-react";
-import type { OrderPriority, OrderStatus, OrderType, PaymentStatus } from "@/db/schema";
+import type { OrderPriority, OrderStatus, OrderType, PaymentStatus, SystemType } from "@/db/schema";
 import {
   PAYMENT_COLORS,
   PAYMENT_LABELS,
@@ -7,6 +7,8 @@ import {
   PRIORITY_LABELS,
   STATUS_COLORS,
   STATUS_LABELS,
+  SYSTEM_COLORS,
+  SYSTEM_LABELS,
   TYPE_LABELS,
 } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -52,4 +54,9 @@ export function OverdueBadge({ className }: { className?: string }) {
       <AlertTriangle className="size-3" /> ვადაგადაცილებული
     </span>
   );
+}
+
+export function SystemBadge({ system, className }: { system: SystemType | null | undefined; className?: string }) {
+  if (!system) return null;
+  return <span className={cn(base, SYSTEM_COLORS[system], className)}>{SYSTEM_LABELS[system]}</span>;
 }

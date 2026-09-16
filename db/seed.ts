@@ -6,16 +6,54 @@
 
 import { eq } from "drizzle-orm";
 import { db } from "./index";
-import { clients, orderAssignees, orderComments, orderEvents, orders, sites, user } from "./schema";
+import { sql } from "drizzle-orm";
+import { checklistTemplates, clients, orderAssignees, orderComments, orderEvents, orders, sites, user } from "./schema";
 
-type SeedUser = { email: string; name: string; role: "admin" | "manager" | "executor"; phone?: string };
+type SeedUser = { email: string; name: string; role: "admin" | "manager" | "executor"; phone?: string; specializations?: string[] };
 
 const USERS: SeedUser[] = [
   { email: "admin@line-net.ge", name: "ადმინისტრატორი", role: "admin", phone: "0322 022 022" },
   { email: "manager@line-net.ge", name: "ნინო მენეჯერი", role: "manager", phone: "555 62 42 82" },
-  { email: "giorgi@line-net.ge", name: "გიორგი ბერიძე", role: "executor", phone: "599 11 22 33" },
-  { email: "levan@line-net.ge", name: "ლევან კაპანაძე", role: "executor", phone: "599 44 55 66" },
-  { email: "dato@line-net.ge", name: "დათო მაისურაძე", role: "executor", phone: "599 77 88 99" },
+  { email: "giorgi@line-net.ge", name: "გიორგი ბერიძე", role: "executor", phone: "599 11 22 33", specializations: ["cctv", "access", "network", "structured_cabling"] },
+  { email: "levan@line-net.ge", name: "ლევან კაპანაძე", role: "executor", phone: "599 44 55 66", specializations: ["fire", "electrical", "lighting"] },
+  { email: "dato@line-net.ge", name: "დათო მაისურაძე", role: "executor", phone: "599 77 88 99", specializations: ["electrical", "automation", "cable_trays"] },
+];
+
+const TEMPLATES: { systemType: "fire" | "cctv" | "electrical" | "network" | "access"; name: string; items: string[] }[] = [
+  {
+    systemType: "fire",
+    name: "სახანძრო სისტემის ყოველთვიური შემოწმება",
+    items: [
+      "საკონტროლო პანელის მდგომარეობა და შეცდომების ჟურნალი",
+      "ბატარეების ძაბვა და მდგომარეობა",
+      "დეტექტორების ტესტი (მინ. 10%)",
+      "ხელით ამძრავების (ღილაკების) ტესტი",
+      "სირენების და ხმოვანი სიგნალის ტესტი",
+      "საგანგებო განათების ტესტი",
+      "კავშირი მონიტორინგის ცენტრთან",
+      "ჟურნალში ჩანაწერი და კლიენტის ხელმოწერა",
+    ],
+  },
+  {
+    systemType: "cctv",
+    name: "CCTV კვარტალური ტექმომსახურება",
+    items: ["კამერების ხედვის არის და ფოკუსის შემოწმება", "ლინზების გაწმენდა", "ჩამწერის დისკის მდგომარეობა და ჩაწერის ვადა", "დროის სინქრონიზაცია", "კაბელების და კვების ბლოკების შემოწმება", "დისტანციური წვდომის ტესტი"],
+  },
+  {
+    systemType: "electrical",
+    name: "ელექტრო ფარის შემოწმება",
+    items: ["დაცვის ავტომატების ვიზუალური შემოწმება", "დამიწების გაზომვა", "შეერთებების მოჭერა", "თერმო-შემოწმება დატვირთვის ქვეშ", "მარკირების განახლება"],
+  },
+  {
+    systemType: "network",
+    name: "ქსელის პროფილაქტიკა",
+    items: ["სვიჩების და როუტერების მდგომარეობა", "UPS-ის ბატარეების ტესტი", "Patch პანელების და კაბელების მარკირება", "WiFi დაფარვის შემოწმება", "Firmware განახლება"],
+  },
+  {
+    systemType: "access",
+    name: "წვდომის კონტროლის შემოწმება",
+    items: ["წამკითხველების ტესტი", "კარის მაგნიტების და ჩამკეტების შემოწმება", "გასაღების ღილაკების ტესტი", "კონტროლერის ჟურნალი და ბატარეა"],
+  },
 ];
 const PASSWORDS: Record<SeedUser["role"], string> = {
   admin: process.env.SEED_PASSWORD_ADMIN ?? "admin1234",
@@ -39,6 +77,7 @@ async function ensureUser(u: SeedUser) {
     emailVerified: true,
     role: u.role,
     phone: u.phone,
+    specializations: u.specializations ?? [],
   } as never, undefined as never);
   await ctx.internalAdapter.linkAccount({
     userId: created.id,
@@ -51,7 +90,53 @@ async function ensureUser(u: SeedUser) {
 
 async function main() {
   const seeded = [] as (typeof user.$inferSelect)[];
-  for (const u of USERS) seeded.push(await ensureUser(u));
+  for (const u of USERS) {
+    const row = await ensureUser(u);
+    if (u.specializations?.length && row.specializations.length === 0) {
+      await db.update(user).set({ specializations: u.specializations }).where(eq(user.id, row.id));
+    }
+    seeded.push(row);
+  }
+
+  // checklist templates (once)
+  const existingTemplates = await db.select({ id: checklistTemplates.id }).from(checklistTemplates);
+  if (existingTemplates.length === 0) {
+    await db.insert(checklistTemplates).values(TEMPLATES.map((t) => ({ ...t, isDefault: true })));
+    console.log(`checklist templates: ${TEMPLATES.length}`);
+  }
+
+  // backfill system types on demo orders by title keywords
+  await db.execute(sql`update orders set system_type = case
+      when title ilike '%CCTV%' or title ilike '%კამერ%' then 'cctv'::system_type
+      when title ilike '%სახანძრო%' or title ilike '%განათების ბატარე%' then 'fire'::system_type
+      when title ilike '%წვდომ%' or title ilike '%access%' then 'access'::system_type
+      when title ilike '%WiFi%' or title ilike '%ქსელ%' or title ilike '%ოპტიკ%' then 'network'::system_type
+      when title ilike '%კაბელირებ%' then 'structured_cabling'::system_type
+      when title ilike '%BMS%' or title ilike '%ავტომატ%' or title ilike '%კონდიცირ%' then 'automation'::system_type
+      when title ilike '%ელექტრო%' then 'electrical'::system_type
+      else system_type end
+    where system_type is null`);
+  await db.execute(sql`update orders set scheduled_at = (due_date::timestamp + interval '10 hours') at time zone 'Asia/Tbilisi' where scheduled_at is null and due_date is not null and triaged`);
+  await db.execute(sql`update orders set warranty_months = 12 where warranty_months is null and type = 'project'`);
+  await db.execute(sql`update orders set warranty_until = (completed_at + interval '12 months')::date where warranty_months = 12 and completed_at is not null and warranty_until is null`);
+
+  // demo site coordinates (Tbilisi) where missing
+  const coords: Record<string, [number, number]> = {
+    "ფილიალი ვაკე": [41.7086, 44.7601],
+    "ფილიალი საბურთალო": [41.7256, 44.7476],
+    "სათავო ოფისი": [41.7241, 44.7789],
+    "სასტუმრო": [41.7062, 44.7883],
+    "კლინიკა ვაჟა-ფშაველას 40": [41.7248, 44.7392],
+    "კლინიკა ლუბლიანას 21": [41.7756, 44.7628],
+    "ცენტრი": [41.7392, 44.8412],
+    "m2 ხილიანი": [41.7269, 44.7723],
+    "m2 ყაზბეგზე": [41.7213, 44.7566],
+  };
+  const allSites = await db.select().from(sites);
+  for (const st of allSites) {
+    const c = coords[st.name];
+    if (c && !st.lat) await db.update(sites).set({ lat: c[0].toFixed(7), lng: c[1].toFixed(7) }).where(eq(sites.id, st.id));
+  }
   const admin = seeded[0];
   const manager = seeded[1];
   const executors = seeded.slice(2);

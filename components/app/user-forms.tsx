@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import type { User } from "@/db/schema";
-import { ROLE_LABELS } from "@/lib/i18n";
+import { ROLE_LABELS, SYSTEM_LABELS, SYSTEM_ORDER } from "@/lib/i18n";
 
 export function UserFields({ initial }: { initial?: Partial<User> }) {
   const editing = Boolean(initial?.id);
@@ -33,6 +33,17 @@ export function UserFields({ initial }: { initial?: Partial<User> }) {
       <div className="space-y-1.5">
         <Label htmlFor="u-phone">ტელეფონი</Label>
         <Input id="u-phone" name="phone" defaultValue={initial?.phone ?? ""} />
+      </div>
+      <div className="space-y-1.5 sm:col-span-2">
+        <Label>სპეციალიზაცია (რომელ სისტემებს აკეთებს)</Label>
+        <div className="grid grid-cols-2 gap-1.5 rounded-lg border p-2 text-sm">
+          {SYSTEM_ORDER.map((k) => (
+            <label key={k} className="flex cursor-pointer items-center gap-2">
+              <input type="checkbox" name="specializations" value={k} defaultChecked={initial?.specializations?.includes(k)} className="accent-sky-600" />
+              {SYSTEM_LABELS[k]}
+            </label>
+          ))}
+        </div>
       </div>
       <div className="space-y-1.5 sm:col-span-2">
         <Label htmlFor="u-password">{editing ? "ახალი პაროლი (თუ იცვლება)" : "პაროლი *"}</Label>

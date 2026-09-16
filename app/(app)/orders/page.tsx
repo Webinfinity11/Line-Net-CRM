@@ -5,8 +5,8 @@ import { OrderFilters } from "@/components/app/order-filters";
 import { OrderTable } from "@/components/app/order-table";
 import { PageHeader } from "@/components/app/page-header";
 import { Button } from "@/components/ui/button";
-import type { OrderPriority, OrderStatus, OrderType } from "@/db/schema";
-import { orderPriorityEnum, orderStatusEnum, orderTypeEnum } from "@/db/schema";
+import type { OrderPriority, OrderStatus, OrderType, SystemType } from "@/db/schema";
+import { orderPriorityEnum, orderStatusEnum, orderTypeEnum, systemTypeEnum } from "@/db/schema";
 import { t } from "@/lib/i18n";
 import { listAssignableUsers, listClientsWithSites, listOrders, type OrderFilters as Filters } from "@/lib/orders";
 import { requireUser } from "@/lib/session";
@@ -25,6 +25,7 @@ export default async function OrdersPage({ searchParams }: PageProps<"/orders">)
   const status = str(sp.status);
   const type = str(sp.type);
   const priority = str(sp.priority);
+  const system = str(sp.system);
 
   const filters: Filters = {
     q: str(sp.q),
@@ -36,6 +37,7 @@ export default async function OrdersPage({ searchParams }: PageProps<"/orders">)
           : "active",
     type: type && orderTypeEnum.enumValues.includes(type as OrderType) ? (type as OrderType) : undefined,
     priority: priority && orderPriorityEnum.enumValues.includes(priority as OrderPriority) ? (priority as OrderPriority) : undefined,
+    system: system && systemTypeEnum.enumValues.includes(system as SystemType) ? (system as SystemType) : undefined,
     assignee: str(sp.assignee) || undefined,
     clientId: str(sp.client) ? Number(str(sp.client)) : undefined,
     overdue: str(sp.overdue) === "1",
@@ -80,6 +82,7 @@ export default async function OrdersPage({ searchParams }: PageProps<"/orders">)
           status: view === "kanban" ? "" : (filters.status ?? "active"),
           type: filters.type ?? "",
           priority: filters.priority ?? "",
+          system: filters.system ?? "",
           assignee: filters.assignee ?? "",
           client: filters.clientId ? String(filters.clientId) : "",
           overdue: filters.overdue ? "1" : "",

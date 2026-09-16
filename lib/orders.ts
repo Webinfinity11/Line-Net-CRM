@@ -9,6 +9,7 @@ import {
   type OrderPriority,
   type OrderStatus,
   type OrderType,
+  type SystemType,
 } from "@/db/schema";
 import "server-only";
 import { ACTIVE_STATUSES } from "@/lib/i18n";
@@ -21,6 +22,7 @@ export type OrderFilters = {
   status?: OrderStatus | "active" | "all";
   type?: OrderType;
   priority?: OrderPriority;
+  system?: SystemType;
   assignee?: string;
   clientId?: number;
   overdue?: boolean;
@@ -56,6 +58,7 @@ function buildWhere(f: OrderFilters): SQL | undefined {
   }
   if (f.type) parts.push(eq(orders.type, f.type));
   if (f.priority) parts.push(eq(orders.priority, f.priority));
+  if (f.system) parts.push(eq(orders.systemType, f.system));
   if (f.clientId) parts.push(eq(orders.clientId, f.clientId));
   if (f.overdue) {
     parts.push(lt(orders.dueDate, todayIso()));
@@ -116,6 +119,8 @@ export async function getOrder(id: number) {
       comments: { with: { user: { columns: { id: true, name: true, image: true } } }, orderBy: [asc(sql`created_at`)] },
       attachments: { orderBy: [asc(sql`created_at`)] },
       events: { with: { user: { columns: { id: true, name: true } } }, orderBy: [desc(sql`created_at`)] },
+      materials: { orderBy: [asc(sql`created_at`)] },
+      checklist: { with: { doneByUser: { columns: { id: true, name: true } } }, orderBy: [asc(sql`position`), asc(sql`id`)] },
     },
   });
 }
@@ -129,7 +134,7 @@ export async function getInboxCount() {
 
 export async function listAssignableUsers() {
   return db
-    .select({ id: user.id, name: user.name, role: user.role, image: user.image, phone: user.phone })
+    .select({ id: user.id, name: user.name, role: user.role, image: user.image, phone: user.phone, specializations: user.specializations })
     .from(user)
     .where(and(inArray(user.role, ["executor", "manager", "admin"]), eq(user.banned, false)))
     .orderBy(asc(user.name));
@@ -172,7 +177,7 @@ export async function getDashboardStats(range: DateRange = "week") {
   const rangeWhere = start ? gte(orders.createdAt, start) : undefined;
   const notInbox = eq(orders.triaged, true);
 
-  const [byStatusRows, createdRow, completedRow, overdueList, loadRows, users, paidRow, unpaidRow, recent, inbox, todayList, weekly] =
+  const [byStatusRows, createdRow, completedRow, overdueList, loadRows, users, paidRow, unpaidRow, recent, inbox, todayList, weekly, warranty, mapPoints] =
     await Promise.all([
       db
         .select({ status: orders.status, n: count() })
@@ -209,6 +214,29 @@ export async function getDashboardStats(range: DateRange = "week") {
         limit: 10,
       }),
       getWeeklySeries(),
+      db.query.orders.findMany({
+        where: and(notInbox, sql`${orders.warrantyUntil} between current_date and current_date + 30`),
+        columns: { id: true, number: true, title: true, warrantyUntil: true },
+        with: { client: { columns: { id: true, name: true } } },
+        orderBy: [asc(orders.warrantyUntil)],
+        limit: 10,
+      }),
+      db
+        .select({
+          id: orders.id,
+          number: orders.number,
+          title: orders.title,
+          status: orders.status,
+          lat: sites.lat,
+          lng: sites.lng,
+          siteName: sites.name,
+          clientName: clients.name,
+        })
+        .from(orders)
+        .innerJoin(sites, eq(sites.id, orders.siteId))
+        .leftJoin(clients, eq(clients.id, orders.clientId))
+        .where(and(notInbox, inArray(orders.status, ACTIVE_STATUSES), sql`${sites.lat} is not null`))
+        .limit(200),
     ]);
 
   const counts = Object.fromEntries(byStatusRows.map((r) => [r.status, r.n])) as Partial<Record<OrderStatus, number>>;
@@ -235,6 +263,8 @@ export async function getDashboardStats(range: DateRange = "week") {
     inbox,
     today: todayList,
     weekly,
+    warranty,
+    mapPoints: mapPoints.map((p) => ({ ...p, lat: Number(p.lat), lng: Number(p.lng) })),
   };
 }
 

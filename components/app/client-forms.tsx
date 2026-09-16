@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { Client, Site } from "@/db/schema";
+import { LocationPicker } from "./location-picker";
 
 export function ClientFields({ initial }: { initial?: Partial<Client> }) {
   return (
@@ -48,6 +49,7 @@ export function SiteFields({ clientId, initial }: { clientId: number; initial?: 
         <Label htmlFor="site-address">მისამართი</Label>
         <Input id="site-address" name="address" defaultValue={initial?.address ?? ""} placeholder="ქუჩა, ნომერი" />
       </div>
+      <LocationPicker lat={initial?.lat} lng={initial?.lng} />
       <div className="space-y-1.5">
         <Label htmlFor="site-notes">შენიშვნა</Label>
         <Textarea id="site-notes" name="notes" rows={2} defaultValue={initial?.notes ?? ""} placeholder="სართული, შესასვლელი, საკონტაქტო პირი ობიექტზე..." />
