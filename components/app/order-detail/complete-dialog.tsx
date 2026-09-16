@@ -53,7 +53,7 @@ export function CompleteDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button size={size} className={className ?? "bg-emerald-600 hover:bg-emerald-700"} />}>
+      <DialogTrigger render={<Button size={size} variant="success" className={className} />}>
         <CheckCircle2 className="size-4" /> სამუშაო შესრულებულია
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
@@ -88,7 +88,7 @@ export function CompleteDialog({
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               გაუქმება
             </Button>
-            <Button type="submit" className="bg-emerald-600 hover:bg-emerald-700" disabled={pending || note.trim().length < 5}>
+            <Button type="submit" variant="success" disabled={pending || note.trim().length < 5}>
               {pending ? "ინახება..." : "ჩაბარება"}
             </Button>
           </div>

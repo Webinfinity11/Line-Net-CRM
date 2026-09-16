@@ -29,8 +29,8 @@ export function TypeBadge({ type, className }: { type: OrderType; className?: st
       className={cn(
         base,
         type === "project"
-          ? "bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:ring-indigo-800"
-          : "bg-teal-50 text-teal-700 ring-1 ring-teal-200 dark:bg-teal-950/40 dark:text-teal-300 dark:ring-teal-800",
+          ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300"
+          : "bg-slate-100 text-slate-600 dark:bg-neutral-800 dark:text-neutral-300",
         className,
       )}
     >
@@ -50,7 +50,7 @@ export function PriorityLabel({ priority, className }: { priority: OrderPriority
 
 export function OverdueBadge({ className }: { className?: string }) {
   return (
-    <span className={cn(base, "bg-red-600 text-white", className)}>
+    <span className={cn(base, "bg-rose-600 text-white", className)}>
       <AlertTriangle className="size-3" /> ვადაგადაცილებული
     </span>
   );

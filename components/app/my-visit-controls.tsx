@@ -42,7 +42,7 @@ export function MyVisitControls({ orderId, openVisitStartedAt, requiredLeft, nee
           <MapPin className="size-4" /> {pending ? "ინახება..." : "მივედი ობიექტზე"}
         </Button>
       )}
-      <CompleteDialog orderId={orderId} requiredLeft={requiredLeft} needsPhoto={needsPhoto} className="h-11 bg-emerald-600 hover:bg-emerald-700" />
+      <CompleteDialog orderId={orderId} requiredLeft={requiredLeft} needsPhoto={needsPhoto} className="h-11" />
     </div>
   );
 }

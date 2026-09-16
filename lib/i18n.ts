@@ -14,21 +14,21 @@ export const ACTIVE_STATUSES: OrderStatus[] = ["new", "assigned", "in_progress"]
 export const KANBAN_STATUSES: OrderStatus[] = ["new", "assigned", "in_progress", "done", "closed"];
 
 export const STATUS_COLORS: Record<OrderStatus, string> = {
-  new: "bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-200",
-  assigned: "bg-violet-100 text-violet-800 dark:bg-violet-900/40 dark:text-violet-200",
-  in_progress: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200",
-  done: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200",
-  closed: "bg-neutral-200 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300",
-  cancelled: "bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-200",
+  new: "bg-blue-50 text-blue-700 dark:bg-blue-900/40 dark:text-blue-200",
+  assigned: "bg-violet-50 text-violet-700 dark:bg-violet-900/40 dark:text-violet-200",
+  in_progress: "bg-amber-50 text-amber-700 dark:bg-amber-900/40 dark:text-amber-200",
+  done: "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200",
+  closed: "bg-slate-100 text-slate-600 dark:bg-neutral-800 dark:text-neutral-300",
+  cancelled: "bg-rose-50 text-rose-700 dark:bg-rose-900/40 dark:text-rose-200",
 };
 
 export const STATUS_HEX: Record<OrderStatus, string> = {
-  new: "#0ea5e9",
-  assigned: "#8b5cf6",
+  new: "#2563eb",
+  assigned: "#7c3aed",
   in_progress: "#f59e0b",
-  done: "#10b981",
-  closed: "#737373",
-  cancelled: "#f43f5e",
+  done: "#059669",
+  closed: "#94a3b8",
+  cancelled: "#e11d48",
 };
 
 export const TYPE_LABELS: Record<OrderType, string> = {
@@ -44,10 +44,10 @@ export const PRIORITY_LABELS: Record<OrderPriority, string> = {
 };
 
 export const PRIORITY_COLORS: Record<OrderPriority, string> = {
-  low: "text-neutral-500",
-  normal: "text-neutral-700 dark:text-neutral-300",
-  high: "text-orange-600",
-  urgent: "text-red-600 font-semibold",
+  low: "text-slate-400",
+  normal: "text-slate-600 dark:text-neutral-300",
+  high: "text-amber-600 font-medium",
+  urgent: "text-rose-600 font-semibold",
 };
 
 export const PAYMENT_LABELS: Record<PaymentStatus, string> = {
@@ -57,9 +57,9 @@ export const PAYMENT_LABELS: Record<PaymentStatus, string> = {
 };
 
 export const PAYMENT_COLORS: Record<PaymentStatus, string> = {
-  unpaid: "bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-200",
-  partial: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200",
-  paid: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200",
+  unpaid: "bg-rose-50 text-rose-700 dark:bg-rose-900/40 dark:text-rose-200",
+  partial: "bg-amber-50 text-amber-700 dark:bg-amber-900/40 dark:text-amber-200",
+  paid: "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200",
 };
 
 export const SYSTEM_LABELS: Record<SystemType, string> = {
@@ -78,17 +78,17 @@ export const SYSTEM_LABELS: Record<SystemType, string> = {
 export const SYSTEM_ORDER: SystemType[] = ["fire", "electrical", "network", "cctv", "access", "lighting", "automation", "structured_cabling", "cable_trays", "design", "other"];
 
 export const SYSTEM_COLORS: Record<SystemType, string> = {
-  fire: "bg-red-50 text-red-700 ring-1 ring-red-200",
-  electrical: "bg-yellow-50 text-yellow-800 ring-1 ring-yellow-200",
-  network: "bg-blue-50 text-blue-700 ring-1 ring-blue-200",
-  design: "bg-slate-50 text-slate-700 ring-1 ring-slate-200",
-  cctv: "bg-violet-50 text-violet-700 ring-1 ring-violet-200",
-  access: "bg-teal-50 text-teal-700 ring-1 ring-teal-200",
-  lighting: "bg-amber-50 text-amber-700 ring-1 ring-amber-200",
-  cable_trays: "bg-stone-50 text-stone-700 ring-1 ring-stone-200",
-  automation: "bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200",
-  structured_cabling: "bg-cyan-50 text-cyan-700 ring-1 ring-cyan-200",
-  other: "bg-neutral-100 text-neutral-700 ring-1 ring-neutral-200",
+  fire: "bg-red-50 text-red-700",
+  electrical: "bg-yellow-50 text-yellow-800",
+  network: "bg-blue-50 text-blue-700",
+  design: "bg-slate-50 text-slate-700",
+  cctv: "bg-violet-50 text-violet-700",
+  access: "bg-teal-50 text-teal-700",
+  lighting: "bg-amber-50 text-amber-700",
+  cable_trays: "bg-stone-50 text-stone-700",
+  automation: "bg-indigo-50 text-indigo-700",
+  structured_cabling: "bg-cyan-50 text-cyan-700",
+  other: "bg-neutral-100 text-neutral-700",
 };
 
 export const FREQUENCY_LABELS: Record<ScheduleFrequency, string> = {
