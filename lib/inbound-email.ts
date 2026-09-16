@@ -2,6 +2,7 @@ import "server-only";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { orderAttachments, orderEvents, orders } from "@/db/schema";
+import { notifyUsers, staffUserIds } from "@/lib/notify";
 import { saveFile } from "@/lib/storage";
 
 export type InboundAttachment = { fileName: string; contentType?: string | null; contentBase64: string };
@@ -65,6 +66,7 @@ export async function createOrderFromEmail(mail: InboundEmail): Promise<number |
   if (!row) return null;
 
   await db.insert(orderEvents).values({ orderId: row.id, type: "created_from_email", data: { from: mail.from, subject: mail.subject } });
+  await notifyUsers(await staffUserIds(), { type: "email", title: `ახალი წერილი: ${title.slice(0, 80)}`, body: fromLabel, orderId: row.id });
 
   for (const a of mail.attachments ?? []) {
     try {

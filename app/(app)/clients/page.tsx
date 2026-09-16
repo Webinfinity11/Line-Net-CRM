@@ -1,9 +1,10 @@
 import { count, eq, sql } from "drizzle-orm";
-import { Plus } from "lucide-react";
+import { Download, Plus } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/actions/clients";
 import { ClientFields } from "@/components/app/client-forms";
 import { FormDialog } from "@/components/app/form-dialog";
+import { ImportClientsDialog } from "@/components/app/import-clients-dialog";
 import { PageHeader } from "@/components/app/page-header";
 import { Button } from "@/components/ui/button";
 import { db } from "@/db";
@@ -39,6 +40,11 @@ export default async function ClientsPage({ searchParams }: PageProps<"/clients"
         title={t.nav.clients}
         subtitle={`${rows.length} კლიენტი`}
         actions={
+          <>
+            <Button render={<a href="/api/export?type=clients-list" />} variant="outline">
+              <Download className="size-4" /> Excel
+            </Button>
+            <ImportClientsDialog />
           <FormDialog
             trigger={<Button className="bg-sky-600 hover:bg-sky-700" />}
             triggerLabel={
@@ -52,6 +58,7 @@ export default async function ClientsPage({ searchParams }: PageProps<"/clients"
           >
             <ClientFields />
           </FormDialog>
+          </>
         }
       />
       <form method="get" className="mb-3">

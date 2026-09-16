@@ -1,4 +1,4 @@
-import { LayoutGrid, List, Plus } from "lucide-react";
+import { Download, LayoutGrid, List, Plus } from "lucide-react";
 import Link from "next/link";
 import { Kanban } from "@/components/app/kanban";
 import { OrderFilters } from "@/components/app/order-filters";
@@ -67,6 +67,9 @@ export default async function OrdersPage({ searchParams }: PageProps<"/orders">)
                 <LayoutGrid className="size-4" />
               </Link>
             </div>
+            <Button render={<a href="/api/export?type=orders&all=1" />} variant="outline" title="ყველა შეკვეთა Excel-ად">
+              <Download className="size-4" /> Excel
+            </Button>
             <Button render={<Link href="/orders/new" />} className="bg-sky-600 hover:bg-sky-700">
               <Plus className="size-4" /> {t.order.new}
             </Button>

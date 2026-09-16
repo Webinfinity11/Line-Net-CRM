@@ -3,6 +3,7 @@ import { and, asc, eq, lte, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { checklistTemplates, orderAssignees, orderEvents, orders, serviceSchedules, sites, type ScheduleFrequency } from "@/db/schema";
 import { applyTemplateInternal } from "@/actions/order-work";
+import { notifyUsers } from "@/lib/notify";
 
 export function advance(dateIso: string, freq: ScheduleFrequency): string {
   const d = new Date(dateIso + "T00:00:00Z");
@@ -24,6 +25,10 @@ export function advance(dateIso: string, freq: ScheduleFrequency): string {
       break;
   }
   return d.toISOString().slice(0, 10);
+}
+
+function todayIso(): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Tbilisi", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
 }
 
 /** 10:00 Tbilisi on the given day */
@@ -52,9 +57,9 @@ export async function generateDueOrders(userId: string | null = null): Promise<G
         .select({ id: orders.id })
         .from(orders)
         .where(and(eq(orders.scheduleId, s.id), eq(orders.dueDate, s.nextDate)));
-      const withinLead = await db.execute(sql`select (${s.nextDate}::date <= current_date + ${s.leadDays}) as ok`);
-      const ok = (withinLead.rows[0] as { ok: boolean } | undefined)?.ok;
-      if (!ok) break;
+      const limit = new Date(`${todayIso()}T00:00:00Z`);
+      limit.setUTCDate(limit.getUTCDate() + s.leadDays);
+      if (new Date(`${s.nextDate}T00:00:00Z`) > limit) break;
 
       if (existing) {
         result.skipped++;
@@ -96,6 +101,7 @@ export async function generateDueOrders(userId: string | null = null): Promise<G
           templateId = tpl?.id ?? null;
         }
         if (templateId) await applyTemplateInternal(id, templateId);
+        if (s.assigneeIds.length) await notifyUsers(s.assigneeIds, { type: "assigned", title: `დაგენიშნათ გრაფიკული შეკვეთა`, body: `${s.title} · ${s.nextDate}`, orderId: id });
         result.created++;
         result.ids.push(id);
       }

@@ -20,6 +20,7 @@ import {
   user,
   type OrderStatus,
 } from "@/db/schema";
+import { notifyUsers, staffUserIds } from "@/lib/notify";
 import { addMonthsIso } from "@/lib/order-utils";
 import { getSession, isStaff, type SessionUser } from "@/lib/session";
 import { deleteStoredFile, saveFile } from "@/lib/storage";
@@ -126,6 +127,9 @@ export async function createOrder(fd: FormData): Promise<ActionResult<{ id: numb
     }
     return row.id;
   });
+  if (v.assignees.length) {
+    await notifyUsers(v.assignees, { type: "assigned", title: `დაგენიშნათ შეკვეთა`, body: v.title, orderId: id }, { excludeUserId: me.id });
+  }
   revalidateOrder(id);
   return { ok: true, data: { id } };
 }
@@ -192,6 +196,8 @@ async function syncAssignees(tx: Tx, orderId: number, current: string[], next: s
     await tx.insert(orderAssignees).values(add.map((u) => ({ orderId, userId: u, assignedBy: byUserId })));
     const names = await tx.select({ name: user.name }).from(user).where(inArray(user.id, add));
     await tx.insert(orderEvents).values({ orderId, userId: byUserId, type: "assigned", data: { users: names.map((n) => n.name) } });
+    const [o] = await tx.select({ number: orders.number, title: orders.title }).from(orders).where(eq(orders.id, orderId));
+    if (o) await notifyUsers(add, { type: "assigned", title: `დაგენიშნათ შეკვეთა ${o.number}`, body: o.title, orderId }, { excludeUserId: byUserId });
   }
   if (remove.length) {
     await tx.delete(orderAssignees).where(and(eq(orderAssignees.orderId, orderId), inArray(orderAssignees.userId, remove)));
@@ -252,6 +258,15 @@ export async function setStatus(id: number, status: OrderStatus): Promise<Action
       .where(eq(orders.id, id));
     await tx.insert(orderEvents).values({ orderId: id, userId: s.user.id, type: "status_changed", data: { from: existing.status, to: status } });
   });
+  if (status === "done" && !isStaff(s.user.role)) {
+    await notifyUsers(await staffUserIds(), { type: "done", title: `${s.user.name}: შესრულებულია ${existing.number}`, body: existing.title, orderId: id });
+  } else if ((status === "cancelled" || status === "closed") && isStaff(s.user.role)) {
+    await notifyUsers(
+      existing.assignees.map((a) => a.userId),
+      { type: "status", title: `${existing.number} ${status === "cancelled" ? "გაუქმდა" : "დაიხურა"}`, body: existing.title, orderId: id },
+      { excludeUserId: s.user.id },
+    );
+  }
   revalidateOrder(id);
   return { ok: true };
 }

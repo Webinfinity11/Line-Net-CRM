@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOut, Menu, Plus, Search } from "lucide-react";
+import { LogOut, Menu, Plus, Search, UserCircle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -17,10 +17,23 @@ import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/s
 import { signOut } from "@/lib/auth-client";
 import { ROLE_LABELS, t } from "@/lib/i18n";
 import type { SessionUser } from "@/lib/session";
+import { NotificationBell, type BellItem } from "./notification-bell";
 import { NavLinks } from "./sidebar";
 import { UserAvatar } from "./user-avatar";
 
-export function Topbar({ user, inboxCount, unseenCount }: { user: SessionUser; inboxCount: number; unseenCount: number }) {
+export function Topbar({
+  user,
+  inboxCount,
+  unseenCount,
+  unread,
+  bellItems,
+}: {
+  user: SessionUser;
+  inboxCount: number;
+  unseenCount: number;
+  unread: number;
+  bellItems: BellItem[];
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const staff = user.role !== "executor";
@@ -64,6 +77,8 @@ export function Topbar({ user, inboxCount, unseenCount }: { user: SessionUser; i
         </Button>
       )}
 
+      <NotificationBell unread={unread} items={bellItems} />
+
       <DropdownMenu>
         <DropdownMenuTrigger
           render={<button className="flex items-center gap-2 rounded-full pl-1 pr-2 hover:bg-neutral-100 dark:hover:bg-neutral-800" />}
@@ -80,6 +95,10 @@ export function Topbar({ user, inboxCount, unseenCount }: { user: SessionUser; i
             <div className="text-xs font-normal text-muted-foreground">{user.email}</div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
+          <DropdownMenuItem render={<Link href="/profile" />}>
+            <UserCircle className="size-4" />
+            {t.nav2.profile}
+          </DropdownMenuItem>
           <DropdownMenuItem onClick={logout}>
             <LogOut className="size-4" />
             {t.nav.logout}
