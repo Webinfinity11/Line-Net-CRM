@@ -24,7 +24,7 @@ export default async function ClientPage({ params }: PageProps<"/clients/[id]">)
   if (!Number.isInteger(clientId)) notFound();
   const [client, orders] = await Promise.all([getClient(clientId), listOrders({ clientId, status: "all", inbox: false }, { limit: 100 })]);
   if (!client) notFound();
-  const mapMarkers = client.sites.filter((s) => s.lat && s.lng).map((s) => ({ id: s.id, lat: Number(s.lat), lng: Number(s.lng), label: s.name }));
+  const mapMarkers = client.sites.filter((s) => s.lat && s.lng).map((s, i) => ({ id: s.id, lat: Number(s.lat), lng: Number(s.lng), code: String(i + 1), label: s.name, detail: s.address ?? undefined }));
 
   return (
     <div className="space-y-4">
@@ -77,7 +77,7 @@ export default async function ClientPage({ params }: PageProps<"/clients/[id]">)
             <p className="text-sm text-muted-foreground">ობიექტები არ არის დამატებული</p>
           ) : (
             <div className="space-y-3">
-              {mapMarkers.length > 0 && <MapView markers={mapMarkers} height={220} />}
+              {mapMarkers.length > 0 && <MapView markers={mapMarkers} height={260} />}
               <ul className="grid gap-2 md:grid-cols-2">
                 {client.sites.map((s) => (
                   <li key={s.id} className="rounded-lg border p-3">

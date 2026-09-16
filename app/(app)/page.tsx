@@ -283,7 +283,65 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
         </Card>
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[1fr_1.4fr_1fr]">
+      <div className="grid gap-4 xl:grid-cols-[2fr_1fr]">
+        <Card>
+          <CardHeader className="flex-row items-center justify-between pb-1">
+            <CardTitle className="flex items-center gap-2">
+              <MapPinned className="size-4 text-blue-600" /> აქტიური შეკვეთები რუკაზე
+            </CardTitle>
+            <span className="text-xs text-muted-foreground">{s.mapPoints.length} ობიექტი</span>
+          </CardHeader>
+          <CardContent>
+            {s.mapPoints.length === 0 ? (
+              <div className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">
+                ობიექტებს კოორდინატები არ აქვს. გახსენით კლიენტი → ობიექტი → „რუკაზე მონიშვნა“.
+              </div>
+            ) : (
+              <div className="grid gap-3 md:grid-cols-[1fr_230px]">
+                <MapView
+                  height={360}
+                  showLabels={false}
+                  markers={s.mapPoints.map((p, i) => ({
+                    id: p.id,
+                    lat: p.lat,
+                    lng: p.lng,
+                    code: String(i + 1),
+                    color: STATUS_HEX[p.status],
+                    label: p.siteName ?? p.clientName ?? p.number,
+                    detail: `${p.number} · ${p.title}`,
+                    href: `/orders/${p.id}`,
+                  }))}
+                />
+                <div className="flex flex-col gap-2">
+                  <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+                    {(["new", "assigned", "in_progress"] as const).map((k) => (
+                      <span key={k} className="flex items-center gap-1">
+                        <span className="size-2.5 rounded-full" style={{ background: STATUS_HEX[k] }} /> {STATUS_LABELS[k]}
+                      </span>
+                    ))}
+                  </div>
+                  <ol className="max-h-[320px] space-y-1 overflow-y-auto pr-1 text-xs">
+                    {s.mapPoints.map((p, i) => (
+                      <li key={p.id}>
+                        <Link href={`/orders/${p.id}`} className="flex items-start gap-2 rounded-md px-1.5 py-1 hover:bg-slate-50">
+                          <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full text-[9px] font-semibold text-white" style={{ background: STATUS_HEX[p.status] }}>
+                            {i + 1}
+                          </span>
+                          <span className="min-w-0">
+                            <span className="block truncate font-medium">{p.siteName ?? p.clientName}</span>
+                            <span className="block truncate text-muted-foreground">{p.title}</span>
+                          </span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <div className="space-y-4">
         <Card>
           <CardHeader className="flex-row items-center justify-between pb-1">
             <CardTitle>შემსრულებლების დატვირთვა</CardTitle>
@@ -298,7 +356,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
               return (
                 <Link key={e.id} href={`/orders?assignee=${e.id}&status=active`} className="flex items-center gap-3">
                   <UserAvatar name={e.name} image={e.image} size="md" />
-                  <div className="w-28 truncate text-sm font-medium">{e.name}</div>
+                  <div className="w-36 truncate text-sm font-medium">{e.name}</div>
                   <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-slate-200 dark:bg-neutral-800">
                     <div className={cn("h-full rounded-full bg-gradient-to-r", pct >= 90 ? "from-rose-500 to-orange-400" : "from-blue-500 to-teal-400")} style={{ width: `${pct}%` }} />
                   </div>
@@ -311,33 +369,6 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
             })}
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader className="flex-row items-center justify-between pb-1">
-            <CardTitle className="flex items-center gap-2">
-              <MapPinned className="size-4 text-blue-600" /> აქტიური შეკვეთები რუკაზე
-            </CardTitle>
-            <span className="text-xs text-muted-foreground">{s.mapPoints.length} ობიექტი</span>
-          </CardHeader>
-          <CardContent>
-            {s.mapPoints.length === 0 ? (
-              <p className="py-8 text-center text-sm text-muted-foreground">ობიექტებს კოორდინატები არ აქვს. დაამატეთ ობიექტის ბარათზე.</p>
-            ) : (
-              <MapView
-                height={260}
-                markers={s.mapPoints.map((p) => ({
-                  id: p.id,
-                  lat: p.lat,
-                  lng: p.lng,
-                  color: STATUS_HEX[p.status],
-                  label: `${p.number} · ${p.title}${p.clientName ? " · " + p.clientName : ""}`,
-                  href: `/orders/${p.id}`,
-                }))}
-              />
-            )}
-          </CardContent>
-        </Card>
-
         <Card>
           <CardHeader className="pb-1">
             <CardTitle className="flex items-center gap-2">
@@ -357,6 +388,8 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
             ))}
           </CardContent>
         </Card>
+        </div>
+
       </div>
 
       {s.overdue.length > 0 && (

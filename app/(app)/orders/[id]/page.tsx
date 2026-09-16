@@ -241,7 +241,7 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
                   )}
                   {siteCoords && (
                     <div className="mt-2">
-                      <MapView height={160} markers={[{ id: order.id, lat: siteCoords.lat, lng: siteCoords.lng, label: order.site?.name }]} />
+                      <MapView height={200} showLabels={false} markers={[{ id: order.id, lat: siteCoords.lat, lng: siteCoords.lng, code: "●", label: order.site?.name ?? undefined, detail: address ?? undefined }]} />
                     </div>
                   )}
                 </div>
