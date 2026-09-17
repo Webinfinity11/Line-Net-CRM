@@ -7,7 +7,7 @@ import { FormDialog } from "@/components/app/form-dialog";
 import { GenerateNowButton } from "@/components/app/generate-now-button";
 import { PageHeader } from "@/components/app/page-header";
 import { ScheduleFields } from "@/components/app/schedule-form";
-import { Chip, EmptyState, tableCls } from "@/components/app/section-card";
+import { EmptyState, tableCls } from "@/components/app/section-card";
 import { AvatarStack } from "@/components/app/user-avatar";
 import { Button } from "@/components/ui/button";
 import { listTemplates } from "@/lib/checklists";
@@ -132,11 +132,10 @@ export default async function MaintenancePage() {
         </div>
       )}
 
-      <p className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
-        <Chip>ავტომატური</Chip>
-        cron ყოველდღე იძახებს <code className="rounded bg-[#f1f4f9] px-1 py-0.5">/api/cron/schedules</code>-ს. გრაფიკით შექმნილი შეკვეთები{" "}
+      <p className="text-[11.5px] leading-relaxed text-muted-foreground">
+        გრაფიკები ყოველდღე ავტომატურად მოწმდება და ვადის დადგომისას შეკვეთა თავად იქმნება. ასე შექმნილი შეკვეთები{" "}
         <Link href="/orders?status=all" className="text-[#3457d5] hover:underline">
-          შეკვეთებში
+          შეკვეთების სიაში
         </Link>{" "}
         ჩანს წყაროთი „გრაფიკი“.
       </p>

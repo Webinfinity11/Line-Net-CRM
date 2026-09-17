@@ -14,7 +14,7 @@ export default async function ProfilePage() {
   const me = await requireUser();
   const [row] = await db.select({ specializations: user.specializations }).from(user).where(eq(user.id, me.id));
   return (
-    <div className="mx-auto max-w-2xl space-y-4">
+    <div className="max-w-4xl space-y-4">
       <PageHeader title={t.nav2.profile} subtitle={me.email} />
 
       <div className="ln-card ln-enter flex flex-wrap items-center gap-4 p-6">

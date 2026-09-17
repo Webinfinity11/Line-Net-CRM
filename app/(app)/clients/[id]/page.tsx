@@ -87,7 +87,7 @@ export default async function ClientPage({ params }: PageProps<"/clients/[id]">)
             <EmptyState icon={MapPin} message="ობიექტები არ არის დამატებული. დაამატეთ მისამართი, რომ შეკვეთა ობიექტს დაუკავშირდეს." />
           ) : (
             <div className="space-y-4">
-              {mapMarkers.length > 0 && <MapView markers={mapMarkers} height={240} />}
+              {mapMarkers.length > 0 && <MapView markers={mapMarkers} height={240} showLabels={false} />}
               <ul className="space-y-2.5">
                 {client.sites.map((s) => (
                   <li key={s.id} className="rounded-[14px] bg-[#f8fafd] p-4">
@@ -121,7 +121,7 @@ export default async function ClientPage({ params }: PageProps<"/clients/[id]">)
                         </FormDialog>
                       </div>
                       {s.equipment.length === 0 ? (
-                        <p className="text-[11.5px] text-muted-foreground">რა დგას ამ ობიექტზე, ჯერ არ არის ჩაწერილი.</p>
+                        <p className="text-[11.5px] text-muted-foreground">აღჭურვილობა ჯერ არ არის ჩაწერილი.</p>
                       ) : (
                         <ul className="space-y-1">
                           {s.equipment.map((e) => (
