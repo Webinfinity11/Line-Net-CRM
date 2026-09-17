@@ -21,8 +21,7 @@ function mapsHref(o: MyOrderItem) {
 function OrderCard({ o, meId, highlight }: { o: MyOrderItem; meId: string; highlight?: boolean }) {
   const unseen = o.assignees.some((a) => a.userId === meId && !a.seenAt);
   const overdue = isOverdue(o);
-  const requiredLeft = o.checklist.filter((c) => c.required && !c.done).length;
-  const done = o.checklist.filter((c) => c.done).length;
+  const requiredLeft = 0;
   const maps = mapsHref(o);
   const phone = o.client?.phone?.replace(/\s+/g, "");
   const active = o.status === "assigned" || o.status === "in_progress";
@@ -63,20 +62,9 @@ function OrderCard({ o, meId, highlight }: { o: MyOrderItem; meId: string; highl
         )}
         {o.dueDate && <span className={cn(overdue && "font-semibold text-[#b13f32]")}>ვადა {formatDate(o.dueDate)}</span>}
         {o.priority !== "normal" && <PriorityLabel priority={o.priority} />}
-        {active && (o.checklist.length > 0 || o.requiresPhoto) && (
-          <span className={cn("flex items-center gap-1", requiredLeft > 0 || o.requiresPhoto ? "text-[#96610b]" : "text-[#23764f]")}>
-            {o.checklist.length > 0 && (
-              <>
-                ჩეკ-ლისტი {done}/{o.checklist.length}
-                {requiredLeft > 0 ? ` · ${requiredLeft} სავალდებულო` : ""}
-              </>
-            )}
-            {o.requiresPhoto && (
-              <>
-                {o.checklist.length > 0 ? " · " : ""}
-                <Camera className="size-3" /> ფოტო საჭიროა
-              </>
-            )}
+        {active && o.requiresPhoto && (
+          <span className="flex items-center gap-1 text-[12px] text-[#96610b]">
+            <Camera className="size-3" /> ფოტო საჭიროა
           </span>
         )}
       </div>

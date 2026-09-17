@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 /**
  * "სამუშაო შესრულებულია": asks for a short summary; the server enforces required
- * checklist items and photo requirements and returns a readable error otherwise.
+ * the photo requirement and returns a readable error otherwise.
  */
 export function CompleteDialog({
   orderId,
@@ -63,7 +63,6 @@ export function CompleteDialog({
         </DialogHeader>
         {blocked && (
           <div className="rounded-lg border border-amber-300 bg-amber-50 p-2.5 text-xs text-amber-900" role="alert">
-            {requiredLeft > 0 && <div>შეუსრულებელია {requiredLeft} სავალდებულო პუნქტი ჩეკ-ლისტში.</div>}
             {needsPhoto && <div>ამ სამუშაოს ჩასაბარებლად ფოტო სავალდებულოა (ატვირთეთ დანართებში).</div>}
             <div className="mt-1 opacity-80">სერვერი ჩაბარებას ამ პირობების გარეშე არ მიიღებს.</div>
           </div>

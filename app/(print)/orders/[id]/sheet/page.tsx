@@ -64,20 +64,6 @@ export default async function WorkSheetPage({ params }: PageProps<"/orders/[id]/
         </section>
       )}
 
-      {order.checklist.length > 0 && (
-        <section className="mb-4">
-          <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">ჩეკ-ლისტი</div>
-          <ul className="space-y-1 text-sm">
-            {order.checklist.map((c) => (
-              <li key={c.id} className="flex items-center gap-2">
-                <span className="inline-flex size-4 items-center justify-center border border-neutral-700 text-[10px]">{c.done ? "✓" : ""}</span>
-                {c.label}
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
       <section className="mb-4">
         <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">გამოყენებული მასალები</div>
         <table className="w-full border-collapse text-sm">

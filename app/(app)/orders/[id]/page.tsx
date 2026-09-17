@@ -7,7 +7,6 @@ import { ConfirmButton } from "@/components/app/confirm-button";
 import { MapView } from "@/components/app/map-switch";
 import { AssigneesEditor } from "@/components/app/order-detail/assignees-editor";
 import { Attachments } from "@/components/app/order-detail/attachments";
-import { Checklist } from "@/components/app/order-detail/checklist";
 import { Comments } from "@/components/app/order-detail/comments";
 import { MarkSeen } from "@/components/app/order-detail/mark-seen";
 import { OrderHistory, type HistoryEntry } from "@/components/app/order-detail/history";
@@ -20,7 +19,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PAYMENT_METHODS } from "@/lib/finance";
 import { EVENT_LABELS, PAYMENT_LABELS, STATUS_LABELS, formatDate, formatDuration, formatMoney, t } from "@/lib/i18n";
-import { listTemplates } from "@/lib/checklists";
 import { listActiveServices } from "@/lib/services";
 import { getOrderForUser, listAssignableUsers, plannedMinutesByUser } from "@/lib/orders";
 import { AssignDialog } from "@/components/app/assign-form";
@@ -64,12 +62,12 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
   const staff = isStaff(me.role);
   const isAssignee = order.assignees.some((a) => a.userId === me.id);
   const readOnly = order.status === "closed" && me.role !== "admin";
-  const [users, templates, plannedToday, normHours, catalogue] = await Promise.all([staff ? listAssignableUsers() : Promise.resolve([]), staff ? listTemplates() : Promise.resolve([]), staff ? plannedMinutesByUser(tbilisiToday()) : Promise.resolve({} as Record<string, number>), getWorkHoursPerDay(), staff ? listActiveServices() : Promise.resolve([])]);
+  const [users, plannedToday, normHours, catalogue] = await Promise.all([staff ? listAssignableUsers() : Promise.resolve([]), staff ? plannedMinutesByUser(tbilisiToday()) : Promise.resolve({} as Record<string, number>), getWorkHoursPerDay(), staff ? listActiveServices() : Promise.resolve([])]);
   const executorOptions = users.filter((u) => u.role === "executor").map((u) => ({ id: u.id, name: u.name, image: u.image, specializations: u.specializations ?? [], hours: Math.round(((plannedToday[u.id] ?? 0) / 60) * 10) / 10 }));
   const overdue = isOverdue(order);
   const siteCoords = order.site?.lat && order.site?.lng ? { lat: Number(order.site.lat), lng: Number(order.site.lng) } : null;
   const address = order.address ?? order.site?.address ?? null;
-  const requiredLeft = order.checklist.filter((c) => c.required && !c.done).length;
+  const requiredLeft = 0;
   const hasPhoto = order.attachments.some((a) => a.mimeType?.startsWith("image/"));
   const needsPhoto = order.requiresPhoto && !hasPhoto;
   const plannedEndAt = order.scheduledAt ? plannedEnd(order.scheduledAt, order.plannedMinutes) : null;
@@ -217,14 +215,6 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
               )}
             </CardContent>
           </Card>
-
-          <Checklist
-            orderId={order.id}
-            items={order.checklist.map((c) => ({ id: c.id, label: c.label, required: c.required, done: c.done, doneAt: c.doneAt, doneByUser: c.doneByUser }))}
-            templates={templates.map((x) => ({ id: x.id, name: x.name, systemType: x.systemType }))}
-            staff={staff}
-            readOnly={readOnly}
-          />
 
 
           {financeVisible && <OrderServices orderId={order.id} items={order.items} catalogue={catalogue} readOnly={readOnly} />}

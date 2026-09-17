@@ -8,7 +8,6 @@ import { db } from "@/db";
 import {
   orderAssignees,
   orderAttachments,
-  orderChecklistItems,
   orderComments,
   orderEvents,
   orderPriorityEnum,
@@ -21,7 +20,6 @@ import {
   type OrderStatus,
   type UserRole,
 } from "@/db/schema";
-import { applyTemplate, defaultTemplateFor } from "@/lib/checklists";
 import { notifyUsers, staffUserIds } from "@/lib/notify";
 import { addMonthsIso } from "@/lib/order-utils";
 import { recomputeOrderPayments } from "@/lib/payments";
@@ -152,8 +150,6 @@ export async function createOrder(fd: FormData): Promise<ActionResult<{ id: numb
       .returning({ id: orders.id, title: orders.title });
     await tx.insert(orderEvents).values({ orderId: row.id, userId: me.id, type: "created" });
     if (v.assignees.length) await syncAssignees(tx, row.id, [], v.assignees, me.id);
-    const tpl = await defaultTemplateFor(tx, v.systemType);
-    if (tpl) await applyTemplate(tx, row.id, tpl.id);
     return row;
   });
 
@@ -226,14 +222,6 @@ export async function updateOrder(id: number, fd: FormData): Promise<ActionResul
       data: amount !== existing.amount ? { amountFrom: existing.amount, amountTo: amount } : undefined,
     });
     added = await syncAssignees(tx, id, existing.assignees.map((a) => a.userId), v.assignees, me.id);
-    // a system set on an order that still has no checklist gets the default template
-    if (v.systemType && v.systemType !== existing.systemType) {
-      const [anyItem] = await tx.select({ id: orderChecklistItems.id }).from(orderChecklistItems).where(eq(orderChecklistItems.orderId, id)).limit(1);
-      if (!anyItem) {
-        const tpl = await defaultTemplateFor(tx, v.systemType);
-        if (tpl) await applyTemplate(tx, id, tpl.id);
-      }
-    }
   });
   if (added.length) await notifyUsers(added, { type: "assigned", title: `დაგენიშნათ შეკვეთა ${existing.number}`, body: v.title, orderId: id }, { excludeUserId: me.id });
   revalidateOrder(id);
@@ -279,14 +267,8 @@ const EXECUTOR_TRANSITIONS: Record<string, OrderStatus[]> = {
 };
 
 /** Server-side completion gates: required checklist items and, when demanded, at least one photo. */
+/** Server-side completion gate: when the order demands it, at least one photo. */
 async function checkCompletionGates(orderId: number, requiresPhoto: boolean): Promise<{ ok: true } | { ok: false; error: string }> {
-  const missing = await db
-    .select({ label: orderChecklistItems.label })
-    .from(orderChecklistItems)
-    .where(and(eq(orderChecklistItems.orderId, orderId), eq(orderChecklistItems.required, true), eq(orderChecklistItems.done, false)));
-  if (missing.length) {
-    return { ok: false, error: `შეუსრულებელია სავალდებულო პუნქტები: ${missing.map((m) => m.label).join("; ")}` };
-  }
   if (requiresPhoto) {
     const files = await db.select({ mime: orderAttachments.mimeType }).from(orderAttachments).where(eq(orderAttachments.orderId, orderId));
     if (!files.some((a) => a.mime?.startsWith("image/"))) return { ok: false, error: "ამ სამუშაოს ჩასაბარებლად ფოტო სავალდებულოა" };

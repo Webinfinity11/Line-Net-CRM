@@ -10,7 +10,6 @@ import { ScheduleFields } from "@/components/app/schedule-form";
 import { DataList, DataRow, EmptyState, tableCls } from "@/components/app/section-card";
 import { AvatarStack } from "@/components/app/user-avatar";
 import { Button } from "@/components/ui/button";
-import { listTemplates } from "@/lib/checklists";
 import { FREQUENCY_LABELS, formatDate, formatMoney, t } from "@/lib/i18n";
 import { listAssignableUsers, listClientsWithSites } from "@/lib/orders";
 import { listSchedules } from "@/lib/schedules";
@@ -21,10 +20,9 @@ export const metadata = { title: "ტექმომსახურება" };
 
 export default async function MaintenancePage() {
   const me = await requireUser(["admin", "manager"]);
-  const [schedules, clients, users, templates] = await Promise.all([listSchedules(), listClientsWithSites(), listAssignableUsers(), listTemplates()]);
+  const [schedules, clients, users] = await Promise.all([listSchedules(), listClientsWithSites(), listAssignableUsers()]);
   const userMap = new Map(users.map((u) => [u.id, u]));
   const clientOptions = clients.map((c) => ({ id: c.id, name: c.name, sites: c.sites.map((s) => ({ id: s.id, name: s.name })) }));
-  const tplOptions = templates.map((x) => ({ id: x.id, name: x.name, systemType: x.systemType }));
   const active = schedules.filter((s) => s.active);
   const inactive = schedules.filter((s) => !s.active);
 
@@ -36,7 +34,7 @@ export default async function MaintenancePage() {
         title="გრაფიკის რედაქტირება"
         action={updateSchedule.bind(null, s.id)}
       >
-        <ScheduleFields clients={clientOptions} users={users} templates={tplOptions} initial={s} />
+        <ScheduleFields clients={clientOptions} users={users} initial={s} />
       </FormDialog>
       <ConfirmButton
         title={s.active ? "გრაფიკის გაჩერება" : "გრაფიკის ჩართვა"}
@@ -140,7 +138,7 @@ export default async function MaintenancePage() {
               action={createSchedule}
               submitLabel={t.common.create}
             >
-              <ScheduleFields clients={clientOptions} users={users} templates={tplOptions} />
+              <ScheduleFields clients={clientOptions} users={users} />
             </FormDialog>
           </div>
         }

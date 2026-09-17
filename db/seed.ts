@@ -7,7 +7,7 @@
 import { eq } from "drizzle-orm";
 import { db } from "./index";
 import { sql } from "drizzle-orm";
-import { checklistTemplates, clients, orderAssignees, orderComments, orderEvents, orders, sites, user } from "./schema";
+import { clients, orderAssignees, orderComments, orderEvents, orders, sites, user } from "./schema";
 
 type SeedUser = { email: string; name: string; role: "admin" | "manager" | "executor"; phone?: string; specializations?: string[] };
 
@@ -19,42 +19,6 @@ const USERS: SeedUser[] = [
   { email: "dato@line-net.ge", name: "დათო მაისურაძე", role: "executor", phone: "599 77 88 99", specializations: ["electrical", "automation", "cable_trays"] },
 ];
 
-const TEMPLATES: { systemType: "fire" | "cctv" | "electrical" | "network" | "access"; name: string; items: string[] }[] = [
-  {
-    systemType: "fire",
-    name: "სახანძრო სისტემის ყოველთვიური შემოწმება",
-    items: [
-      "საკონტროლო პანელის მდგომარეობა და შეცდომების ჟურნალი",
-      "ბატარეების ძაბვა და მდგომარეობა",
-      "დეტექტორების ტესტი (მინ. 10%)",
-      "ხელით ამძრავების (ღილაკების) ტესტი",
-      "სირენების და ხმოვანი სიგნალის ტესტი",
-      "საგანგებო განათების ტესტი",
-      "კავშირი მონიტორინგის ცენტრთან",
-      "ჟურნალში ჩანაწერი და კლიენტის ხელმოწერა",
-    ],
-  },
-  {
-    systemType: "cctv",
-    name: "CCTV კვარტალური ტექმომსახურება",
-    items: ["კამერების ხედვის არის და ფოკუსის შემოწმება", "ლინზების გაწმენდა", "ჩამწერის დისკის მდგომარეობა და ჩაწერის ვადა", "დროის სინქრონიზაცია", "კაბელების და კვების ბლოკების შემოწმება", "დისტანციური წვდომის ტესტი"],
-  },
-  {
-    systemType: "electrical",
-    name: "ელექტრო ფარის შემოწმება",
-    items: ["დაცვის ავტომატების ვიზუალური შემოწმება", "დამიწების გაზომვა", "შეერთებების მოჭერა", "თერმო-შემოწმება დატვირთვის ქვეშ", "მარკირების განახლება"],
-  },
-  {
-    systemType: "network",
-    name: "ქსელის პროფილაქტიკა",
-    items: ["სვიჩების და როუტერების მდგომარეობა", "UPS-ის ბატარეების ტესტი", "Patch პანელების და კაბელების მარკირება", "WiFi დაფარვის შემოწმება", "Firmware განახლება"],
-  },
-  {
-    systemType: "access",
-    name: "წვდომის კონტროლის შემოწმება",
-    items: ["წამკითხველების ტესტი", "კარის მაგნიტების და ჩამკეტების შემოწმება", "გასაღების ღილაკების ტესტი", "კონტროლერის ჟურნალი და ბატარეა"],
-  },
-];
 const PASSWORDS: Record<SeedUser["role"], string> = {
   admin: process.env.SEED_PASSWORD_ADMIN ?? "admin1234",
   manager: process.env.SEED_PASSWORD_MANAGER ?? "meneger1234",
@@ -96,15 +60,6 @@ async function main() {
       await db.update(user).set({ specializations: u.specializations }).where(eq(user.id, row.id));
     }
     seeded.push(row);
-  }
-
-  // checklist templates (once)
-  const existingTemplates = await db.select({ id: checklistTemplates.id }).from(checklistTemplates);
-  if (existingTemplates.length === 0) {
-    await db.insert(checklistTemplates).values(
-      TEMPLATES.map((t) => ({ ...t, items: t.items.map((label, i) => ({ label, required: i === 0 })), isDefault: true })),
-    );
-    console.log(`checklist templates: ${TEMPLATES.length}`);
   }
 
   // backfill system types on demo orders by title keywords

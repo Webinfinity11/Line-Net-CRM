@@ -183,22 +183,15 @@ try {
     await waitFor(hasText("დანიშნულია"));
   });
   await step("manager: the job shows on the schedule", async () => { await goto("/schedule"); await waitFor(hasText("14:00")); });
-  await step("manager: checklist came from the template", async () => {
+  await step("manager: opens the order", async () => {
     await goto("/orders");
     await click("a", TITLE);
-    await waitFor(hasText("ჩეკ-ლისტი"));
+    await waitFor(hasText("სამუშაო"));
     orderHref = await evalJs("location.pathname");
-    const items = await evalJs("document.querySelectorAll('input[type=checkbox]').length");
-    if (items < 2) throw new Error(`checklist items: ${items}`);
   });
 
   await useSession(EXEC);
   await step("technician: sees the job", async () => { await goto("/my"); await waitFor(hasText(TITLE)); });
-  await step("technician: ticks the checklist", async () => {
-    await goto(orderHref);
-    const boxes = await evalJs("[...document.querySelectorAll('input[type=checkbox]')].filter(b=>!b.checked && !b.closest('form')).length");
-    for (let i = 0; i < boxes; i++) { await click("input[type=checkbox]:not(:checked)"); await sleep(900); }
-  });
   await step("technician: hands the work over", async () => {
     await goto(orderHref);
     await click("button", "სამუშაო შესრულებულია");

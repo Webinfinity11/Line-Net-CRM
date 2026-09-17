@@ -5,7 +5,6 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/db";
 import { orderAssignees, orderChecklistItems, orderEvents, orderMaterials, orderVisits, orders, type OrderStatus, type UserRole } from "@/db/schema";
-import { applyTemplate } from "@/lib/checklists";
 import { getSession, isStaff, type SessionUser } from "@/lib/session";
 import type { ActionResult } from "./orders";
 
@@ -149,90 +148,6 @@ export async function removeMaterial(materialId: number): Promise<ActionResult> 
       await tx.insert(orderEvents).values({ orderId: row.orderId, userId: me.id, type: "material_removed", data: { name: row.name } });
     });
     revalidate(row.orderId);
-    return { ok: true };
-  } catch (e) {
-    return fail(e);
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Checklist
-// ---------------------------------------------------------------------------
-
-export async function toggleChecklistItem(itemId: number, done: boolean): Promise<ActionResult> {
-  const [item] = await db.select().from(orderChecklistItems).where(eq(orderChecklistItems.id, itemId));
-  if (!item) return { ok: false, error: "პუნქტი ვერ მოიძებნა" };
-  try {
-    const { user: me } = await requireOrderAccess(item.orderId);
-    await db.transaction(async (tx) => {
-      await tx.update(orderChecklistItems).set({ done, doneBy: done ? me.id : null, doneAt: done ? new Date() : null }).where(eq(orderChecklistItems.id, itemId));
-      if (done) {
-        const remaining = await tx
-          .select({ id: orderChecklistItems.id })
-          .from(orderChecklistItems)
-          .where(and(eq(orderChecklistItems.orderId, item.orderId), eq(orderChecklistItems.done, false)));
-        if (remaining.length === 0) await tx.insert(orderEvents).values({ orderId: item.orderId, userId: me.id, type: "checklist_done" });
-      }
-    });
-    revalidate(item.orderId);
-    return { ok: true };
-  } catch (e) {
-    return fail(e);
-  }
-}
-
-export async function addChecklistItem(orderId: number, label: string, required = false): Promise<ActionResult> {
-  try {
-    const { user: me } = await requireOrderAccess(orderId);
-    const text = label.trim();
-    if (!text) return { ok: false, error: "ტექსტი ცარიელია" };
-    const [m] = await db.select({ pos: max(orderChecklistItems.position) }).from(orderChecklistItems).where(eq(orderChecklistItems.orderId, orderId));
-    await db.insert(orderChecklistItems).values({ orderId, label: text.slice(0, 300), required: isStaff(me.role) && required, position: (m?.pos ?? 0) + 1 });
-    revalidate(orderId);
-    return { ok: true };
-  } catch (e) {
-    return fail(e);
-  }
-}
-
-export async function setChecklistItemRequired(itemId: number, required: boolean): Promise<ActionResult> {
-  const [item] = await db.select().from(orderChecklistItems).where(eq(orderChecklistItems.id, itemId));
-  if (!item) return { ok: false, error: "პუნქტი ვერ მოიძებნა" };
-  try {
-    const { user: me } = await requireOrderAccess(item.orderId);
-    if (!isStaff(me.role)) return { ok: false, error: "სავალდებულოობას მხოლოდ მენეჯერი ცვლის" };
-    await db.update(orderChecklistItems).set({ required }).where(eq(orderChecklistItems.id, itemId));
-    revalidate(item.orderId);
-    return { ok: true };
-  } catch (e) {
-    return fail(e);
-  }
-}
-
-export async function removeChecklistItem(itemId: number): Promise<ActionResult> {
-  const [item] = await db.select().from(orderChecklistItems).where(eq(orderChecklistItems.id, itemId));
-  if (!item) return { ok: false, error: "პუნქტი ვერ მოიძებნა" };
-  try {
-    const { user: me } = await requireOrderAccess(item.orderId);
-    if (!isStaff(me.role)) return { ok: false, error: "პუნქტის წაშლა მხოლოდ მენეჯერს შეუძლია" };
-    await db.delete(orderChecklistItems).where(eq(orderChecklistItems.id, itemId));
-    revalidate(item.orderId);
-    return { ok: true };
-  } catch (e) {
-    return fail(e);
-  }
-}
-
-/** Copies a template's items into the order (appends). Staff only. */
-export async function applyChecklistTemplate(orderId: number, templateId: number): Promise<ActionResult> {
-  try {
-    const { user: me } = await requireOrderAccess(orderId);
-    if (!isStaff(me.role)) return { ok: false, error: "შაბლონის დამატება მხოლოდ მენეჯერს შეუძლია" };
-    await db.transaction(async (tx) => {
-      await applyTemplate(tx, orderId, templateId);
-      await tx.insert(orderEvents).values({ orderId, userId: me.id, type: "checklist_template_applied", data: { templateId } });
-    });
-    revalidate(orderId);
     return { ok: true };
   } catch (e) {
     return fail(e);

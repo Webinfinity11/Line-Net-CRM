@@ -1,8 +1,7 @@
 import "server-only";
 import { and, asc, eq, lte, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { checklistTemplates, orderAssignees, orderEvents, orders, serviceSchedules, sites, type ScheduleFrequency } from "@/db/schema";
-import { applyTemplate } from "@/lib/checklists";
+import { orderAssignees, orderEvents, orders, serviceSchedules, sites, type ScheduleFrequency } from "@/db/schema";
 import { notifyUsers } from "@/lib/notify";
 
 export function advance(dateIso: string, freq: ScheduleFrequency): string {
@@ -65,12 +64,6 @@ export async function generateDueOrders(userId: string | null = null): Promise<G
         result.skipped++;
       } else {
         const id = await db.transaction(async (tx) => {
-          const [tplRow] = s.checklistTemplateId
-            ? [{ id: s.checklistTemplateId }]
-            : await tx
-                .select({ id: checklistTemplates.id })
-                .from(checklistTemplates)
-                .where(and(eq(checklistTemplates.systemType, s.systemType), eq(checklistTemplates.isDefault, true)));
           const [row] = await tx
             .insert(orders)
             .values({
@@ -96,7 +89,6 @@ export async function generateDueOrders(userId: string | null = null): Promise<G
           if (s.assigneeIds.length) {
             await tx.insert(orderAssignees).values(s.assigneeIds.map((u) => ({ orderId: row.id, userId: u, assignedBy: userId })));
           }
-          if (tplRow) await applyTemplate(tx, row.id, tplRow.id);
           return row.id;
         });
         if (s.assigneeIds.length) await notifyUsers(s.assigneeIds, { type: "assigned", title: `დაგენიშნათ გრაფიკული შეკვეთა`, body: `${s.title} · ${s.nextDate}`, orderId: id });
@@ -113,7 +105,7 @@ export async function generateDueOrders(userId: string | null = null): Promise<G
 
 export async function listSchedules() {
   return db.query.serviceSchedules.findMany({
-    with: { client: { columns: { id: true, name: true } }, site: { columns: { id: true, name: true } }, checklistTemplate: { columns: { id: true, name: true } } },
+    with: { client: { columns: { id: true, name: true } }, site: { columns: { id: true, name: true } } },
     orderBy: [asc(serviceSchedules.active), asc(serviceSchedules.nextDate)],
   });
 }

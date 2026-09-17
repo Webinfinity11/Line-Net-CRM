@@ -26,6 +26,8 @@ Spec: `docs/02-mvp-spec.md` (MVP) + `docs/04-phase-1.5-spec.md` (agreed addition
 - Inbound mail: `POST /api/inbound-email` (Bearer `INBOUND_EMAIL_SECRET`) or Graph polling `GET /api/cron/poll-mail`; both call `lib/inbound-email.ts` which dedupes on `email_message_id`.
 - Attachments are stored on disk under `UPLOAD_DIR` and served through `/api/files/[id]` after an auth check.
 - Maintenance schedules (`service_schedules`) generate orders via `lib/schedules.ts` (idempotent per schedule + due date); triggered by `instrumentation.ts` daily, `/api/cron/schedules`, or the "გენერაცია ახლა" button.
+- Services: `services` is the price catalogue (admin screen at `/settings/services`); `order_items` are the billable lines on an order and drive `orders.amount` through `lib/order-items.ts`. Lines keep their own name/unit/price, so editing the catalogue never rewrites past orders. Executors never receive them.
+- Checklists were removed from the product (Sept 2026). The `checklist_templates` and `order_checklist_items` tables still exist with their data but nothing reads them; `completeOrder` now gates only on the photo requirement.
 - Notifications: `lib/notify.ts` `notifyUsers()` writes rows and emails via SMTP when configured. Hook points: assignment, executor marks done, inbound email, schedule generation.
 - Maps: `components/app/map-view.tsx` wraps Leaflet (client-only, dynamic import). Sites carry `lat/lng`; `lib/geocode.ts` uses Nominatim best-effort on site save.
 - Excel: `/api/export?type=...` (SheetJS) and `actions/import.ts` for client import. Reports queries in `lib/reports.ts`.

@@ -12,18 +12,15 @@ import { UserAvatar } from "./user-avatar";
 export function ScheduleFields({
   clients,
   users,
-  templates,
   initial,
 }: {
   clients: { id: number; name: string; sites: { id: number; name: string }[] }[];
   users: { id: string; name: string; image?: string | null; specializations?: string[] }[];
-  templates: { id: number; name: string; systemType: string }[];
   initial?: Partial<ServiceSchedule>;
 }) {
   const [clientId, setClientId] = useState(initial?.clientId ? String(initial.clientId) : "");
   const [system, setSystem] = useState(initial?.systemType ?? "fire");
   const sites = useMemo(() => clients.find((c) => String(c.id) === clientId)?.sites ?? [], [clients, clientId]);
-  const tpls = templates.filter((x) => x.systemType === system);
 
   return (
     <div className="grid gap-3 sm:grid-cols-2">
@@ -89,17 +86,7 @@ export function ScheduleFields({
         <Label htmlFor="s-amount">თანხა (₾)</Label>
         <Input id="s-amount" name="amount" type="number" step="0.01" min="0" defaultValue={initial?.amount ?? ""} />
       </div>
-      <div className="space-y-1.5">
-        <Label htmlFor="s-tpl">ჩეკ-ლისტი</Label>
-        <NativeSelect id="s-tpl" name="checklistTemplateId" defaultValue={initial?.checklistTemplateId ? String(initial.checklistTemplateId) : ""}>
-          <NativeSelectOption value="">ნაგულისხმევი სისტემისთვის</NativeSelectOption>
-          {tpls.map((x) => (
-            <NativeSelectOption key={x.id} value={String(x.id)}>
-              {x.name}
-            </NativeSelectOption>
-          ))}
-        </NativeSelect>
-      </div>
+      
       <div className="space-y-1.5 sm:col-span-2">
         <Label>ნაგულისხმევი შემსრულებლები</Label>
         <div className="max-h-40 space-y-1 overflow-y-auto rounded-lg border p-2">

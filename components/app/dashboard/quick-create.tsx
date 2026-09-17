@@ -95,7 +95,6 @@ export function QuickCreate({ clients }: { clients: ClientOption[] }) {
                   </NativeSelectOption>
                 ))}
               </NativeSelect>
-              <p className="text-[11px] text-muted-foreground">სისტემის მიხედვით ჩეკ-ლისტი ავტომატურად დაერთვება</p>
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="qc-priority">პრიორიტეტი</Label>

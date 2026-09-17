@@ -125,7 +125,6 @@ export const EVENT_LABELS: Record<string, string> = {
   finished: "დაასრულა სამუშაო",
   material_added: "დაემატა მასალა",
   material_removed: "წაიშალა მასალა",
-  checklist_done: "ჩეკ-ლისტი შესრულდა",
   created_from_schedule: "შეიქმნა გრაფიკით",
   visit_started: "ვიზიტი დაიწყო",
   visit_ended: "ვიზიტი დასრულდა",
@@ -136,7 +135,6 @@ export const EVENT_LABELS: Record<string, string> = {
   reopened: "დახურული შეკვეთა გაიხსნა",
   edited_closed: "დახურული შეკვეთა შეიცვალა (ადმინი)",
   attachment_removed: "წაიშალა ფაილი",
-  checklist_template_applied: "დაემატა ჩეკ-ლისტის შაბლონი",
   scheduled: "დაიგეგმა",
 };
 
@@ -200,7 +198,6 @@ export const t = {
     scheduledAt: "დაგეგმილი დრო",
     warranty: "გარანტია",
     materials: "მასალები",
-    checklist: "ჩეკ-ლისტი",
     timeOnSite: "დრო ობიექტზე",
   },
   nav2: {
@@ -209,7 +206,6 @@ export const t = {
     reports: "ანგარიშები",
     notifications: "შეტყობინებები",
     profile: "პროფილი",
-    checklists: "ჩეკ-ლისტები",
   },
 };
 

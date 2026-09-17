@@ -21,7 +21,6 @@ const input = z.object({
   nextDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "თარიღი არასწორია"),
   leadDays: z.coerce.number().int().min(0).max(60).default(7),
   amount: z.preprocess(emptyToNull, z.coerce.number().min(0).max(99999999).nullable()),
-  checklistTemplateId: z.preprocess(emptyToNull, z.coerce.number().int().positive().nullable()),
   assigneeIds: z.array(z.string()).default([]),
 });
 
