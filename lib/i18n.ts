@@ -1,4 +1,5 @@
 import type { OrderPriority, OrderStatus, OrderType, PaymentStatus, ScheduleFrequency, SystemType, UserRole } from "@/db/schema";
+import { systemTypeEnum } from "@/db/schema";
 
 export const STATUS_LABELS: Record<OrderStatus, string> = {
   new: "ახალი",
@@ -14,12 +15,12 @@ export const ACTIVE_STATUSES: OrderStatus[] = ["new", "assigned", "in_progress"]
 export const KANBAN_STATUSES: OrderStatus[] = ["new", "assigned", "in_progress", "done", "closed"];
 
 export const STATUS_COLORS: Record<OrderStatus, string> = {
-  new: "bg-[#edf2ff] text-[#3457d5] dark:bg-blue-900/40 dark:text-blue-200",
-  assigned: "bg-[#f0ecfc] text-[#7251ad] dark:bg-violet-900/40 dark:text-violet-200",
-  in_progress: "bg-[#fff4df] text-[#96610b] dark:bg-amber-900/40 dark:text-amber-200",
-  done: "bg-[#eaf6ef] text-[#23764f] dark:bg-emerald-900/40 dark:text-emerald-200",
-  closed: "bg-[#eef1f5] text-[#5e6b7a] dark:bg-neutral-800 dark:text-neutral-300",
-  cancelled: "bg-[#fdeeee] text-[#a33f3f] dark:bg-rose-900/40 dark:text-rose-200",
+  new: "bg-[#eef2fb] text-[#3d5a8a] dark:bg-blue-900/40 dark:text-blue-200",
+  assigned: "bg-[#f1eefa] text-[#6a5a92] dark:bg-violet-900/40 dark:text-violet-200",
+  in_progress: "bg-[#fdf3e3] text-[#8a6a2f] dark:bg-amber-900/40 dark:text-amber-200",
+  done: "bg-[#eaf4ee] text-[#35735a] dark:bg-emerald-900/40 dark:text-emerald-200",
+  closed: "bg-[#eef1f5] text-[#65717f] dark:bg-neutral-800 dark:text-neutral-300",
+  cancelled: "bg-[#faeeee] text-[#96504e] dark:bg-rose-900/40 dark:text-rose-200",
 };
 
 /** Soft fills for job cards on calendars and day strips (paired with STATUS_HEX for the accent). */
@@ -87,19 +88,14 @@ export const SYSTEM_LABELS: Record<SystemType, string> = {
 };
 export const SYSTEM_ORDER: SystemType[] = ["fire", "electrical", "network", "cctv", "access", "lighting", "automation", "structured_cabling", "cable_trays", "design", "other"];
 
-export const SYSTEM_COLORS: Record<SystemType, string> = {
-  fire: "bg-red-50 text-red-700",
-  electrical: "bg-yellow-50 text-yellow-800",
-  network: "bg-blue-50 text-blue-700",
-  design: "bg-slate-50 text-slate-700",
-  cctv: "bg-violet-50 text-violet-700",
-  access: "bg-teal-50 text-teal-700",
-  lighting: "bg-amber-50 text-amber-700",
-  cable_trays: "bg-stone-50 text-stone-700",
-  automation: "bg-indigo-50 text-indigo-700",
-  structured_cabling: "bg-cyan-50 text-cyan-700",
-  other: "bg-neutral-100 text-neutral-700",
-};
+/**
+ * Systems are a taxonomy, not a state: one neutral chip for all of them.
+ * Colour in a row is reserved for status (what to do) and problems (overdue, unpaid).
+ */
+export const SYSTEM_COLORS: Record<SystemType, string> = Object.fromEntries(
+  systemTypeEnum.enumValues.map((k) => [k, "bg-[#f1f4f9] text-[#5b6b7c] dark:bg-neutral-800 dark:text-neutral-300"]),
+) as Record<SystemType, string>;
+
 
 export const FREQUENCY_LABELS: Record<ScheduleFrequency, string> = {
   weekly: "ყოველკვირა",

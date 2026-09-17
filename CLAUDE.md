@@ -39,3 +39,9 @@ Spec: `docs/02-mvp-spec.md` (MVP) + `docs/04-phase-1.5-spec.md` (agreed addition
 - The Tailwind scale is px-based (`--spacing: 4px`, px text sizes, px breakpoints in `app/globals.css`). Some embedded browser panels force a large root/minimum font size; px keeps spacing stable. Do not reintroduce rem-based tokens.
 - `formatDate` / `formatMoney` in `lib/i18n.ts` are deterministic (manual formatting, Tbilisi timezone). Never use `toLocaleString`/`Intl` currency formatting in components: Node and browsers produce different output and React reports hydration mismatches.
 - Maps: `components/app/map-view.tsx` uses OpenStreetMap tiles, numbered `divIcon` pins with popups, `fadeAnimation: false` and a ResizeObserver-driven `invalidateSize`. CARTO tiles require an API key now; do not switch back.
+
+## Colour and type discipline
+- One accent (#3457d5) for primary actions and active state. Status chips use the muted family in `STATUS_COLORS`. Red (#b13f32) only for problems (overdue, unpaid, urgent). Green (#25815a) only for money received or success. Everything else is neutral grey.
+- Systems, order types and avatars in dense lists are neutral: a row must not carry more than two colours beyond its status chip. `SYSTEM_COLORS` is deliberately one neutral value for every system.
+- Headings and buttons: FiraGO Bold (700), tight tracking, Georgian Mtavruli via `toMtavruli` (Button, CardTitle, DialogTitle, SheetTitle and dialog/menu triggers apply it automatically). Names, body text, table headers, form labels and aria/title attributes stay Mkhedruli.
+- Cards are `.ln-card` (white, radius 20, soft shadow, no border) on a #f4f6fa page. Never nest a card in a card.

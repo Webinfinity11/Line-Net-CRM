@@ -24,8 +24,15 @@ export function StatusBadge({ status, className }: { status: OrderStatus; classN
   );
 }
 
+const PAYMENT_DOT: Record<PaymentStatus, string> = { unpaid: "#b13f32", partial: "#96610b", paid: "#25815a" };
+
 export function PaymentBadge({ status, className }: { status: PaymentStatus; className?: string }) {
-  return <span className={cn(base, PAYMENT_COLORS[status], className)}>{PAYMENT_LABELS[status]}</span>;
+  return (
+    <span className={cn("inline-flex items-center gap-1.5 text-[11px] whitespace-nowrap text-muted-foreground", className)}>
+      <i className="size-[5px] shrink-0 rounded-full" style={{ background: PAYMENT_DOT[status] }} aria-hidden />
+      {PAYMENT_LABELS[status]}
+    </span>
+  );
 }
 
 export function TypeBadge({ type, className }: { type: OrderType; className?: string }) {
@@ -33,9 +40,7 @@ export function TypeBadge({ type, className }: { type: OrderType; className?: st
     <span
       className={cn(
         base,
-        type === "project"
-          ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300"
-          : "bg-slate-100 text-slate-600 dark:bg-neutral-800 dark:text-neutral-300",
+        "bg-[#f1f4f9] text-[#5b6b7c] dark:bg-neutral-800 dark:text-neutral-300",
         className,
       )}
     >
@@ -45,9 +50,10 @@ export function TypeBadge({ type, className }: { type: OrderType; className?: st
 }
 
 export function PriorityLabel({ priority, className }: { priority: OrderPriority; className?: string }) {
+  // only urgent earns a colour; the rest stay quiet so the row reads calmly
   return (
-    <span className={cn("inline-flex items-center gap-1 text-xs", PRIORITY_COLORS[priority], className)}>
-      {priority === "urgent" && <AlertTriangle className="size-3" />}
+    <span className={cn("inline-flex items-center gap-1 text-[11.5px] whitespace-nowrap", PRIORITY_COLORS[priority], className)}>
+      {priority === "urgent" && <AlertTriangle className="size-3 shrink-0" />}
       {PRIORITY_LABELS[priority]}
     </span>
   );
