@@ -36,6 +36,7 @@ export function OrderForm({
   action,
   submitLabel,
   cancelHref,
+  compact = false,
 }: {
   clients: ClientOption[];
   users: UserOption[];
@@ -43,6 +44,8 @@ export function OrderForm({
   action: (fd: FormData) => Promise<ActionResult<{ id: number }> | ActionResult | undefined | void>;
   submitLabel: string;
   cancelHref: string;
+  /** Triage mode: rare fields move behind a disclosure so an email becomes an order in a few decisions. */
+  compact?: boolean;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -169,6 +172,12 @@ export function OrderForm({
               ))}
             </NativeSelect>
           </div>
+          {compact ? (
+            <details className="group/adv sm:col-span-2">
+              <summary className="cursor-pointer list-none rounded-[12px] bg-[#f8faff] px-3 py-2.5 text-[12.5px] font-medium text-[#3457d5]">
+                დამატებითი პარამეტრები (დრო, ხანგრძლივობა, თანხა, გარანტია)
+              </summary>
+              <div className="mt-3 grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label htmlFor="scheduledAt">{t.order.scheduledAt}</Label>
             <Input id="scheduledAt" name="scheduledAt" type="datetime-local" defaultValue={toLocalInput(initial?.scheduledAt)} />
@@ -198,6 +207,41 @@ export function OrderForm({
             <input id="requiresPhoto" name="requiresPhoto" type="checkbox" defaultChecked={Boolean(initial?.requiresPhoto)} className="size-4 accent-blue-600" />
             <Label htmlFor="requiresPhoto">ჩაბარებისას ფოტო სავალდებულოა</Label>
           </div>
+              </div>
+            </details>
+          ) : (
+            <>
+          <div className="space-y-1.5">
+            <Label htmlFor="scheduledAt">{t.order.scheduledAt}</Label>
+            <Input id="scheduledAt" name="scheduledAt" type="datetime-local" defaultValue={toLocalInput(initial?.scheduledAt)} />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="plannedMinutes">დაგეგმილი ხანგრძლივობა (წუთი)</Label>
+            <NativeSelect id="plannedMinutes" name="plannedMinutes" defaultValue={initial?.plannedMinutes ? String(initial.plannedMinutes) : ""}>
+              <NativeSelectOption value="">— (ნაგულისხმევი 2 სთ)</NativeSelectOption>
+              {[30, 60, 90, 120, 180, 240, 300, 360, 480].map((m) => (
+                <NativeSelectOption key={m} value={String(m)}>
+                  {m < 60 ? `${m} წთ` : `${m / 60} სთ`}
+                </NativeSelectOption>
+              ))}
+            </NativeSelect>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="dueDate">{t.order.dueDate}</Label>
+            <Input id="dueDate" name="dueDate" type="date" defaultValue={initial?.dueDate ?? ""} />
+            <p className="text-[11px] text-muted-foreground">ცარიელი დატოვებისას დაგეგმილი დღე გამოიყენება</p>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="amount">{t.order.amount} (₾)</Label>
+            <Input id="amount" name="amount" type="number" step="0.01" min="0" defaultValue={initial?.amount ?? ""} placeholder="0.00" />
+            <p className="text-[11px] text-muted-foreground">გადახდები შეკვეთის ბარათზე იწერება; სტატუსი ავტომატურად ითვლება</p>
+          </div>
+          <div className="flex items-center gap-2 self-end pb-2">
+            <input id="requiresPhoto" name="requiresPhoto" type="checkbox" defaultChecked={Boolean(initial?.requiresPhoto)} className="size-4 accent-blue-600" />
+            <Label htmlFor="requiresPhoto">ჩაბარებისას ფოტო სავალდებულოა</Label>
+          </div>
+            </>
+          )}
         </CardContent>
       </Card>
 
@@ -224,13 +268,13 @@ export function OrderForm({
                   >
                     <input type="checkbox" readOnly checked={on} className="accent-blue-600" />
                     <UserAvatar name={u.name} image={u.image} />
-                    <span className="flex-1 truncate">{u.name}</span>
+                    <span className="min-w-0 flex-1 truncate">{u.name}</span>
                     {fit && (
                       <span title="შესაბამისი სპეციალიზაცია" className="text-[#25815a]">
                         <BadgeCheck className="size-4" />
                       </span>
                     )}
-                    <span className="text-[11px] text-muted-foreground">{ROLE_LABELS[u.role as keyof typeof ROLE_LABELS] ?? u.role}</span>
+                    <span className="hidden shrink-0 text-[11px] text-muted-foreground sm:inline">{ROLE_LABELS[u.role as keyof typeof ROLE_LABELS] ?? u.role}</span>
                   </button>
                 );
               })}

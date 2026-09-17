@@ -10,6 +10,7 @@ import { Attachments } from "@/components/app/order-detail/attachments";
 import { Checklist } from "@/components/app/order-detail/checklist";
 import { Comments } from "@/components/app/order-detail/comments";
 import { MarkSeen } from "@/components/app/order-detail/mark-seen";
+import { OrderHistory, type HistoryEntry } from "@/components/app/order-detail/history";
 import { Materials } from "@/components/app/order-detail/materials";
 import { OrderServices } from "@/components/app/order-detail/services";
 import { Payments } from "@/components/app/order-detail/payments";
@@ -32,6 +33,9 @@ export async function generateMetadata({ params }: PageProps<"/orders/[id]">) {
   const { id } = await params;
   return { title: `შეკვეთა ${id}` };
 }
+
+/** Events that only repeat what the screen already shows, or belong to a retired feature. */
+const HIDDEN_EVENTS = new Set(["visit_started", "visit_ended", "checklist_done", "seen"]);
 
 function eventText(type: string, data: Record<string, unknown> | null) {
   const base = EVENT_LABELS[type] ?? type;
@@ -69,6 +73,20 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
   const hasPhoto = order.attachments.some((a) => a.mimeType?.startsWith("image/"));
   const needsPhoto = order.requiresPhoto && !hasPhoto;
   const plannedEndAt = order.scheduledAt ? plannedEnd(order.scheduledAt, order.plannedMinutes) : null;
+
+  // one line per change: consecutive identical entries by the same person collapse
+  const history: HistoryEntry[] = [];
+  for (const e of order.events) {
+    if (HIDDEN_EVENTS.has(e.type)) continue;
+    const text = eventText(e.type, e.data as Record<string, unknown> | null);
+    const who = e.user?.name ?? "სისტემა";
+    const last = history[history.length - 1];
+    if (last && last.text === text && last.who === who && Math.abs(last.at.getTime() - e.createdAt.getTime()) < 120000) {
+      last.count += 1;
+      continue;
+    }
+    history.push({ id: e.id, text, who, at: e.createdAt, count: 1 });
+  }
 
   return (
     // extra bottom room on a phone: the action bar floats above the bottom navigation
@@ -310,17 +328,7 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
               <CardTitle>{t.order.history}</CardTitle>
             </CardHeader>
             <CardContent>
-              <ol className="space-y-2.5 border-l pl-4 text-sm">
-                {order.events.map((e) => (
-                  <li key={e.id} className="relative">
-                    <span className="absolute -left-[21px] top-1.5 size-2 rounded-full bg-neutral-300 dark:bg-neutral-600" />
-                    <div>{eventText(e.type, e.data)}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {e.user?.name ?? "სისტემა"} · {formatDate(e.createdAt, true)}
-                    </div>
-                  </li>
-                ))}
-              </ol>
+              <OrderHistory entries={history} />
             </CardContent>
           </Card>
 
