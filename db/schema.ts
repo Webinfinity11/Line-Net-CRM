@@ -258,6 +258,56 @@ export const services = pgTable(
   (t) => [index("services_active_idx").on(t.active), index("services_system_idx").on(t.systemType)],
 );
 
+export const quoteStatusEnum = pgEnum("quote_status", ["draft", "sent", "accepted", "declined"]);
+
+/**
+ * Commercial offer. Line Net wins B2B work by quoting first: a lead arrives by email,
+ * the manager prices it from the catalogue, sends a PDF, and on acceptance it becomes an order.
+ */
+export const quotes = pgTable(
+  "quotes",
+  {
+    id: serial("id").primaryKey(),
+    number: text("number").generatedAlwaysAs(sql`'QT-' || lpad(id::text, 5, '0')`),
+    title: text("title").notNull(),
+    status: quoteStatusEnum("status").notNull().default("draft"),
+    clientId: integer("client_id").references(() => clients.id, { onDelete: "set null" }),
+    siteId: integer("site_id").references(() => sites.id, { onDelete: "set null" }),
+    systemType: text("system_type").references(() => systems.slug, { onDelete: "set null", onUpdate: "cascade" }),
+    note: text("note"),
+    /** what the client sees under the table: payment terms, lead time, warranty */
+    terms: text("terms"),
+    validUntil: date("valid_until"),
+    vatPercent: numeric("vat_percent", { precision: 5, scale: 2 }).notNull().default("0"),
+    total: numeric("total", { precision: 12, scale: 2 }).notNull().default("0"),
+    orderId: integer("order_id").references(() => orders.id, { onDelete: "set null" }),
+    sentAt: timestamp("sent_at", { withTimezone: true }),
+    decidedAt: timestamp("decided_at", { withTimezone: true }),
+    createdBy: text("created_by").references(() => user.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("quotes_status_idx").on(t.status), index("quotes_client_idx").on(t.clientId)],
+);
+
+export const quoteItems = pgTable(
+  "quote_items",
+  {
+    id: serial("id").primaryKey(),
+    quoteId: integer("quote_id")
+      .notNull()
+      .references(() => quotes.id, { onDelete: "cascade" }),
+    serviceId: integer("service_id").references(() => services.id, { onDelete: "set null" }),
+    name: text("name").notNull(),
+    unit: text("unit").notNull().default("ცალი"),
+    quantity: numeric("quantity", { precision: 12, scale: 2 }).notNull().default("1"),
+    unitPrice: numeric("unit_price", { precision: 12, scale: 2 }).notNull().default("0"),
+    sort: integer("sort").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("quote_items_quote_idx").on(t.quoteId)],
+);
+
 /** Billable lines on one order. The order total is recomputed from these. */
 export const orderItems = pgTable(
   "order_items",
@@ -560,6 +610,19 @@ export const orderVisitRelations = relations(orderVisits, ({ one }) => ({
   user: one(user, { fields: [orderVisits.userId], references: [user.id] }),
 }));
 
+export const quoteRelations = relations(quotes, ({ one, many }) => ({
+  client: one(clients, { fields: [quotes.clientId], references: [clients.id] }),
+  site: one(sites, { fields: [quotes.siteId], references: [sites.id] }),
+  creator: one(user, { fields: [quotes.createdBy], references: [user.id] }),
+  order: one(orders, { fields: [quotes.orderId], references: [orders.id] }),
+  items: many(quoteItems),
+}));
+
+export const quoteItemRelations = relations(quoteItems, ({ one }) => ({
+  quote: one(quotes, { fields: [quoteItems.quoteId], references: [quotes.id] }),
+  service: one(services, { fields: [quoteItems.serviceId], references: [services.id] }),
+}));
+
 export const orderItemRelations = relations(orderItems, ({ one }) => ({
   order: one(orders, { fields: [orderItems.orderId], references: [orders.id] }),
   service: one(services, { fields: [orderItems.serviceId], references: [services.id] }),
@@ -625,3 +688,7 @@ export type Service = typeof services.$inferSelect;
 export type OrderItem = typeof orderItems.$inferSelect;
 
 export type SystemRow = typeof systems.$inferSelect;
+
+export type Quote = typeof quotes.$inferSelect;
+export type QuoteItem = typeof quoteItems.$inferSelect;
+export type QuoteStatus = (typeof quoteStatusEnum.enumValues)[number];

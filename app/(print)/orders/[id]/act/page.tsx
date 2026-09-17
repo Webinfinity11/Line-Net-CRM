@@ -1,0 +1,147 @@
+import { notFound } from "next/navigation";
+import { PrintButton } from "@/components/app/print-button";
+import { formatDate, formatMoney } from "@/lib/i18n";
+import { getOrder } from "@/lib/orders";
+import { requireUser } from "@/lib/session";
+import { systemLabels } from "@/lib/systems";
+
+export const metadata = { title: "მიღება-ჩაბარების აქტი" };
+
+/**
+ * The document a Georgian B2B client signs before paying: who did what, at which object,
+ * with quantities and prices from the order's billable lines.
+ */
+export default async function ActPage({ params }: PageProps<"/orders/[id]/act">) {
+  await requireUser(["admin", "manager"]);
+  const { id } = await params;
+  const [order, labels] = await Promise.all([getOrder(Number(id)), systemLabels()]);
+  if (!order) notFound();
+
+  const lines = order.items ?? [];
+  const total = lines.reduce((sum, i) => sum + Number(i.quantity) * Number(i.unitPrice), 0);
+  const amount = lines.length > 0 ? total : Number(order.amount ?? 0);
+  const done = order.completedAt ?? order.updatedAt;
+
+  return (
+    <main className="mx-auto max-w-[210mm] bg-white p-8 text-neutral-900 print:p-0">
+      <div className="mb-4 flex items-center justify-between print:hidden">
+        <span className="text-sm text-neutral-500">ბეჭდვისას აირჩიეთ „Save as PDF“</span>
+        <PrintButton />
+      </div>
+
+      <header className="mb-6 flex items-start justify-between border-b-2 border-neutral-900 pb-3">
+        <div>
+          <div className="text-xl font-bold">Line Net</div>
+          <div className="text-[11px] text-neutral-600">შპს ლაინნეტი · ს/კ 404486757 · თბილისი, ბახტრიონის 30 · 0322 022 022 · info@line-net.ge</div>
+        </div>
+        <div className="text-right">
+          <div className="text-lg font-semibold">მიღება-ჩაბარების აქტი</div>
+          <div className="font-mono text-sm">№ {order.number}</div>
+          <div className="text-[11px] text-neutral-600">{formatDate(done)}</div>
+        </div>
+      </header>
+
+      <section className="mb-5 grid grid-cols-2 gap-4 text-[12px]">
+        <div className="border border-neutral-300 p-3">
+          <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-neutral-500">შემსრულებელი</div>
+          <div className="font-semibold">შპს ლაინნეტი</div>
+          <div>ს/კ 404486757</div>
+          <div>თბილისი, ბახტრიონის ქ. 30, ბ1</div>
+          <div>0322 022 022 · info@line-net.ge</div>
+        </div>
+        <div className="border border-neutral-300 p-3">
+          <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-neutral-500">დამკვეთი</div>
+          <div className="font-semibold">{order.client?.name ?? "—"}</div>
+          {order.client?.idCode && <div>ს/კ {order.client.idCode}</div>}
+          {order.site?.address && <div>{order.site.address}</div>}
+          <div>
+            {[order.client?.contactName, order.client?.phone].filter(Boolean).join(" · ") || "—"}
+          </div>
+        </div>
+      </section>
+
+      <section className="mb-4 text-[12px]">
+        <table className="w-full">
+          <tbody>
+            <tr>
+              <td className="w-40 border border-neutral-300 px-2 py-1 text-neutral-500">ობიექტი</td>
+              <td className="border border-neutral-300 px-2 py-1">{order.site?.name ?? order.address ?? "—"}</td>
+            </tr>
+            <tr>
+              <td className="border border-neutral-300 px-2 py-1 text-neutral-500">სისტემა</td>
+              <td className="border border-neutral-300 px-2 py-1">{order.systemType ? (labels[order.systemType] ?? order.systemType) : "—"}</td>
+            </tr>
+            <tr>
+              <td className="border border-neutral-300 px-2 py-1 text-neutral-500">სამუშაოს დასახელება</td>
+              <td className="border border-neutral-300 px-2 py-1">{order.title}</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section className="mb-4">
+        <div className="mb-1.5 text-[12px] font-semibold">შესრულებული სამუშაო</div>
+        {lines.length === 0 ? (
+          <p className="border border-neutral-300 px-2 py-3 text-[12px] text-neutral-600">
+            პოზიციები არ არის ჩაწერილი. ჯამური ღირებულება: {formatMoney(amount)}
+          </p>
+        ) : (
+          <table className="w-full border-collapse text-[12px]">
+            <thead>
+              <tr className="bg-neutral-100">
+                <th className="w-8 border border-neutral-300 px-2 py-1 text-left">№</th>
+                <th className="border border-neutral-300 px-2 py-1 text-left">დასახელება</th>
+                <th className="w-16 border border-neutral-300 px-2 py-1 text-right">ერთ.</th>
+                <th className="w-16 border border-neutral-300 px-2 py-1 text-right">რაოდ.</th>
+                <th className="w-24 border border-neutral-300 px-2 py-1 text-right">ფასი</th>
+                <th className="w-28 border border-neutral-300 px-2 py-1 text-right">ჯამი</th>
+              </tr>
+            </thead>
+            <tbody>
+              {lines.map((i, n) => (
+                <tr key={i.id}>
+                  <td className="border border-neutral-300 px-2 py-1">{n + 1}</td>
+                  <td className="border border-neutral-300 px-2 py-1">{i.name}</td>
+                  <td className="border border-neutral-300 px-2 py-1 text-right">{i.unit}</td>
+                  <td className="border border-neutral-300 px-2 py-1 text-right">{Number(i.quantity)}</td>
+                  <td className="border border-neutral-300 px-2 py-1 text-right">{formatMoney(i.unitPrice)}</td>
+                  <td className="border border-neutral-300 px-2 py-1 text-right">{formatMoney(Number(i.quantity) * Number(i.unitPrice))}</td>
+                </tr>
+              ))}
+              <tr>
+                <td colSpan={5} className="border border-neutral-300 px-2 py-1 text-right font-semibold">
+                  სულ
+                </td>
+                <td className="border border-neutral-300 px-2 py-1 text-right font-semibold">{formatMoney(amount)}</td>
+              </tr>
+            </tbody>
+          </table>
+        )}
+      </section>
+
+      {order.completionNote && (
+        <section className="mb-4 text-[12px]">
+          <div className="mb-1 font-semibold">შენიშვნა</div>
+          <p className="whitespace-pre-wrap border border-neutral-300 px-2 py-2 leading-relaxed">{order.completionNote}</p>
+        </section>
+      )}
+
+      <p className="mb-6 text-[12px] leading-relaxed">
+        სამუშაო შესრულებულია სრულად და ხარისხიანად. დამკვეთს პრეტენზია არ აქვს. აქტი შედგენილია ორ ეგზემპლარად, თითო თითოეული
+        მხარისთვის, ორივეს თანაბარი იურიდიული ძალა აქვს.
+      </p>
+
+      <section className="grid grid-cols-2 gap-8 text-[12px]">
+        {["შემსრულებელი", "დამკვეთი"].map((side) => (
+          <div key={side}>
+            <div className="mb-8 font-semibold">{side}</div>
+            <div className="border-b border-neutral-400" />
+            <div className="mt-1 text-[10px] text-neutral-500">სახელი, გვარი, ხელმოწერა, ბეჭედი</div>
+            <div className="mt-4 border-b border-neutral-400" />
+            <div className="mt-1 text-[10px] text-neutral-500">თარიღი</div>
+          </div>
+        ))}
+      </section>
+    </main>
+  );
+}

@@ -1,4 +1,4 @@
-import { Building2, CalendarClock, CalendarDays, Camera, Mail, MapPin, Pencil, Phone, Printer, ShieldCheck, Trash2, User } from "lucide-react";
+import { Building2, CalendarClock, CalendarDays, Camera, FileCheck, Mail, MapPin, Pencil, Phone, Printer, ShieldCheck, Trash2, User } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { deleteOrder } from "@/actions/orders";
@@ -173,6 +173,11 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
             <Button render={<Link href={`/orders/${order.id}/sheet`} target="_blank" />} variant="outline" size="sm" className="h-10 flex-1 sm:h-8 sm:flex-none">
               <Printer className="size-3.5" /> სამუშაო ფურცელი
             </Button>
+            {staff && (order.status === "done" || order.status === "closed") && (
+              <Button render={<Link href={`/orders/${order.id}/act`} target="_blank" />} variant="outline" size="sm" className="h-10 flex-1 sm:h-8 sm:flex-none">
+                <FileCheck className="size-3.5" /> მიღება-ჩაბარების აქტი
+              </Button>
+            )}
             {staff && !readOnly && (
               <Button render={<Link href={`/orders/${order.id}/edit`} />} variant="outline" size="sm" className="h-10 flex-1 sm:h-8 sm:flex-none">
                 <Pencil className="size-3.5" /> {t.common.edit}
