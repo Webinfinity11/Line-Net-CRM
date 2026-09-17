@@ -118,7 +118,7 @@ export function DashboardBoard({
             <button
               type="button"
               onClick={() => setSelectedId(focus.order.id)}
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[#3457d5] px-4 py-2 font-heading text-[12px] font-semibold uppercase tracking-[0.04em] text-white transition-colors hover:bg-[#2846b7]"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[#3457d5] px-4 py-2 font-heading text-[13px] font-bold tracking-[-0.005em] text-white transition-colors hover:bg-[#2846b7]"
             >
               <UserPlus className="size-3.5" /> {toMtavruli(focus.kind === "urgent" ? "დანიშვნა" : "გახსნა")}
             </button>

@@ -130,7 +130,7 @@ export function SidebarFooter({ user, collapsed = false, onNavigate }: { user: S
         className="mt-1 flex w-full items-center gap-2.5 rounded-full px-3 py-2 text-sm text-[#9fb0c0] transition-colors hover:bg-white/[0.07] hover:text-[#ffb4a6] focus-visible:outline-2 focus-visible:outline-white/40"
       >
         <LogOut className="size-4 shrink-0" />
-        <span className="font-heading uppercase tracking-wide">{t.nav.logout}</span>
+        <span className="font-heading font-bold tracking-[-0.005em]">{toMtavruli(t.nav.logout)}</span>
       </button>
     </div>
   );
@@ -191,7 +191,7 @@ export function Sidebar(props: { user: SessionUser; inboxCount: number; unseenCo
             href="/orders/new"
             title={open ? undefined : t.order.new}
             className={cn(
-              "flex items-center justify-center gap-2 rounded-full bg-[#3457d5] font-heading text-[12px] font-semibold uppercase tracking-[0.04em] text-white shadow-[0_8px_20px_rgba(52,87,213,0.4)] transition-colors hover:bg-[#2846b7]",
+              "flex items-center justify-center gap-2 rounded-full bg-[#3457d5] font-heading text-[13px] font-bold tracking-[-0.005em] text-white shadow-[0_8px_20px_rgba(52,87,213,0.4)] transition-colors hover:bg-[#2846b7]",
               open ? "h-10 px-4" : "h-11 w-11",
             )}
           >

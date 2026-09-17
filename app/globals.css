@@ -255,11 +255,11 @@ body {
 h1, h2, h3, h4, .font-heading {
   font-family: var(--font-firago), var(--font-sans);
 }
-/* headings in FiraGO Mtavruli (TT), like the buttons */
+/* headings in FiraGO Mtavruli (TT): bold and tight, not light and spaced */
 h1, h2, h3, [data-slot="card-title"], [data-slot="dialog-title"], [data-slot="sheet-title"] {
   font-family: var(--font-firago), var(--font-sans);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
+  font-weight: 700;
+  letter-spacing: -0.005em;
 }
 h1, h2, h3 {
   color: var(--foreground);

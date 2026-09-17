@@ -119,7 +119,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
                 href={`/?range=${r.key}`}
                 aria-current={r.key === range ? "page" : undefined}
                 className={cn(
-                  "rounded-full px-3.5 py-1.5 font-heading text-[11px] font-semibold uppercase tracking-[0.04em] transition-colors duration-150",
+                  "rounded-full px-3.5 py-1.5 font-heading text-[11.5px] font-bold tracking-[-0.005em] transition-colors duration-150",
                   r.key === range ? "bg-[#3457d5] text-white" : "text-muted-foreground hover:bg-[#f1f4f9] hover:text-foreground",
                 )}
               >
