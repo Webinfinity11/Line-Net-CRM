@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { createSite, deleteClient, deleteSite, updateClient, updateSite } from "@/actions/clients";
 import { createEquipment, deleteEquipment, updateEquipment } from "@/actions/equipment";
 import { StatusBadge, SystemBadge } from "@/components/app/badges";
+import { BulkSitesDialog } from "@/components/app/bulk-sites-dialog";
 import { ClientFields, SiteFields } from "@/components/app/client-forms";
 import { ConfirmButton } from "@/components/app/confirm-button";
 import { EquipmentFields } from "@/components/app/equipment-forms";
@@ -78,9 +79,12 @@ export default async function ClientPage({ params }: PageProps<"/clients/[id]">)
           icon={MapPinned}
           aside={client.sites.length}
           action={
-            <FormDialog trigger={<Button variant="outline" size="sm" />} triggerLabel={<><Plus className="size-3.5" /> ობიექტი</>} title="ახალი ობიექტი" action={createSite} submitLabel={t.common.create}>
-              <SiteFields clientId={client.id} />
-            </FormDialog>
+            <div className="flex flex-wrap gap-2">
+              <BulkSitesDialog clientId={client.id} />
+              <FormDialog trigger={<Button variant="outline" size="sm" />} triggerLabel={<><Plus className="size-3.5" /> ობიექტი</>} title="ახალი ობიექტი" action={createSite} submitLabel={t.common.create}>
+                <SiteFields clientId={client.id} />
+              </FormDialog>
+            </div>
           }
         >
           {client.sites.length === 0 ? (
@@ -99,6 +103,11 @@ export default async function ClientPage({ params }: PageProps<"/clients/[id]">)
                           {s.address}
                           {!s.lat && <span className="ml-1 text-[#96610b]">· კოორდინატები არ არის</span>}
                         </div>
+                        {(s.contactName || s.contactPhone) && (
+                          <div className="mt-0.5 text-[11.5px] text-muted-foreground">
+                            {[s.contactName, s.contactPhone].filter(Boolean).join(" · ")}
+                          </div>
+                        )}
                         {s.notes && <div className="mt-1 text-[11.5px] text-muted-foreground">{s.notes}</div>}
                       </div>
                       <div className="flex shrink-0 gap-1">

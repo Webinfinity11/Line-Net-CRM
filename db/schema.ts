@@ -151,6 +151,8 @@ export const sites = pgTable(
       .references(() => clients.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
     address: text("address"),
+    contactName: text("contact_name"),
+    contactPhone: text("contact_phone"),
     lat: numeric("lat", { precision: 10, scale: 7 }),
     lng: numeric("lng", { precision: 10, scale: 7 }),
     notes: text("notes"),

@@ -58,7 +58,7 @@ export default async function ClientsPage({ searchParams }: PageProps<"/clients"
               action={createClient}
               submitLabel={t.common.create}
             >
-              <ClientFields />
+              <ClientFields withSites />
             </FormDialog>
           </div>
         }
