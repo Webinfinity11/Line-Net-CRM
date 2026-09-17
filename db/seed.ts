@@ -64,13 +64,13 @@ async function main() {
 
   // backfill system types on demo orders by title keywords
   await db.execute(sql`update orders set system_type = case
-      when title ilike '%CCTV%' or title ilike '%კამერ%' then 'cctv'::system_type
-      when title ilike '%სახანძრო%' or title ilike '%განათების ბატარე%' then 'fire'::system_type
-      when title ilike '%წვდომ%' or title ilike '%access%' then 'access'::system_type
-      when title ilike '%WiFi%' or title ilike '%ქსელ%' or title ilike '%ოპტიკ%' then 'network'::system_type
-      when title ilike '%კაბელირებ%' then 'structured_cabling'::system_type
-      when title ilike '%BMS%' or title ilike '%ავტომატ%' or title ilike '%კონდიცირ%' then 'automation'::system_type
-      when title ilike '%ელექტრო%' then 'electrical'::system_type
+      when title ilike '%CCTV%' or title ilike '%კამერ%' then 'cctv'
+      when title ilike '%სახანძრო%' or title ilike '%განათების ბატარე%' then 'fire'
+      when title ilike '%წვდომ%' or title ilike '%access%' then 'access'
+      when title ilike '%WiFi%' or title ilike '%ქსელ%' or title ilike '%ოპტიკ%' then 'network'
+      when title ilike '%კაბელირებ%' then 'structured_cabling'
+      when title ilike '%BMS%' or title ilike '%ავტომატ%' or title ilike '%კონდიცირ%' then 'automation'
+      when title ilike '%ელექტრო%' then 'electrical'
       else system_type end
     where system_type is null`);
   await db.execute(sql`update orders set scheduled_at = (due_date::timestamp + interval '10 hours') at time zone 'Asia/Tbilisi' where scheduled_at is null and due_date is not null and triaged`);
@@ -98,6 +98,11 @@ async function main() {
   const manager = seeded[1];
   const executors = seeded.slice(2);
   console.log(`users: ${seeded.length} (admin: ${PASSWORDS.admin}, manager: ${PASSWORDS.manager}, executor: ${PASSWORDS.executor})`);
+
+  if (process.env.SEED_ACCOUNTS_ONLY === "1") {
+    console.log("accounts only: demo clients and orders skipped");
+    return;
+  }
 
   const existingClients = await db.select().from(clients);
   if (existingClients.length > 0) {

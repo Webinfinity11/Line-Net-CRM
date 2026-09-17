@@ -14,7 +14,8 @@
     "db:studio": "drizzle-kit studio",
     "test": "vitest run",
     "e2e": "node scripts/e2e.mjs",
-    "db:seed-services": "node scripts/seed-services.mjs"
+    "db:seed-services": "node scripts/seed-services.mjs",
+    "db:setup": "node scripts/setup-db.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

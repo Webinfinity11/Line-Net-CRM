@@ -54,7 +54,7 @@ try {
   for (const [name, system, unit, price, description] of SERVICES) {
     const res = await pool.query(
       `insert into services (name, system_type, unit, price, description, sort)
-       select $1, $2::system_type, $3, $4, nullif($5, ''), $6
+       select $1, $2, $3, $4, nullif($5, ''), $6
        where not exists (select 1 from services where name = $1)`,
       [name, system, unit, String(price), description, added],
     );

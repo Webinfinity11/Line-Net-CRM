@@ -45,3 +45,4 @@ next-env.d.ts
 uploads/
 .env*.local
 docs/*პაროლ*
+.env.local.bak
