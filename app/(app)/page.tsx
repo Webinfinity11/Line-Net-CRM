@@ -1,28 +1,28 @@
-import { AlertTriangle, MapPinned } from "lucide-react";
+import { CircleCheck, MapPinned, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { StatusDonut, WeeklyBars } from "@/components/app/dashboard-charts";
 import { DashboardBoard } from "@/components/app/dashboard/board";
 import { QuickCreate } from "@/components/app/dashboard/quick-create";
+import { AwaitingCard, StatCard, type Trend } from "@/components/app/dashboard/stat-card";
 import type { BoardOrder } from "@/components/app/dashboard/types";
 import { MapView } from "@/components/app/map-view";
-import { PageHeader } from "@/components/app/page-header";
 import { getMailSyncState } from "@/lib/graph-mail";
-import { STATUS_HEX, STATUS_LABELS, STATUS_ORDER, formatDate, formatMoney, t } from "@/lib/i18n";
+import { STATUS_HEX, STATUS_LABELS, STATUS_ORDER, formatDate, t } from "@/lib/i18n";
+import { toMtavruli } from "@/lib/mtavruli";
 import { isOverdue } from "@/lib/order-utils";
 import { getDashboardStats, listAssignableUsers, listClientsWithSites, type DateRange } from "@/lib/orders";
 import { tbilisiToday } from "@/lib/schedule-utils";
 import { isStaff, requireUser } from "@/lib/session";
 import { getWorkHoursPerDay } from "@/lib/settings";
 import { cn } from "@/lib/utils";
-import { toMtavruli } from "@/lib/mtavruli";
 
 export const metadata = { title: "დაფა" };
 
-const RANGES: { key: DateRange; label: string; period: string }[] = [
-  { key: "today", label: t.common.today, period: "დღეს" },
-  { key: "week", label: t.common.week, period: "ამ კვირაში" },
-  { key: "month", label: t.common.month, period: "ამ თვეში" },
+const RANGES: { key: DateRange; label: string; period: string; prev: string }[] = [
+  { key: "today", label: t.common.today, period: "დღეს", prev: "გუშინდელთან" },
+  { key: "week", label: t.common.week, period: "ამ კვირაში", prev: "წინა კვირასთან" },
+  { key: "month", label: t.common.month, period: "ამ თვეში", prev: "წინა თვესთან" },
 ];
 
 const DAY_NAMES = ["კვირა", "ორშაბათი", "სამშაბათი", "ოთხშაბათი", "ხუთშაბათი", "პარასკევი", "შაბათი"];
@@ -31,9 +31,15 @@ const MONTHS = ["იანვარი", "თებერვალი", "მა�
 const timeFmt = new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Tbilisi", hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
 const timeOf = (d: Date) => timeFmt.format(d);
 
-function kickerFor(iso: string) {
+function dateLine(iso: string) {
   const d = new Date(`${iso}T00:00:00Z`);
-  return `${DAY_NAMES[d.getUTCDay()]} · ${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]}`;
+  return `${DAY_NAMES[d.getUTCDay()]}, ${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]}`;
+}
+
+/** Only shown when a real previous-period figure exists. */
+function trendOf(cur: number, prev: number, label: string): Trend {
+  if (prev <= 0) return null;
+  return { pct: Math.round(((cur - prev) / prev) * 100), label };
 }
 
 const ACTIVE = new Set(["new", "assigned", "in_progress"]);
@@ -52,7 +58,6 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
     .map((u) => ({ id: u.id, name: u.name, image: u.image, specializations: u.specializations ?? [], hours: Math.round(((s.plannedToday[u.id] ?? 0) / 60) * 10) / 10 }));
   const clients = clientRows.map((c) => ({ id: c.id, name: c.name }));
 
-  // board rows: urgent unassigned work first, then overdue, then the server order (recently updated)
   const rank = (o: { priority: string; status: string; assignees: unknown[]; overdue: boolean }) =>
     o.priority === "urgent" && o.assignees.length === 0 && ACTIVE.has(o.status) ? 0 : o.overdue ? 1 : 2;
   const board: BoardOrder[] = s.board
@@ -88,20 +93,88 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
   const workload = executors.map((u) => ({ id: u.id, name: u.name, image: u.image, hours: u.hours }));
   const donut = STATUS_ORDER.map((k) => ({ name: STATUS_LABELS[k], value: s.counts[k] ?? 0, color: STATUS_HEX[k] }));
   const donutTotal = donut.reduce((a, b) => a + b.value, 0);
-  const collected = s.money.paid + s.money.unpaid;
-  const paidPct = collected > 0 ? Math.round((s.money.paid / collected) * 100) : 0;
+  const firstName = user.name.split(" ")[0];
 
   return (
-    <div className="space-y-5">
-      <PageHeader
-        kicker={kickerFor(tbilisiToday())}
-        title="სამუშაო დაფა"
-        subtitle="დღევანდელი პრიორიტეტები და გუნდის საქმეები"
-        actions={<QuickCreate clients={clients} />}
-      />
+    <div className="space-y-4">
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div className="min-w-0">
+          <h1 className="font-heading text-[28px] font-medium leading-[1.3] tracking-[-0.6px]">{toMtavruli(`გამარჯობა, ${firstName}!`)}</h1>
+          <p className="mt-1 text-[13px] text-muted-foreground">ასეთია სერვისის სურათი {rangeDef.period}.</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="hidden text-[12.5px] text-muted-foreground md:inline">{dateLine(tbilisiToday())}</span>
+          <div className="inline-flex rounded-full border border-border bg-white p-1" role="group" aria-label="პერიოდი">
+            {RANGES.map((r) => (
+              <Link
+                key={r.key}
+                href={`/?range=${r.key}`}
+                aria-current={r.key === range ? "page" : undefined}
+                className={cn(
+                  "rounded-full px-3 py-1.5 text-[11.5px] transition-colors duration-150",
+                  r.key === range ? "bg-[#3457d5] font-medium text-white" : "text-muted-foreground hover:bg-[#f3f6fb] hover:text-foreground",
+                )}
+              >
+                {r.label}
+              </Link>
+            ))}
+          </div>
+          <QuickCreate clients={clients} />
+        </div>
+      </header>
+
+      <div className="ln-stagger grid gap-4 xl:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <StatCard label="აქტიური შეკვეთები" value={s.activeTotal} caption="მიმდინარე ჯამი" href="/orders?status=active" filled />
+          <StatCard label="დღევანდელი ვიზიტები" value={s.todayTotal} caption="დაგეგმილია დღეს" href="/schedule" />
+          <StatCard label="ვადაგადაცილებული" value={s.overdueCount} caption="მიმდინარე ჯამი" href="/orders?overdue=1" />
+          <StatCard
+            label="შესრულებული"
+            value={s.completed}
+            caption={`${rangeDef.period} · ${rangeDef.prev}`}
+            href="/orders?status=done"
+            trend={trendOf(s.completed, s.previous.completed, rangeDef.prev)}
+          />
+        </div>
+
+        <section className="rounded-[20px] border border-border bg-white p-5" aria-label="კვირის დინამიკა">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+            <h3 className="font-heading text-[15px] font-medium">{toMtavruli("კვირის დინამიკა")}</h3>
+            <span className="text-[11.5px] text-muted-foreground">ბოლო 7 დღე · შექმნილი და შესრულებული</span>
+          </div>
+          <WeeklyBars data={s.weekly} height={236} />
+        </section>
+      </div>
+
+      <div className="ln-stagger grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.35fr)]">
+        <AwaitingCard
+          value={s.unassignedCount}
+          unit="შეკვეთა"
+          sentence={["ელოდება", "და დროის განსაზღვრას."]}
+          highlight="შემსრულებლის დანიშვნას"
+          href="/orders?status=active"
+          icon={UserPlus}
+          tone={{ bg: "#edf2ff", fg: "#3457d5" }}
+        />
+        <AwaitingCard
+          value={s.awaitingClosureCount}
+          unit="შეკვეთა"
+          sentence={["შესრულებულია და", "დახურვამდე."]}
+          highlight="ელოდება შემოწმებას"
+          href="/orders?status=done"
+          icon={CircleCheck}
+          tone={{ bg: "#eaf6ef", fg: "#25815a" }}
+        />
+        <section className="rounded-[20px] border border-border bg-white p-5" aria-label="შეკვეთები სტატუსებით">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <h3 className="font-heading text-[15px] font-medium">{toMtavruli("შეკვეთები სტატუსებით")}</h3>
+            <span className="text-[11.5px] text-muted-foreground">{rangeDef.period}</span>
+          </div>
+          {donutTotal === 0 ? <p className="py-10 text-center text-[12.5px] text-muted-foreground">ამ პერიოდში შეკვეთა არ არის</p> : <StatusDonut data={donut} total={donutTotal} />}
+        </section>
+      </div>
 
       <DashboardBoard
-        metrics={{ active: s.activeTotal, visits: s.todayTotal, overdue: s.overdueCount, review: s.awaitingClosureCount }}
         orders={board}
         visits={visits}
         visitsTotal={s.todayTotal}
@@ -110,72 +183,14 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
         normHours={normHours}
         today={tbilisiToday()}
         mail={{ configured: mail.configured, count: s.inbox.length, connectHref: "/inbox" }}
+        money={{ paid: s.money.paid, unpaid: s.money.unpaid, periodLabel: rangeDef.period }}
       />
 
-      {/* analytics: status split, weekly dynamics, money */}
-      <div className="ln-stagger grid gap-[18px] lg:grid-cols-3">
-        <section className="rounded-xl border border-border bg-white p-[18px]" aria-label="შეკვეთები სტატუსებით">
-          <h3 className="mb-3 font-heading text-[13px] font-medium">
-            {toMtavruli('შეკვეთები სტატუსებით')} <span className="text-[11px] font-normal text-[#748197]">{rangeDef.period}</span>
-          </h3>
-          {donutTotal === 0 ? <p className="py-6 text-center text-[12px] text-muted-foreground">ამ პერიოდში შეკვეთა არ არის</p> : <StatusDonut data={donut} total={donutTotal} />}
-        </section>
-        <section className="rounded-xl border border-border bg-white p-[18px]" aria-label="კვირის დინამიკა">
-          <h3 className="mb-3 font-heading text-[13px] font-medium">
-            {toMtavruli('კვირის დინამიკა')} <span className="text-[11px] font-normal text-[#748197]">{toMtavruli('ბოლო 7 დღე')}</span>
-          </h3>
-          <WeeklyBars data={s.weekly} />
-        </section>
-        <section className="rounded-xl border border-border bg-white p-[18px]" aria-label="თანხები">
-          <div className="mb-3 flex items-center justify-between gap-2">
-            <h3 className="font-heading text-[13px] font-medium">{toMtavruli('თანხები')}</h3>
-            <div className="inline-flex rounded-md border border-border bg-white p-0.5" role="group" aria-label="პერიოდი">
-              {RANGES.map((r) => (
-                <Link
-                  key={r.key}
-                  href={`/?range=${r.key}`}
-                  aria-current={r.key === range ? "page" : undefined}
-                  className={cn(
-                    "rounded px-2 py-0.5 text-[11px] transition-colors duration-150",
-                    r.key === range ? "bg-[#eef2ff] font-medium text-[#3457d5]" : "text-muted-foreground hover:bg-[#f8faff] hover:text-foreground",
-                  )}
-                >
-                  {r.label}
-                </Link>
-              ))}
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <div className="rounded-lg border border-border bg-[#f8faff] p-3">
-              <div className="text-[11px] text-muted-foreground">მიღებული · {rangeDef.period}</div>
-              <div className="tabular mt-1 font-heading text-[19px] font-medium">{formatMoney(s.money.paid)}</div>
-            </div>
-            <div className="rounded-lg border border-border bg-[#fff8f6] p-3">
-              <div className="text-[11px] text-muted-foreground">გადაუხდელი · ყველა შეკვეთა</div>
-              <div className="tabular mt-1 font-heading text-[19px] font-medium text-[#a84630]">{formatMoney(s.money.unpaid)}</div>
-            </div>
-          </div>
-          <div className="mt-3">
-            <div className="mb-1 flex justify-between text-[12px]">
-              <span className="text-muted-foreground">გადახდის მაჩვენებელი</span>
-              <span className="tabular font-medium">{paidPct}%</span>
-            </div>
-            <div className="h-[5px] overflow-hidden rounded-sm bg-[#eef1f6]">
-              <div className="h-full rounded-sm bg-[#25815a] transition-[width] duration-300" style={{ width: `${paidPct}%` }} />
-            </div>
-            <div className="mt-1 text-[11px] text-muted-foreground">
-              {formatMoney(s.money.paid)} მიღებულია / {formatMoney(collected)} სულ
-            </div>
-          </div>
-        </section>
-      </div>
-
-      {/* map: secondary, kept compact */}
-      <section className="rounded-xl border border-border bg-white p-[18px]" aria-label="აქტიური ობიექტები რუკაზე">
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <h3 className="flex items-center gap-[7px] font-heading text-[13px] font-medium">
-            <MapPinned className="size-4 text-muted-foreground [stroke-width:1.7]" /> {toMtavruli('აქტიური ობიექტები რუკაზე')}
-            <span className="text-[11px] font-normal text-[#748197]">{s.mapPoints.length} ობიექტი</span>
+      <section className="rounded-[20px] border border-border bg-white p-5" aria-label="აქტიური ობიექტები რუკაზე">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <h3 className="flex items-center gap-2 font-heading text-[15px] font-medium">
+            <MapPinned className="size-4 text-muted-foreground [stroke-width:1.7]" /> {toMtavruli("აქტიური ობიექტები რუკაზე")}
+            <span className="text-[11.5px] font-normal text-muted-foreground">{s.mapPoints.length} ობიექტი</span>
           </h3>
           <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
             {(["new", "assigned", "in_progress"] as const).map((k) => (
@@ -186,12 +201,12 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
           </div>
         </div>
         {s.mapPoints.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-border px-4 py-6 text-center text-[12px] text-muted-foreground">
+          <p className="rounded-[14px] border border-dashed border-border px-4 py-8 text-center text-[12.5px] text-muted-foreground">
             ობიექტებს კოორდინატები არ აქვს. გახსენით კლიენტი → ობიექტი → „რუკაზე მონიშვნა“.
           </p>
         ) : (
           <MapView
-            height={260}
+            height={300}
             showLabels={false}
             markers={s.mapPoints.map((p, i) => ({
               id: p.id,
@@ -206,34 +221,6 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
           />
         )}
       </section>
-      {s.overdue.length > 0 && (
-        <div className="ln-stagger grid gap-[18px] lg:grid-cols-2">
-          {s.overdue.length > 0 && (
-            <section className="rounded-xl border border-[#f4e2d7] bg-white p-[18px]" aria-label="ვადაგადაცილებული შეკვეთები">
-              <h3 className="mb-2 flex items-center gap-2 font-heading text-[13px] font-medium text-[#a84630]">
-                <AlertTriangle className="size-4 [stroke-width:1.7]" /> {toMtavruli('ვადაგადაცილებული შეკვეთები')}
-                <span className="text-[11px] font-normal text-[#748197]">{s.overdueCount}</span>
-              </h3>
-              <ul className="divide-y divide-border text-[12px]">
-                {s.overdue.slice(0, 6).map((o) => (
-                  <li key={o.id} className="flex items-center gap-3 py-2">
-                    <Link href={`/orders/${o.id}`} className="min-w-0 flex-1 truncate font-medium hover:text-[#3457d5]">
-                      {o.title}
-                    </Link>
-                    <span className="hidden truncate text-muted-foreground sm:inline">{o.client?.name ?? o.number}</span>
-                    <span className="tabular shrink-0 font-medium text-[#b13f32]">{formatDate(o.dueDate)}</span>
-                  </li>
-                ))}
-              </ul>
-              {s.overdueCount > 6 && (
-                <Link href="/orders?overdue=1" className="mt-2 inline-block text-[11px] text-[#3457d5] hover:underline">
-                  ყველას ნახვა →
-                </Link>
-              )}
-            </section>
-          )}
-        </div>
-      )}
     </div>
   );
 }

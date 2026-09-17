@@ -92,7 +92,24 @@ function buildWhere(f: OrderFilters): SQL | undefined {
   return parts.length ? and(...parts) : undefined;
 }
 
-export async function listOrders(f: OrderFilters = {}, opts: { limit?: number; offset?: number } = {}) {
+export type OrderSort = "created" | "due" | "priority" | "amount";
+
+/** Sort options for the orders list. "created" (newest first) is the default everywhere else. */
+function orderByFor(sort: OrderSort | undefined): SQL[] {
+  switch (sort) {
+    case "due":
+      return [sql`${orders.dueDate} asc nulls last`, desc(orders.createdAt)];
+    case "priority":
+      // the pg enum is declared low → urgent, so desc puts urgent first
+      return [desc(orders.priority), sql`${orders.dueDate} asc nulls last`];
+    case "amount":
+      return [sql`${orders.amount} desc nulls last`, desc(orders.createdAt)];
+    default:
+      return [desc(orders.createdAt)];
+  }
+}
+
+export async function listOrders(f: OrderFilters = {}, opts: { limit?: number; offset?: number; sort?: OrderSort } = {}) {
   return db.query.orders.findMany({
     where: buildWhere(f),
     with: {
@@ -100,7 +117,7 @@ export async function listOrders(f: OrderFilters = {}, opts: { limit?: number; o
       site: { columns: { id: true, name: true, address: true } },
       assignees: { with: { user: { columns: { id: true, name: true, image: true } } } },
     },
-    orderBy: [desc(orders.createdAt)],
+    orderBy: orderByFor(opts.sort),
     limit: opts.limit ?? 200,
     offset: opts.offset ?? 0,
   });
@@ -111,9 +128,9 @@ export type OrderListItem = Awaited<ReturnType<typeof listOrders>>[number];
 export const PAGE_SIZE = 50;
 
 /** Page of orders plus the total count for the same filters. */
-export async function listOrdersPage(f: OrderFilters, page: number, pageSize = PAGE_SIZE) {
+export async function listOrdersPage(f: OrderFilters, page: number, pageSize = PAGE_SIZE, sort?: OrderSort) {
   const safePage = Math.max(1, Math.floor(page || 1));
-  const [rows, total] = await Promise.all([listOrders(f, { limit: pageSize, offset: (safePage - 1) * pageSize }), countOrders(f)]);
+  const [rows, total] = await Promise.all([listOrders(f, { limit: pageSize, offset: (safePage - 1) * pageSize, sort }), countOrders(f)]);
   return { rows, total, page: safePage, pageSize, pages: Math.max(1, Math.ceil(total / pageSize)) };
 }
 
@@ -268,7 +285,7 @@ export async function getDashboardStats(range: DateRange = "week") {
   const notInbox = eq(orders.triaged, true);
 
   const today = tbilisiDayBounds(tbilisiToday());
-  const [byStatusRows, createdRow, completedRow, overdueList, loadRows, users, paidRow, unpaidRow, recent, inbox, todayList, weekly, prevRow, warranty, mapPoints, overdueCountRow, urgentUnassigned, awaitingClosure, reviewRow, board, plannedTodayRows, activeTotalRow, awaitingClosureRow, todayTotalRow] =
+  const [byStatusRows, createdRow, completedRow, overdueList, loadRows, users, paidRow, unpaidRow, recent, inbox, todayList, weekly, prevRow, warranty, mapPoints, overdueCountRow, urgentUnassigned, awaitingClosure, reviewRow, board, plannedTodayRows, activeTotalRow, awaitingClosureRow, unassignedRow, todayTotalRow] =
     await Promise.all([
       db
         .select({ status: orders.status, n: count() })
@@ -380,6 +397,11 @@ export async function getDashboardStats(range: DateRange = "week") {
         .groupBy(orderAssignees.userId),
       db.select({ n: count() }).from(orders).where(and(notInbox, inArray(orders.status, ACTIVE_STATUSES))),
       db.select({ n: count() }).from(orders).where(and(notInbox, eq(orders.status, "done"))),
+      // active work with nobody assigned yet
+      db
+        .select({ n: count() })
+        .from(orders)
+        .where(and(notInbox, inArray(orders.status, ACTIVE_STATUSES), sql`not exists (select 1 from order_assignees oa where oa.order_id = ${orders.id})`)),
       db.select({ n: count() }).from(orders).where(and(notInbox, gte(orders.scheduledAt, today.start), lt(orders.scheduledAt, today.end), ne(orders.status, "cancelled"))),
     ]);
 
@@ -418,7 +440,40 @@ export async function getDashboardStats(range: DateRange = "week") {
     plannedToday: Object.fromEntries(plannedTodayRows.map((r) => [r.userId, r.minutes])) as Record<string, number>,
     activeTotal: activeTotalRow[0]?.n ?? 0,
     awaitingClosureCount: awaitingClosureRow[0]?.n ?? 0,
+    unassignedCount: unassignedRow[0]?.n ?? 0,
     todayTotal: todayTotalRow[0]?.n ?? 0,
+  };
+}
+
+/**
+ * Counts per status over all triaged orders, plus this week's real inflow
+ * (orders created) and output (orders completed) with the previous week for comparison.
+ * Snapshot counts have no stored history, so only these two flows carry a trend.
+ */
+export async function getStatusSummary() {
+  const now = Date.now();
+  const weekAgo = new Date(now - 7 * 24 * 60 * 60_000);
+  const twoWeeksAgo = new Date(now - 14 * 24 * 60 * 60_000);
+  const notInbox = eq(orders.triaged, true);
+  const [rows, flowRows] = await Promise.all([
+    db.select({ status: orders.status, n: count() }).from(orders).where(notInbox).groupBy(orders.status),
+    db
+      .select({
+        createdNow: sql<number>`count(*) filter (where ${orders.createdAt} >= ${weekAgo})`.mapWith(Number),
+        createdPrev: sql<number>`count(*) filter (where ${orders.createdAt} >= ${twoWeeksAgo} and ${orders.createdAt} < ${weekAgo})`.mapWith(Number),
+        completedNow: sql<number>`count(*) filter (where ${orders.completedAt} >= ${weekAgo})`.mapWith(Number),
+        completedPrev: sql<number>`count(*) filter (where ${orders.completedAt} >= ${twoWeeksAgo} and ${orders.completedAt} < ${weekAgo})`.mapWith(Number),
+      })
+      .from(orders)
+      .where(notInbox),
+  ]);
+  const f = flowRows[0] ?? { createdNow: 0, createdPrev: 0, completedNow: 0, completedPrev: 0 };
+  return {
+    counts: Object.fromEntries(rows.map((r) => [r.status, r.n])) as Partial<Record<OrderStatus, number>>,
+    flow: {
+      created: { now: f.createdNow, prev: f.createdPrev },
+      completed: { now: f.completedNow, prev: f.completedPrev },
+    },
   };
 }
 

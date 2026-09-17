@@ -6,7 +6,7 @@ export function StatusDonut({ data, total }: { data: { name: string; value: numb
   const rows = data.filter((d) => d.value > 0);
   return (
     <div className="flex items-center gap-4">
-      <div className="relative h-44 w-44 shrink-0">
+      <div className="relative h-40 w-40 shrink-0">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie data={rows} dataKey="value" nameKey="name" innerRadius={52} outerRadius={80} paddingAngle={2} stroke="none" isAnimationActive={false}>
@@ -36,9 +36,9 @@ export function StatusDonut({ data, total }: { data: { name: string; value: numb
   );
 }
 
-export function WeeklyBars({ data }: { data: { label: string; created: number; completed: number }[] }) {
+export function WeeklyBars({ data, height = 192 }: { data: { label: string; created: number; completed: number }[]; height?: number }) {
   return (
-    <div className="h-48">
+    <div style={{ height }}>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} barGap={4} margin={{ top: 4, right: 4, left: -22, bottom: 0 }}>
           <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#e5e5e5" />
@@ -46,8 +46,8 @@ export function WeeklyBars({ data }: { data: { label: string; created: number; c
           <YAxis allowDecimals={false} tickLine={false} axisLine={false} fontSize={11} />
           <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} cursor={{ fill: "rgba(0,0,0,0.04)" }} />
           <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12 }} />
-          <Bar dataKey="created" name="შექმნილი" fill="#38bdf8" radius={[4, 4, 0, 0]} isAnimationActive={false} />
-          <Bar dataKey="completed" name="შესრულებული" fill="#1d4ed8" radius={[4, 4, 0, 0]} isAnimationActive={false} />
+          <Bar dataKey="created" name="შექმნილი" fill="#a5b5ed" radius={[6, 6, 0, 0]} isAnimationActive={false} />
+          <Bar dataKey="completed" name="შესრულებული" fill="#3457d5" radius={[6, 6, 0, 0]} isAnimationActive={false} />
         </BarChart>
       </ResponsiveContainer>
     </div>
