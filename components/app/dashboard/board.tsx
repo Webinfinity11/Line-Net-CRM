@@ -34,11 +34,11 @@ function Counter({
   const body = (
     <>
       <span className={cn("tabular font-heading text-[22px] font-semibold leading-none", alert && value > 0 ? "text-[#b13f32]" : "text-foreground")}>{value}</span>
-      <span className="text-[11px] leading-tight text-muted-foreground">{label}</span>
+      <span className="truncate text-[11px] leading-tight text-muted-foreground">{label}</span>
     </>
   );
   const cls =
-    "flex min-w-[104px] flex-col gap-1.5 rounded-[14px] px-4 py-3 text-left transition-colors duration-150 hover:bg-[#f1f4f9] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3457d5]";
+    "flex min-h-[64px] flex-col gap-1.5 rounded-[14px] px-3 py-2.5 text-left transition-colors duration-150 hover:bg-[#f1f4f9] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3457d5] sm:min-w-[104px] sm:px-4 sm:py-3";
   if (onClick) {
     return (
       <button type="button" onClick={onClick} className={cls}>
@@ -95,9 +95,9 @@ export function DashboardBoard({
   return (
     <div className="space-y-4">
       {/* zone 1 — what needs a decision now */}
-      <section className="ln-card ln-enter flex flex-wrap items-center justify-between gap-4 p-4" aria-label="მოქმედება სჭირდება">
-        <div className="flex flex-wrap items-center gap-1">
-          <span className="px-3 text-[11px] font-medium tracking-[0.04em] text-muted-foreground">{toMtavruli("მოქმედება სჭირდება")}</span>
+      <section className="ln-card ln-enter flex flex-col gap-3 p-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-4" aria-label="მოქმედება სჭირდება">
+        <div className="grid grid-cols-2 gap-1 sm:flex sm:flex-wrap sm:items-center">
+          <span className="col-span-2 px-3 pb-1 text-[11px] font-medium tracking-[0.04em] text-muted-foreground sm:pb-0">{toMtavruli("მოქმედება სჭირდება")}</span>
           <Counter label="დაუნიშნავი" value={counts.unassigned} href="/schedule" alert />
           <Counter label="ვადაგადაცილებული" value={counts.overdue} href="/orders?overdue=1" alert />
           <Counter label="ჩასაბარებელი" value={counts.review} href="/orders?status=done" />
@@ -107,7 +107,7 @@ export function DashboardBoard({
             <CheckCircle2 className="size-4 [stroke-width:1.8]" /> ყველა შეკვეთა დანიშნულია
           </p>
         ) : focus ? (
-          <div className="flex min-w-0 flex-1 items-center justify-end gap-3">
+          <div className="flex min-w-0 flex-1 flex-col items-stretch gap-2 border-t border-[#eef1f6] pt-3 sm:flex-row sm:items-center sm:justify-end sm:border-0 sm:pt-0">
             <span className="flex min-w-0 items-center gap-2 text-[12.5px]">
               <span className="size-2 shrink-0 rounded-full bg-[#b13f32]" />
               <span className="truncate">
@@ -118,7 +118,7 @@ export function DashboardBoard({
             <button
               type="button"
               onClick={() => setSelectedId(focus.order.id)}
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[#3457d5] px-4 py-2 font-heading text-[13px] font-bold tracking-[-0.005em] text-white transition-colors hover:bg-[#2846b7]"
+              className="inline-flex min-h-[44px] shrink-0 items-center justify-center gap-1.5 rounded-full bg-[#3457d5] px-4 py-2 font-heading text-[13px] font-bold tracking-[-0.005em] text-white transition-colors hover:bg-[#2846b7]"
             >
               <UserPlus className="size-3.5" /> {toMtavruli(focus.kind === "urgent" ? "დანიშვნა" : "გახსნა")}
             </button>
