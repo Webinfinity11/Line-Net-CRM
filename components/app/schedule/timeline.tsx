@@ -2,7 +2,7 @@ import { AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { UserAvatar } from "@/components/app/user-avatar";
 import type { OrderStatus } from "@/db/schema";
-import { STATUS_HEX } from "@/lib/i18n";
+import { STATUS_HEX, STATUS_TINT } from "@/lib/i18n";
 import { formatMinutes } from "@/lib/schedule-utils";
 import { cn } from "@/lib/utils";
 
@@ -120,8 +120,8 @@ export function Timeline({
                     key={b.id}
                     href={`/orders/${b.id}`}
                     className={cn(
-                      "ln-pop absolute overflow-hidden rounded-[3px] bg-[#eef2ff] p-2 text-[11px] leading-[1.45] text-foreground transition-[transform,box-shadow] duration-150 hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(38,57,104,0.12)] focus-visible:outline-2 focus-visible:outline-[#3457d5]",
-                      clash ? "border border-[#f0c36a] bg-[#fff8ea]" : "border border-transparent",
+                      "ln-pop absolute overflow-hidden rounded-[6px] p-2 text-[11px] leading-[1.45] text-foreground transition-[transform,box-shadow] duration-150 hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(38,57,104,0.12)] focus-visible:outline-2 focus-visible:outline-[#3457d5]",
+                      clash ? "border border-[#f0c36a]" : "border border-transparent",
                     )}
                     style={{
                       top: y(b.startMin) + 1,
@@ -129,10 +129,11 @@ export function Timeline({
                       left: `calc(${(b.col / b.cols) * 100}% + 4px)`,
                       width: `calc(${100 / b.cols}% - 6px)`,
                       borderLeft: `3px solid ${STATUS_HEX[b.status]}`,
+                      background: clash ? "#fff8ea" : STATUS_TINT[b.status],
                     }}
                     title={`${b.number} · ${b.title}`}
                   >
-                    <div className="font-medium tabular text-[#3457d5]">
+                    <div className="tabular font-medium text-[#4a5e73]">
                       {formatMinutes(b.startMin)}–{formatMinutes(b.endMin)}
                     </div>
                     <div className="line-clamp-2 font-medium">{b.title}</div>

@@ -1,11 +1,12 @@
 "use client";
 
-import { ChevronsLeft, ChevronsRight, LogOut, UserCircle } from "lucide-react";
+import { ChevronsLeft, ChevronsRight, LogOut, Plus, UserCircle } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { signOut } from "@/lib/auth-client";
 import { ROLE_LABELS, t } from "@/lib/i18n";
+import { toMtavruli } from "@/lib/mtavruli";
 import type { SessionUser } from "@/lib/session";
 import { cn } from "@/lib/utils";
 import { UserAvatar } from "./user-avatar";
@@ -45,11 +46,7 @@ export function NavLinks({
               collapsed
                 ? "size-11 justify-center rounded-[14px]"
                 : "gap-2.5 rounded-full px-3 py-2 text-[13px]",
-              active
-                ? collapsed
-                  ? "bg-[#3457d5] text-white shadow-[0_6px_16px_rgba(52,87,213,0.3)]"
-                  : "bg-[#eef2ff] font-medium text-[#3457d5] dark:bg-blue-950/40 dark:text-blue-200"
-                : "text-[#4a5a6c] hover:bg-[#f1f4f9] hover:text-[#17212b] dark:text-neutral-300 dark:hover:bg-neutral-800",
+              active ? "bg-[#3457d5] font-medium text-white shadow-[0_6px_16px_rgba(52,87,213,0.35)]" : "text-[#9fb0c0] hover:bg-white/[0.07] hover:text-white",
             )}
           >
             <Icon className="size-[18px] shrink-0 [stroke-width:1.7]" />
@@ -62,8 +59,8 @@ export function NavLinks({
               <span
                 className={cn(
                   "flex items-center justify-center rounded-full text-[10px] font-semibold leading-none text-white",
-                  collapsed ? "absolute -right-0.5 -top-0.5 size-[18px] ring-2 ring-white" : "px-1.5 py-0.5",
-                  active && !collapsed ? "bg-[#3457d5]" : "bg-[#d95c4c]",
+                  collapsed ? "absolute -right-0.5 -top-0.5 size-[18px] ring-2 ring-[#16293a]" : "px-1.5 py-0.5",
+                  "bg-[#d95c4c]",
                 )}
               >
                 {item.badge}
@@ -92,7 +89,7 @@ export function SidebarFooter({ user, collapsed = false, onNavigate }: { user: S
           href="/profile"
           onClick={onNavigate}
           title={`${user.name} · ${t.nav2.profile}`}
-          className={cn("grid size-11 place-items-center rounded-[14px] transition-colors", profileActive ? "bg-[#eef2ff]" : "hover:bg-[#f1f4f9]")}
+          className={cn("grid size-11 place-items-center rounded-[14px] transition-colors", profileActive ? "bg-white/10" : "hover:bg-white/[0.07]")}
         >
           <UserAvatar name={user.name} image={user.image} size="md" />
           <span className="sr-only">{t.nav2.profile}</span>
@@ -101,7 +98,7 @@ export function SidebarFooter({ user, collapsed = false, onNavigate }: { user: S
           type="button"
           onClick={logout}
           title={t.nav.logout}
-          className="grid size-11 place-items-center rounded-[14px] text-[#4a5a6c] transition-colors hover:bg-[#fff1ed] hover:text-[#a73b2d] focus-visible:outline-2 focus-visible:outline-[#3457d5]"
+          className="grid size-11 place-items-center rounded-[14px] text-[#9fb0c0] transition-colors hover:bg-white/[0.07] hover:text-[#ffb4a6] focus-visible:outline-2 focus-visible:outline-white/40"
         >
           <LogOut className="size-[18px] [stroke-width:1.7]" />
           <span className="sr-only">{t.nav.logout}</span>
@@ -116,13 +113,13 @@ export function SidebarFooter({ user, collapsed = false, onNavigate }: { user: S
         onClick={onNavigate}
         className={cn(
           "flex items-center gap-2.5 rounded-full px-3 py-2 text-sm transition-colors",
-          profileActive ? "bg-[#eef2ff] text-[#3457d5]" : "text-[#4a5a6c] hover:bg-[#f1f4f9] hover:text-[#17212b]",
+          profileActive ? "bg-white/10 text-white" : "text-[#9fb0c0] hover:bg-white/[0.07] hover:text-white",
         )}
       >
         <UserCircle className="size-4 shrink-0" />
         <span className="min-w-0 flex-1">
-          <span className="block truncate font-medium text-foreground">{user.name}</span>
-          <span className="block text-[11px] text-muted-foreground">
+          <span className="block truncate font-medium text-white">{user.name}</span>
+          <span className="block text-[11px] text-[#8296a8]">
             {ROLE_LABELS[user.role]} · {t.nav2.profile}
           </span>
         </span>
@@ -130,7 +127,7 @@ export function SidebarFooter({ user, collapsed = false, onNavigate }: { user: S
       <button
         type="button"
         onClick={logout}
-        className="mt-1 flex w-full items-center gap-2.5 rounded-full px-3 py-2 text-sm text-[#4a5a6c] transition-colors hover:bg-[#fff1ed] hover:text-[#a73b2d] focus-visible:outline-2 focus-visible:outline-[#3457d5]"
+        className="mt-1 flex w-full items-center gap-2.5 rounded-full px-3 py-2 text-sm text-[#9fb0c0] transition-colors hover:bg-white/[0.07] hover:text-[#ffb4a6] focus-visible:outline-2 focus-visible:outline-white/40"
       >
         <LogOut className="size-4 shrink-0" />
         <span className="font-heading uppercase tracking-wide">{t.nav.logout}</span>
@@ -162,15 +159,15 @@ export function Sidebar(props: { user: SessionUser; inboxCount: number; unseenCo
   }
   return (
     <aside
-      className={cn("sticky top-0 hidden h-screen shrink-0 flex-col bg-white transition-[width] duration-200 ease-out dark:bg-neutral-900 md:flex", open ? "w-[212px]" : "w-[84px]")}
+      className={cn("sticky top-0 hidden h-screen shrink-0 flex-col bg-[#16293a] transition-[width] duration-200 ease-out md:flex", open ? "w-[224px]" : "w-[84px]")}
       aria-label="მთავარი მენიუ"
     >
       <div className={cn("flex h-16 items-center", open ? "gap-2.5 px-4" : "justify-center px-2")}>
         <div className="flex size-9 shrink-0 items-center justify-center rounded-[12px] bg-[#3457d5] font-heading text-xs font-bold text-white shadow-[0_6px_16px_rgba(52,87,213,0.28)]">LN</div>
         {open && (
           <div className="min-w-0 leading-tight">
-            <div className="truncate font-heading text-[15px] font-semibold text-foreground">{t.appName}</div>
-            <div className="truncate text-[11px] text-muted-foreground">სერვისის მართვა</div>
+            <div className="truncate font-heading text-[15px] font-semibold text-white">{t.appName}</div>
+            <div className="truncate text-[11px] text-[#8296a8]">სერვისის მართვა</div>
           </div>
         )}
       </div>
@@ -181,12 +178,28 @@ export function Sidebar(props: { user: SessionUser; inboxCount: number; unseenCo
           onClick={toggle}
           aria-expanded={open}
           title={open ? "მენიუს ჩაკეცვა" : "მენიუს გაშლა"}
-          className="grid size-8 place-items-center rounded-full text-[#8b97a8] transition-colors hover:bg-[#f1f4f9] hover:text-[#17212b] focus-visible:outline-2 focus-visible:outline-[#3457d5]"
+          className="grid size-8 place-items-center rounded-full text-[#7d90a3] transition-colors hover:bg-white/[0.07] hover:text-white focus-visible:outline-2 focus-visible:outline-white/40"
         >
           {open ? <ChevronsLeft className="size-4" /> : <ChevronsRight className="size-4" />}
           <span className="sr-only">{open ? "მენიუს ჩაკეცვა" : "მენიუს გაშლა"}</span>
         </button>
       </div>
+
+      {props.user.role !== "executor" && (
+        <div className={cn("pb-1", open ? "px-3" : "px-2")}>
+          <Link
+            href="/orders/new"
+            title={open ? undefined : t.order.new}
+            className={cn(
+              "flex items-center justify-center gap-2 rounded-full bg-[#3457d5] font-heading text-[12px] font-semibold uppercase tracking-[0.04em] text-white shadow-[0_8px_20px_rgba(52,87,213,0.4)] transition-colors hover:bg-[#2846b7]",
+              open ? "h-10 px-4" : "h-11 w-11",
+            )}
+          >
+            <Plus className="size-4 shrink-0" />
+            {open ? <span className="truncate">{toMtavruli(t.order.new)}</span> : <span className="sr-only">{t.order.new}</span>}
+          </Link>
+        </div>
+      )}
 
       <div className={cn("flex-1 overflow-y-auto pt-2", open ? "px-3" : "px-2")}>
         <NavLinks {...props} collapsed={!open} />

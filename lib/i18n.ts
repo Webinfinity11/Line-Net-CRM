@@ -22,6 +22,16 @@ export const STATUS_COLORS: Record<OrderStatus, string> = {
   cancelled: "bg-[#fdeeee] text-[#a33f3f] dark:bg-rose-900/40 dark:text-rose-200",
 };
 
+/** Soft fills for job cards on calendars and day strips (paired with STATUS_HEX for the accent). */
+export const STATUS_TINT: Record<OrderStatus, string> = {
+  new: "#edf2ff",
+  assigned: "#f0ecfc",
+  in_progress: "#fff4df",
+  done: "#eaf6ef",
+  closed: "#eef1f5",
+  cancelled: "#fdeeee",
+};
+
 export const STATUS_HEX: Record<OrderStatus, string> = {
   new: "#3457d5",
   assigned: "#7251ad",

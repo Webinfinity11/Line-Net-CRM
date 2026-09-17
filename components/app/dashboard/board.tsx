@@ -4,7 +4,7 @@ import { ArrowRight, CalendarDays, CheckCircle2, Clock3, Mail, MailX, UserPlus }
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { UserAvatar } from "@/components/app/user-avatar";
-import { STATUS_HEX } from "@/lib/i18n";
+import { STATUS_HEX, STATUS_TINT } from "@/lib/i18n";
 import { toMtavruli } from "@/lib/mtavruli";
 import { cn } from "@/lib/utils";
 import { OrderDrawer } from "./order-drawer";
@@ -183,11 +183,12 @@ export function DashboardBoard({
                               type="button"
                               onClick={() => setSelectedId(b.id)}
                               title={`${b.timeLabel} · ${b.title}${b.client ? ` · ${b.client}` : ""}`}
-                              className="ln-pop absolute top-1 flex h-7 items-center overflow-hidden rounded-[8px] bg-white px-2 text-left text-[11px] shadow-[0_1px_3px_rgba(16,24,40,0.12)] transition-[transform,box-shadow] duration-150 hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(16,24,40,0.16)] focus-visible:outline-2 focus-visible:outline-[#3457d5]"
+                              className="ln-pop absolute top-1 flex h-7 items-center gap-1.5 overflow-hidden rounded-[8px] px-2 text-left text-[11px] transition-[transform,box-shadow] duration-150 hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(16,24,40,0.16)] focus-visible:outline-2 focus-visible:outline-[#3457d5]"
                               style={{
                                 animationDelay: `${Math.min(i, 8) * 40 + 120}ms`,
                                 left: `${Math.max(0, Math.min(97, left))}%`,
                                 width: `${Math.max(6, Math.min(100 - Math.max(0, left), width))}%`,
+                                background: STATUS_TINT[b.status],
                                 borderLeft: `3px solid ${STATUS_HEX[b.status]}`,
                               }}
                             >

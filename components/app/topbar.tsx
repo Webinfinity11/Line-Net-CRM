@@ -1,8 +1,8 @@
 "use client";
 
-import { LogOut, Menu, Plus, Search, UserCircle } from "lucide-react";
+import { LogOut, Menu, Search, UserCircle } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,11 +36,8 @@ export function Topbar({
   bellItems: BellItem[];
 }) {
   const router = useRouter();
-  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const staff = user.role !== "executor";
-  // pages that carry their own "ახალი შეკვეთა" button
-  const hasOwnCreate = pathname === "/" || pathname === "/orders";
 
   async function logout() {
     await signOut();
@@ -76,13 +73,6 @@ export function Topbar({
         <div className="flex-1" />
       )}
       <div className="ml-auto flex items-center gap-2">
-      {staff && !hasOwnCreate && (
-        <Button render={<Link href="/orders/new" />} size="default">
-          <Plus className="size-4" />
-          <span className="hidden sm:inline">{t.order.new}</span>
-        </Button>
-      )}
-
       <NotificationBell unread={unread} items={bellItems} />
 
       <DropdownMenu>
