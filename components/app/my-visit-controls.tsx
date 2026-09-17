@@ -2,7 +2,6 @@
 
 import { Camera, Navigation, Phone } from "lucide-react";
 import Link from "next/link";
-import type { OrderStatus } from "@/db/schema";
 import { cn } from "@/lib/utils";
 import { CompleteDialog } from "./order-detail/complete-dialog";
 
@@ -26,7 +25,7 @@ function IconAction({ href, label, icon: Icon, external }: { href: string | null
 }
 
 /** Technician actions: one primary "სამუშაო შესრულებულია", plus call / route / photo. */
-export function MyVisitControls({ orderId, requiredLeft, needsPhoto, phoneHref, mapsHref }: { orderId: number; status: OrderStatus; requiredLeft: number; needsPhoto: boolean; phoneHref: string | null; mapsHref: string | null }) {
+export function MyVisitControls({ orderId, requiredLeft, needsPhoto, phoneHref, mapsHref }: { orderId: number; requiredLeft: number; needsPhoto: boolean; phoneHref: string | null; mapsHref: string | null }) {
   return (
     <div className="mt-3 flex flex-wrap items-center gap-2">
       <CompleteDialog orderId={orderId} requiredLeft={requiredLeft} needsPhoto={needsPhoto} className="h-11 flex-1 sm:flex-none" />

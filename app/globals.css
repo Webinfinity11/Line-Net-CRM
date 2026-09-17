@@ -180,6 +180,14 @@
   --ln-alert-bg: #fff6f1;
   --ln-alert-line: #f4e2d7;
 }
+/* Signature motif: a faint signal grid, the company works with low-current systems */
+.ln-signal {
+  background-image:
+    linear-gradient(135deg, rgba(52, 87, 213, 0.055) 1px, transparent 1px),
+    linear-gradient(45deg, rgba(52, 87, 213, 0.055) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
 /* ---- motion system: one curve, one distance, staggered by zone ---- */
 @keyframes ln-rise {
   from { opacity: 0; transform: translateY(10px); }

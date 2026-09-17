@@ -1,3 +1,4 @@
+import { MobileNav } from "@/components/app/mobile-nav";
 import { Sidebar } from "@/components/app/sidebar";
 import { Topbar } from "@/components/app/topbar";
 import { getUnreadCount, listNotifications } from "@/lib/notify";
@@ -25,7 +26,8 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
           unread={unread}
           bellItems={bellItems.map((n) => ({ id: n.id, title: n.title, body: n.body, readAt: n.readAt, createdAt: n.createdAt, orderId: n.orderId }))}
         />
-        <main className="flex-1 px-4 py-4 md:px-6 md:py-6 lg:px-7">{children}</main>
+        <main className="flex-1 px-4 pb-[76px] pt-4 md:px-6 md:pb-6 md:pt-6 lg:px-7">{children}</main>
+        <MobileNav user={user} inboxCount={inboxCount} unseenCount={unseenCount} />
       </div>
     </div>
   );

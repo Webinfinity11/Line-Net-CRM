@@ -84,7 +84,6 @@ function OrderCard({ o, meId, highlight }: { o: MyOrderItem; meId: string; highl
       {active && (
         <MyVisitControls
           orderId={o.id}
-          status={o.status}
           requiredLeft={requiredLeft}
           needsPhoto={o.requiresPhoto}
           phoneHref={phone ? `tel:${phone}` : null}
