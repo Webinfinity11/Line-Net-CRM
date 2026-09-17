@@ -36,13 +36,15 @@ type ContactSource = {
  * Who the technician should call for this order. A branch with its own manager and
  * number wins over the company-wide contact, which is why sites carry both.
  */
-export function orderContact(o: ContactSource): { name: string; phone: string | null; onSite: boolean } {
+export function orderContact(o: ContactSource): { name: string; phone: string | null; onSite: boolean; namedOnSite: boolean } {
   const sitePhone = o.site?.contactPhone?.trim() || null;
   const siteName = o.site?.contactName?.trim() || null;
+  const fallbackName = o.client?.contactName ?? o.client?.name ?? "—";
   if (sitePhone || siteName) {
-    return { name: siteName ?? o.client?.contactName ?? o.client?.name ?? "—", phone: sitePhone ?? o.client?.phone ?? null, onSite: true };
+    // a branch with only a number borrows the company contact's name, but callers are told it is borrowed
+    return { name: siteName ?? fallbackName, phone: sitePhone ?? o.client?.phone ?? null, onSite: true, namedOnSite: Boolean(siteName) };
   }
-  return { name: o.client?.contactName ?? o.client?.name ?? "—", phone: o.client?.phone ?? null, onSite: false };
+  return { name: fallbackName, phone: o.client?.phone ?? null, onSite: false, namedOnSite: false };
 }
 
 /** Digits only, so `tel:` links work with numbers written with spaces. */

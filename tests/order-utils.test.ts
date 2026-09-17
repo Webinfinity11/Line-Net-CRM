@@ -12,11 +12,11 @@ describe("order utils", () => {
   });
   it("the branch contact wins over the company contact", () => {
     const client = { name: "შპს ტესტ-მარკეტი", contactName: "ნიკა", phone: "577112233" };
-    expect(orderContact({ client, site: { contactName: "გიგა", contactPhone: "577112234" } })).toEqual({ name: "გიგა", phone: "577112234", onSite: true });
-    expect(orderContact({ client, site: { contactName: null, contactPhone: null } })).toEqual({ name: "ნიკა", phone: "577112233", onSite: false });
+    expect(orderContact({ client, site: { contactName: "გიგა", contactPhone: "577112234" } })).toEqual({ name: "გიგა", phone: "577112234", onSite: true, namedOnSite: true });
+    expect(orderContact({ client, site: { contactName: null, contactPhone: null } })).toEqual({ name: "ნიკა", phone: "577112233", onSite: false, namedOnSite: false });
     // a branch that only has a number still borrows the company contact's name
-    expect(orderContact({ client, site: { contactPhone: "577112235" } })).toEqual({ name: "ნიკა", phone: "577112235", onSite: true });
-    expect(orderContact({ client: null, site: null })).toEqual({ name: "—", phone: null, onSite: false });
+    expect(orderContact({ client, site: { contactPhone: "577112235" } })).toEqual({ name: "ნიკა", phone: "577112235", onSite: true, namedOnSite: false });
+    expect(orderContact({ client: null, site: null })).toEqual({ name: "—", phone: null, onSite: false, namedOnSite: false });
   });
   it("tel links keep digits only", () => {
     expect(telHref("577 11 22 33")).toBe("tel:577112233");

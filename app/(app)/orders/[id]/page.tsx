@@ -280,7 +280,7 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
                   <div className="min-w-0">
                     <div className="font-medium">
                       {contact.name}
-                      {contact.onSite && <span className="ml-1.5 text-[11px] font-normal text-muted-foreground">ობიექტზე</span>}
+                      {contact.namedOnSite && <span className="ml-1.5 text-[11px] font-normal text-muted-foreground">ობიექტზე</span>}
                     </div>
                     {contact.phone ? (
                       <a href={telHref(contact.phone)!} className="text-xs text-blue-700 hover:underline">

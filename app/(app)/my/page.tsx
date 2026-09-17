@@ -53,7 +53,7 @@ function OrderCard({ o, meId, highlight }: { o: MyOrderItem; meId: string; highl
           )}
         </div>
       )}
-      {contact.onSite && contact.name !== "—" && (
+      {contact.namedOnSite && (
         <div className="mt-1 flex items-center gap-1.5 text-[13px] text-muted-foreground">
           <User className="size-4 shrink-0" />
           <span className="truncate">{contact.name}</span>
