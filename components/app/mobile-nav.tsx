@@ -13,7 +13,8 @@ import { navFor } from "./nav";
  */
 export function MobileNav({ user, inboxCount, unseenCount }: { user: SessionUser; inboxCount: number; unseenCount: number }) {
   const pathname = usePathname();
-  const items = navFor(user.role, { inbox: inboxCount, unseen: unseenCount }).slice(0, 4);
+  const all = navFor(user.role, { inbox: inboxCount, unseen: unseenCount });
+  const items = all.filter((i) => i.phone).slice(0, 4);
   if (items.length < 2) return null;
   return (
     <nav
