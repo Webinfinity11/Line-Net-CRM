@@ -6,6 +6,7 @@ import { useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 import type { ActionResult } from "@/actions/orders";
 import { Button } from "@/components/ui/button";
+import { formFields } from "@/components/app/section-card";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +14,7 @@ import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { Textarea } from "@/components/ui/textarea";
 import type { Order, SystemType } from "@/db/schema";
 import { PRIORITY_LABELS, ROLE_LABELS, SYSTEM_LABELS, SYSTEM_ORDER, TYPE_LABELS, t } from "@/lib/i18n";
+import { toMtavruli } from "@/lib/mtavruli";
 import { toLocalInput } from "@/lib/order-utils";
 import { cn } from "@/lib/utils";
 import { UserAvatar } from "./user-avatar";
@@ -86,173 +88,132 @@ export function OrderForm({
   const toggle = (id: string) => setAssignees((a) => (a.includes(id) ? a.filter((x) => x !== id) : [...a, id]));
 
   return (
-    <form onSubmit={onSubmit} className="grid gap-4 pb-2 lg:grid-cols-3">
-      <Card className="lg:col-span-2">
-        <CardContent className="grid gap-4 pt-6 sm:grid-cols-2">
-          <div className="space-y-1.5 sm:col-span-2">
-            <Label htmlFor="title">{t.order.title} *</Label>
-            <Input id="title" name="title" required minLength={2} defaultValue={initial?.title ?? ""} placeholder="მაგ. CCTV კამერის შეკეთება, მე-3 სართული" />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="systemType">{t.order.system}</Label>
-            <NativeSelect id="systemType" name="systemType" value={system} onChange={(e) => setSystem(e.target.value)}>
-              <NativeSelectOption value="">— აირჩიეთ —</NativeSelectOption>
-              {SYSTEM_ORDER.map((k: SystemType) => (
-                <NativeSelectOption key={k} value={k}>
-                  {SYSTEM_LABELS[k]}
-                </NativeSelectOption>
-              ))}
-            </NativeSelect>
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="type">{t.order.type}</Label>
-            <NativeSelect id="type" name="type" defaultValue={initial?.type ?? "service"}>
-              {Object.entries(TYPE_LABELS).map(([k, v]) => (
-                <NativeSelectOption key={k} value={k}>
-                  {v}
-                </NativeSelectOption>
-              ))}
-            </NativeSelect>
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="clientId">{t.order.client}</Label>
-            <NativeSelect
-              id="clientId"
-              name="clientId"
-              value={clientId}
-              onChange={(e) => {
-                setClientId(e.target.value);
-                setSiteId("");
-              }}
-            >
-              <NativeSelectOption value="">— აირჩიეთ —</NativeSelectOption>
-              {clients.map((c) => (
-                <NativeSelectOption key={c.id} value={String(c.id)}>
-                  {c.name}
-                </NativeSelectOption>
-              ))}
-            </NativeSelect>
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="siteId">{t.order.site}</Label>
-            <NativeSelect
-              id="siteId"
-              name="siteId"
-              value={siteId}
-              disabled={!clientId}
-              onChange={(e) => {
-                setSiteId(e.target.value);
-                const s = sites.find((x) => String(x.id) === e.target.value);
-                if (s?.address) setAddress(s.address);
-              }}
-            >
-              <NativeSelectOption value="">— აირჩიეთ —</NativeSelectOption>
-              {sites.map((s) => (
-                <NativeSelectOption key={s.id} value={String(s.id)}>
-                  {s.name}
-                </NativeSelectOption>
-              ))}
-            </NativeSelect>
-          </div>
-          <div className="space-y-1.5 sm:col-span-2">
-            <Label htmlFor="address">{t.order.address}</Label>
-            <Input id="address" name="address" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="ქუჩა, ნომერი, სართული" />
-          </div>
-          <div className="space-y-1.5 sm:col-span-2">
-            <Label htmlFor="description">{t.order.description}</Label>
-            <Textarea id="description" name="description" rows={5} defaultValue={initial?.description ?? ""} placeholder="რა უნდა გაკეთდეს, დეტალები, კონტაქტი ობიექტზე..." />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="priority">{t.order.priority}</Label>
-            <NativeSelect id="priority" name="priority" defaultValue={initial?.priority ?? "normal"}>
-              {Object.entries(PRIORITY_LABELS).map(([k, v]) => (
-                <NativeSelectOption key={k} value={k}>
-                  {v}
-                </NativeSelectOption>
-              ))}
-            </NativeSelect>
-          </div>
-          {compact ? (
-            <details className="group/adv sm:col-span-2">
-              <summary className="cursor-pointer list-none rounded-[12px] bg-[#f8faff] px-3 py-2.5 text-[12.5px] font-medium text-[#3457d5]">
-                დამატებითი პარამეტრები (დრო, ხანგრძლივობა, თანხა, გარანტია)
-              </summary>
-              <div className="mt-3 grid gap-4 sm:grid-cols-2">
-          <div className="space-y-1.5">
-            <Label htmlFor="scheduledAt">{t.order.scheduledAt}</Label>
-            <Input id="scheduledAt" name="scheduledAt" type="datetime-local" defaultValue={toLocalInput(initial?.scheduledAt)} />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="plannedMinutes">დაგეგმილი ხანგრძლივობა (წუთი)</Label>
-            <NativeSelect id="plannedMinutes" name="plannedMinutes" defaultValue={initial?.plannedMinutes ? String(initial.plannedMinutes) : ""}>
-              <NativeSelectOption value="">— (ნაგულისხმევი 2 სთ)</NativeSelectOption>
-              {[30, 60, 90, 120, 180, 240, 300, 360, 480].map((m) => (
-                <NativeSelectOption key={m} value={String(m)}>
-                  {m < 60 ? `${m} წთ` : `${m / 60} სთ`}
-                </NativeSelectOption>
-              ))}
-            </NativeSelect>
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="dueDate">{t.order.dueDate}</Label>
-            <Input id="dueDate" name="dueDate" type="date" defaultValue={initial?.dueDate ?? ""} />
-            <p className="text-[11px] text-muted-foreground">ცარიელი დატოვებისას დაგეგმილი დღე გამოიყენება</p>
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="amount">{t.order.amount} (₾)</Label>
-            <Input id="amount" name="amount" type="number" step="0.01" min="0" defaultValue={initial?.amount ?? ""} placeholder="0.00" />
-            <p className="text-[11px] text-muted-foreground">გადახდები შეკვეთის ბარათზე იწერება; სტატუსი ავტომატურად ითვლება</p>
-          </div>
-          <div className="flex items-center gap-2 self-end pb-2">
-            <input id="requiresPhoto" name="requiresPhoto" type="checkbox" defaultChecked={Boolean(initial?.requiresPhoto)} className="size-4 accent-blue-600" />
-            <Label htmlFor="requiresPhoto">ჩაბარებისას ფოტო სავალდებულოა</Label>
-          </div>
-              </div>
-            </details>
-          ) : (
-            <>
-          <div className="space-y-1.5">
-            <Label htmlFor="scheduledAt">{t.order.scheduledAt}</Label>
-            <Input id="scheduledAt" name="scheduledAt" type="datetime-local" defaultValue={toLocalInput(initial?.scheduledAt)} />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="plannedMinutes">დაგეგმილი ხანგრძლივობა (წუთი)</Label>
-            <NativeSelect id="plannedMinutes" name="plannedMinutes" defaultValue={initial?.plannedMinutes ? String(initial.plannedMinutes) : ""}>
-              <NativeSelectOption value="">— (ნაგულისხმევი 2 სთ)</NativeSelectOption>
-              {[30, 60, 90, 120, 180, 240, 300, 360, 480].map((m) => (
-                <NativeSelectOption key={m} value={String(m)}>
-                  {m < 60 ? `${m} წთ` : `${m / 60} სთ`}
-                </NativeSelectOption>
-              ))}
-            </NativeSelect>
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="dueDate">{t.order.dueDate}</Label>
-            <Input id="dueDate" name="dueDate" type="date" defaultValue={initial?.dueDate ?? ""} />
-            <p className="text-[11px] text-muted-foreground">ცარიელი დატოვებისას დაგეგმილი დღე გამოიყენება</p>
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="amount">{t.order.amount} (₾)</Label>
-            <Input id="amount" name="amount" type="number" step="0.01" min="0" defaultValue={initial?.amount ?? ""} placeholder="0.00" />
-            <p className="text-[11px] text-muted-foreground">გადახდები შეკვეთის ბარათზე იწერება; სტატუსი ავტომატურად ითვლება</p>
-          </div>
-          <div className="flex items-center gap-2 self-end pb-2">
-            <input id="requiresPhoto" name="requiresPhoto" type="checkbox" defaultChecked={Boolean(initial?.requiresPhoto)} className="size-4 accent-blue-600" />
-            <Label htmlFor="requiresPhoto">ჩაბარებისას ფოტო სავალდებულოა</Label>
-          </div>
-            </>
-          )}
+    <form onSubmit={onSubmit} className="grid items-start gap-4 pb-2 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
+      <Card className="min-w-0">
+        <CardContent className={`space-y-6 pt-6 ${formFields}`}>
+          <Section title="სამუშაო">
+            <Field className="sm:col-span-2" label={`${t.order.title} *`} htmlFor="title">
+              <Input id="title" name="title" required minLength={2} defaultValue={initial?.title ?? ""} placeholder="მაგ. CCTV კამერის შეკეთება, მე-3 სართული" />
+            </Field>
+            <Field label={t.order.system} htmlFor="systemType">
+              <NativeSelect id="systemType" name="systemType" value={system} onChange={(e) => setSystem(e.target.value)}>
+                <NativeSelectOption value="">— აირჩიეთ —</NativeSelectOption>
+                {SYSTEM_ORDER.map((k: SystemType) => (
+                  <NativeSelectOption key={k} value={k}>
+                    {SYSTEM_LABELS[k]}
+                  </NativeSelectOption>
+                ))}
+              </NativeSelect>
+            </Field>
+            <Field label={t.order.type} htmlFor="type">
+              <NativeSelect id="type" name="type" defaultValue={initial?.type ?? "service"}>
+                {Object.entries(TYPE_LABELS).map(([k, v]) => (
+                  <NativeSelectOption key={k} value={k}>
+                    {v}
+                  </NativeSelectOption>
+                ))}
+              </NativeSelect>
+            </Field>
+            <Field className="sm:col-span-2" label={t.order.description} htmlFor="description">
+              <Textarea id="description" name="description" rows={4} defaultValue={initial?.description ?? ""} placeholder="რა უნდა გაკეთდეს, დეტალები, კონტაქტი ობიექტზე..." />
+            </Field>
+          </Section>
+
+          <Section title="ობიექტი">
+            <Field label={t.order.client} htmlFor="clientId">
+              <NativeSelect
+                id="clientId"
+                name="clientId"
+                value={clientId}
+                onChange={(e) => {
+                  setClientId(e.target.value);
+                  setSiteId("");
+                }}
+              >
+                <NativeSelectOption value="">— აირჩიეთ —</NativeSelectOption>
+                {clients.map((c) => (
+                  <NativeSelectOption key={c.id} value={String(c.id)}>
+                    {c.name}
+                  </NativeSelectOption>
+                ))}
+              </NativeSelect>
+            </Field>
+            <Field label={t.order.site} htmlFor="siteId" hint={clientId ? undefined : "ჯერ აირჩიეთ კლიენტი"}>
+              <NativeSelect
+                id="siteId"
+                name="siteId"
+                value={siteId}
+                disabled={!clientId}
+                onChange={(e) => {
+                  setSiteId(e.target.value);
+                  const site = sites.find((x) => String(x.id) === e.target.value);
+                  if (site?.address) setAddress(site.address);
+                }}
+              >
+                <NativeSelectOption value="">— აირჩიეთ —</NativeSelectOption>
+                {sites.map((site) => (
+                  <NativeSelectOption key={site.id} value={String(site.id)}>
+                    {site.name}
+                  </NativeSelectOption>
+                ))}
+              </NativeSelect>
+            </Field>
+            <Field className="sm:col-span-2" label={t.order.address} htmlFor="address">
+              <Input id="address" name="address" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="ქუჩა, ნომერი, სართული" />
+            </Field>
+          </Section>
+
+          <Section title="დრო და პრიორიტეტი" collapsible={compact} summary="დრო, ხანგრძლივობა, ვადა, პრიორიტეტი">
+            <Field label={t.order.priority} htmlFor="priority">
+              <NativeSelect id="priority" name="priority" defaultValue={initial?.priority ?? "normal"}>
+                {Object.entries(PRIORITY_LABELS).map(([k, v]) => (
+                  <NativeSelectOption key={k} value={k}>
+                    {v}
+                  </NativeSelectOption>
+                ))}
+              </NativeSelect>
+            </Field>
+            <Field label={t.order.scheduledAt} htmlFor="scheduledAt">
+              <Input id="scheduledAt" name="scheduledAt" type="datetime-local" defaultValue={toLocalInput(initial?.scheduledAt)} />
+            </Field>
+            <Field label="ხანგრძლივობა" htmlFor="plannedMinutes">
+              <NativeSelect id="plannedMinutes" name="plannedMinutes" defaultValue={initial?.plannedMinutes ? String(initial.plannedMinutes) : ""}>
+                <NativeSelectOption value="">— ნაგულისხმევი 2 სთ</NativeSelectOption>
+                {[30, 60, 90, 120, 180, 240, 300, 360, 480].map((m) => (
+                  <NativeSelectOption key={m} value={String(m)}>
+                    {m < 60 ? `${m} წთ` : `${m / 60} სთ`}
+                  </NativeSelectOption>
+                ))}
+              </NativeSelect>
+            </Field>
+            <Field label={t.order.dueDate} htmlFor="dueDate" hint="ცარიელი დატოვებისას დაგეგმილი დღე გამოიყენება">
+              <Input id="dueDate" name="dueDate" type="date" defaultValue={initial?.dueDate ?? ""} />
+            </Field>
+          </Section>
+
+          <Section title="ფინანსები და ჩაბარება" collapsible={compact} summary="თანხა, გარანტია, ფოტოს მოთხოვნა">
+            <Field label={`${t.order.amount} (₾)`} htmlFor="amount" hint="სერვისების დამატებისას ჯამი თავისით ითვლება">
+              <Input id="amount" name="amount" type="number" step="0.01" min="0" defaultValue={initial?.amount ?? ""} placeholder="0.00" />
+            </Field>
+            <Field label="გარანტია (თვე)" htmlFor="warrantyMonths">
+              <Input id="warrantyMonths" name="warrantyMonths" type="number" min="0" max="240" defaultValue={initial?.warrantyMonths ?? ""} placeholder="0" />
+            </Field>
+            <label className="flex items-center gap-2.5 rounded-[12px] bg-[#f8faff] px-3 py-2.5 text-[13px] sm:col-span-2">
+              <input id="requiresPhoto" name="requiresPhoto" type="checkbox" defaultChecked={Boolean(initial?.requiresPhoto)} className="size-4 accent-[#3457d5]" />
+              ჩაბარებისას ფოტო სავალდებულოა
+            </label>
+          </Section>
         </CardContent>
       </Card>
 
-      <div className="space-y-4">
+      <div className="min-w-0 space-y-4 lg:sticky lg:top-[84px]">
         <Card>
           <CardContent className="pt-6">
-            <Label className="mb-2 block">{t.order.assignees}</Label>
-            <p className="mb-3 text-xs text-muted-foreground">
-              აირჩიეთ ერთი ან რამდენიმე. {system ? "შესაბამისი სპეციალიზაციის ხალხი ზემოთაა." : "სისტემის არჩევისას შესაბამისი ხალხი ზემოთ დადგება."}
+            <h3 className="font-heading text-[14px] font-semibold">{toMtavruli(t.order.assignees)}</h3>
+            <p className="mb-3 mt-1 text-[11.5px] text-muted-foreground">
+              {system ? "შესაბამისი სპეციალიზაციის ხალხი ზემოთაა." : "სისტემის არჩევისას შესაბამისი ხალხი ზემოთ დადგება."}
             </p>
-            <div className="max-h-80 space-y-1 overflow-y-auto">
+            <div className="max-h-[320px] space-y-1 overflow-y-auto">
               {sortedUsers.map((u) => {
                 const on = assignees.includes(u.id);
                 const fit = matches(u);
@@ -261,12 +222,13 @@ export function OrderForm({
                     type="button"
                     key={u.id}
                     onClick={() => toggle(u.id)}
+                    aria-pressed={on}
                     className={cn(
-                      "flex w-full items-center gap-2.5 rounded-lg border px-2.5 py-2 text-left text-sm transition-colors",
-                      on ? "border-blue-500 bg-blue-50 dark:bg-blue-950/30" : "hover:bg-neutral-50 dark:hover:bg-neutral-800",
+                      "flex w-full items-center gap-2.5 rounded-[12px] border px-2.5 py-2 text-left text-[13px] transition-colors",
+                      on ? "border-[#a5b5ed] bg-[#eef2ff]" : "border-transparent hover:bg-[#f8faff]",
                     )}
                   >
-                    <input type="checkbox" readOnly checked={on} className="accent-blue-600" />
+                    <input type="checkbox" readOnly checked={on} className="size-4 accent-[#3457d5]" />
                     <UserAvatar name={u.name} image={u.image} />
                     <span className="min-w-0 flex-1 truncate">{u.name}</span>
                     {fit && (
@@ -274,22 +236,56 @@ export function OrderForm({
                         <BadgeCheck className="size-4" />
                       </span>
                     )}
-                    <span className="hidden shrink-0 text-[11px] text-muted-foreground sm:inline">{ROLE_LABELS[u.role as keyof typeof ROLE_LABELS] ?? u.role}</span>
                   </button>
                 );
               })}
             </div>
+            {assignees.length > 0 && <p className="mt-3 border-t border-[#eef1f6] pt-3 text-[11.5px] text-muted-foreground">არჩეულია {assignees.length}</p>}
           </CardContent>
         </Card>
+
         <div className="ln-card sticky bottom-[76px] z-20 flex gap-2 p-3 shadow-[0_-8px_28px_rgba(16,24,40,0.12)] lg:static lg:bg-transparent lg:p-0 lg:shadow-none">
-          <Button type="submit" className="h-12 flex-1 lg:h-9" disabled={pending}>
+          <Button type="submit" className="h-12 flex-1 lg:h-10" disabled={pending}>
             {pending ? "ინახება..." : submitLabel}
           </Button>
-          <Button type="button" variant="outline" className="h-12 lg:h-9" onClick={() => router.push(cancelHref)}>
+          <Button type="button" variant="outline" className="h-12 lg:h-10" onClick={() => router.push(cancelHref)}>
             {t.common.cancel}
           </Button>
         </div>
       </div>
     </form>
+  );
+}
+
+/** A labelled group of fields. In triage mode the rare groups start folded. */
+function Section({ title, summary, collapsible, children }: { title: string; summary?: string; collapsible?: boolean; children: React.ReactNode }) {
+  const grid = <div className="grid gap-4 sm:grid-cols-2">{children}</div>;
+  if (collapsible) {
+    return (
+      <details className="rounded-[14px] border border-[#eef1f6]">
+        <summary className="cursor-pointer list-none px-3 py-2.5 text-[12.5px] font-medium text-[#3457d5]">
+          {title}
+          {summary ? <span className="ml-1 font-normal text-muted-foreground">· {summary}</span> : null}
+        </summary>
+        <div className="px-3 pb-3">{grid}</div>
+      </details>
+    );
+  }
+  return (
+    <fieldset className="min-w-0">
+      <legend className="mb-3 font-heading text-[13px] font-semibold text-[#4a5e73]">{toMtavruli(title)}</legend>
+      {grid}
+    </fieldset>
+  );
+}
+
+/** One field: label, control, optional hint. Controls always fill their cell so columns line up. */
+function Field({ label, htmlFor, hint, className, children }: { label: string; htmlFor: string; hint?: string; className?: string; children: React.ReactNode }) {
+  return (
+    <div className={cn("min-w-0 space-y-1.5", className)}>
+      <Label htmlFor={htmlFor}>{label}</Label>
+      {children}
+      {hint ? <p className="text-[11px] text-muted-foreground">{hint}</p> : null}
+    </div>
   );
 }
