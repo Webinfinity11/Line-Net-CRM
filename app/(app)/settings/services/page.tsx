@@ -1,4 +1,4 @@
-import { ReceiptText, Search } from "lucide-react";
+import { ReceiptText, Search, Trash2 } from "lucide-react";
 import { deleteService } from "@/actions/services";
 import { ConfirmButton } from "@/components/app/confirm-button";
 import { PageHeader } from "@/components/app/page-header";
@@ -67,19 +67,22 @@ export default async function ServicesPage({ searchParams }: PageProps<"/setting
                 }
                 right={<span className="tabular font-heading text-[15px] font-semibold">{formatMoney(s.price)}</span>}
                 actions={
+                  // icons only: 27 rows of three labelled buttons turn the phone list into a wall
                   <>
-                    <EditServiceDialog service={s} />
-                    <ToggleActive id={s.id} active={s.active} />
+                    <EditServiceDialog service={s} compact />
+                    <ToggleActive id={s.id} active={s.active} compact />
                     {me.role === "admin" && (
                       <ConfirmButton
                         title="სერვისის წაშლა"
                         description="უკვე გაცემულ შეკვეთებში ჩაწერილი პოზიციები დარჩება: მათ საკუთარი ფასი აქვთ."
                         confirmLabel="წაშლა"
-                        variant="destructive"
+                        variant="ghost"
                         size="sm"
+                        ariaLabel={`${s.name} წაშლა`}
+                        className="size-10 p-0"
                         action={deleteService.bind(null, s.id)}
                       >
-                        წაშლა
+                        <Trash2 className="size-4 text-[#b13f32]" />
                       </ConfirmButton>
                     )}
                   </>

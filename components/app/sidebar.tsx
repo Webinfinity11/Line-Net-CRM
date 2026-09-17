@@ -172,21 +172,8 @@ export function Sidebar(props: { user: SessionUser; inboxCount: number; unseenCo
         )}
       </div>
 
-      <div className={cn("flex pb-2", open ? "justify-end px-4" : "justify-center")}>
-        <button
-          type="button"
-          onClick={toggle}
-          aria-expanded={open}
-          title={open ? "მენიუს ჩაკეცვა" : "მენიუს გაშლა"}
-          className="grid size-8 place-items-center rounded-full text-[#7d90a3] transition-colors hover:bg-white/[0.07] hover:text-white focus-visible:outline-2 focus-visible:outline-white/40"
-        >
-          {open ? <ChevronsLeft className="size-4" /> : <ChevronsRight className="size-4" />}
-          <span className="sr-only">{open ? "მენიუს ჩაკეცვა" : "მენიუს გაშლა"}</span>
-        </button>
-      </div>
-
       {props.user.role !== "executor" && (
-        <div className={cn("pb-1", open ? "px-3" : "px-2")}>
+        <div className={cn("pb-1 pt-1", open ? "px-3" : "px-2")}>
           <Link
             href="/orders/new"
             title={open ? undefined : t.order.new}
@@ -206,6 +193,23 @@ export function Sidebar(props: { user: SessionUser; inboxCount: number; unseenCo
       </div>
 
       <SidebarFooter user={props.user} collapsed={!open} />
+
+      {/* window chrome, not navigation: it belongs at the foot of the rail, not between the logo and the primary action */}
+      <div className={cn("border-t border-white/[0.06] p-3", open ? "" : "flex justify-center")}>
+        <button
+          type="button"
+          onClick={toggle}
+          aria-expanded={open}
+          title={open ? "მენიუს ჩაკეცვა" : "მენიუს გაშლა"}
+          className={cn(
+            "flex items-center text-[#7d90a3] transition-colors hover:bg-white/[0.07] hover:text-white focus-visible:outline-2 focus-visible:outline-white/40",
+            open ? "w-full gap-2.5 rounded-full px-3 py-2 text-[13px]" : "size-11 justify-center rounded-[14px]",
+          )}
+        >
+          {open ? <ChevronsLeft className="size-4 shrink-0" /> : <ChevronsRight className="size-4 shrink-0" />}
+          {open ? <span className="truncate">მენიუს ჩაკეცვა</span> : <span className="sr-only">მენიუს გაშლა</span>}
+        </button>
+      </div>
     </aside>
   );
 }

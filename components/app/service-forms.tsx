@@ -82,14 +82,18 @@ export function NewServiceDialog() {
   );
 }
 
-export function EditServiceDialog({ service }: { service: Service }) {
+export function EditServiceDialog({ service, compact }: { service: Service; compact?: boolean }) {
   return (
     <FormDialog
-      trigger={<Button variant="outline" size="sm" />}
+      trigger={<Button variant="outline" size="sm" className={compact ? "size-10 p-0" : undefined} aria-label="რედაქტირება" />}
       triggerLabel={
-        <>
-          <Pencil className="size-3.5" /> რედაქტირება
-        </>
+        compact ? (
+          <Pencil className="size-4" />
+        ) : (
+          <>
+            <Pencil className="size-3.5" /> რედაქტირება
+          </>
+        )
       }
       title="სერვისის რედაქტირება"
       action={updateService.bind(null, service.id)}

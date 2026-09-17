@@ -59,7 +59,8 @@ export default async function UsersPage() {
           confirmLabel={u.banned ? "აქტივაცია" : "დეაქტივაცია"}
           variant="ghost"
           size={labelled ? "sm" : "xs"}
-          className={cn(labelled && "h-10", u.banned ? "text-[#25815a]" : "text-[#b13f32]")}
+          // deactivating is reversible, so it stays neutral; red is reserved for problems
+          className={cn(labelled && "h-10", u.banned ? "text-[#25815a]" : "text-muted-foreground hover:text-[#b13f32]")}
           action={setUserBanned.bind(null, u.id, !u.banned)}
         >
           {u.banned ? <UserCheck className="size-3.5" /> : <UserX className="size-3.5" />}

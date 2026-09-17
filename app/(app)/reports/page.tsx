@@ -237,9 +237,16 @@ export default async function ReportsPage({ searchParams }: PageProps<"/reports"
                   title={`${MONTHS[Number(mo) - 1]} ${y}`}
                   meta={`${m.created} შეკვეთა · ${m.completed} შესრულებული`}
                   right={
+                    // the phone loses the column headers, so each number says what it is
                     <>
-                      <div className="tabular text-[#25815a]">{formatMoney(m.revenue)}</div>
-                      <div className={cn("tabular text-[11.5px]", m.profit < 0 ? "text-[#b13f32]" : "text-muted-foreground")}>{formatMoney(m.profit)}</div>
+                      <div className="tabular text-[#25815a]">
+                        <span className="mr-1 text-[10.5px] font-normal text-muted-foreground">შემოსული</span>
+                        {formatMoney(m.revenue)}
+                      </div>
+                      <div className={cn("tabular text-[11.5px]", m.profit < 0 ? "text-[#b13f32]" : "text-muted-foreground")}>
+                        <span className="mr-1 text-[10.5px] text-muted-foreground">სხვაობა</span>
+                        {formatMoney(m.profit)}
+                      </div>
                     </>
                   }
                 />

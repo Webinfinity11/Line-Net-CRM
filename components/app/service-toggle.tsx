@@ -7,13 +7,16 @@ import { toast } from "sonner";
 import { setServiceActive } from "@/actions/services";
 import { Button } from "@/components/ui/button";
 
-export function ToggleActive({ id, active }: { id: number; active: boolean }) {
+/** `compact` is for the phone list, where a row has no space for three labelled buttons. */
+export function ToggleActive({ id, active, compact }: { id: number; active: boolean; compact?: boolean }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   return (
     <Button
       variant="outline"
       size="sm"
+      aria-label={active ? "გამორთვა" : "ჩართვა"}
+      className={compact ? "size-10 p-0" : undefined}
       disabled={pending}
       onClick={() =>
         start(async () => {
@@ -24,7 +27,8 @@ export function ToggleActive({ id, active }: { id: number; active: boolean }) {
         })
       }
     >
-      <Power className="size-3.5" /> {active ? "გამორთვა" : "ჩართვა"}
+      <Power className={compact ? "size-4" : "size-3.5"} />
+      {!compact && (active ? "გამორთვა" : "ჩართვა")}
     </Button>
   );
 }
