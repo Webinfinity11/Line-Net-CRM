@@ -1,6 +1,6 @@
 "use server";
 
-import { and, eq, gte, isNotNull, lt, ne } from "drizzle-orm";
+import { and, eq, gte, inArray, isNotNull, lt, ne } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/db";
@@ -74,4 +74,66 @@ export async function assignOrder(orderId: number, fd: FormData): Promise<Action
   }
   for (const p of ["/", "/schedule", "/orders", `/orders/${orderId}`, "/my"]) revalidatePath(p);
   return { ok: true, data: { warning } };
+}
+
+/**
+ * Bulk "ჯგუფური დანიშვნა": the same rules as assignOrder applied to several orders
+ * in one transaction. Closed, cancelled and missing orders are skipped, and the
+ * executor gets a single notification for the whole batch.
+ */
+export async function assignMany(orderIds: number[], fd: FormData): Promise<ActionResult<{ assigned: number; skipped: number }>> {
+  const s = await getSession();
+  if (!s || !isStaff(s.user.role)) return { ok: false, error: "არ გაქვთ უფლება" };
+  const ids = [...new Set(orderIds)].filter((id) => Number.isInteger(id) && id > 0).slice(0, 200);
+  if (ids.length === 0) return { ok: false, error: "შეკვეთები არ არის არჩეული" };
+  const parsed = input.safeParse(Object.fromEntries([...fd.entries()].filter(([, v]) => typeof v === "string")));
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "არასწორი მონაცემები" };
+  const v = parsed.data;
+
+  const existing = await db.query.orders.findMany({ where: inArray(orders.id, ids), with: { assignees: true } });
+  const eligible = existing.filter((o) => o.status !== "closed" && o.status !== "cancelled");
+  if (eligible.length === 0) return { ok: false, error: "არჩეული შეკვეთები დახურული ან გაუქმებულია" };
+
+  const now = new Date();
+  const notify: { id: number; number: string }[] = [];
+  await db.transaction(async (tx) => {
+    for (const o of eligible) {
+      const alreadyAssigned = o.assignees.some((a) => a.userId === v.assigneeId);
+      const removed = o.assignees.filter((a) => a.userId !== v.assigneeId).map((a) => a.userId);
+      for (const userId of removed) await tx.delete(orderAssignees).where(and(eq(orderAssignees.orderId, o.id), eq(orderAssignees.userId, userId)));
+      if (!alreadyAssigned) await tx.insert(orderAssignees).values({ orderId: o.id, userId: v.assigneeId, assignedBy: s.user.id });
+      await tx
+        .update(orders)
+        .set({
+          status: o.status === "new" ? "assigned" : o.status,
+          scheduledAt: v.scheduledAt ?? o.scheduledAt,
+          plannedMinutes: v.scheduledAt ? v.plannedMinutes : o.plannedMinutes,
+          dueDate: o.dueDate ?? (v.scheduledAt ? dayIso(v.scheduledAt) : null),
+          updatedAt: now,
+        })
+        .where(eq(orders.id, o.id));
+      if (!alreadyAssigned || removed.length) await tx.insert(orderEvents).values({ orderId: o.id, userId: s.user.id, type: "assigned", data: { users: [v.assigneeId], removed } });
+      if (v.scheduledAt) await tx.insert(orderEvents).values({ orderId: o.id, userId: s.user.id, type: "scheduled", data: { scheduledAt: v.scheduledAt.toISOString(), plannedMinutes: v.plannedMinutes } });
+      if (!alreadyAssigned) notify.push({ id: o.id, number: o.number });
+    }
+  });
+
+  if (notify.length > 0) {
+    await notifyUsers(
+      [v.assigneeId],
+      {
+        type: "assigned",
+        title: `დაგენიშნათ ${notify.length} შეკვეთა`,
+        body: notify
+          .slice(0, 8)
+          .map((o) => o.number)
+          .join(", ") + (notify.length > 8 ? " ..." : ""),
+        orderId: notify[0].id,
+      },
+      { excludeUserId: s.user.id },
+    );
+  }
+  for (const p of ["/", "/schedule", "/orders", "/my"]) revalidatePath(p);
+  for (const o of eligible) revalidatePath(`/orders/${o.id}`);
+  return { ok: true, data: { assigned: eligible.length, skipped: ids.length - eligible.length } };
 }
