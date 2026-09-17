@@ -1,7 +1,8 @@
-import { CircleCheck, MapPinned, UserPlus } from "lucide-react";
+import { CalendarDays, CircleCheck, ClipboardList, Layers, MapPinned, TrendingUp, TriangleAlert, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { StatusDonut, WeeklyBars } from "@/components/app/dashboard-charts";
+import { ExecutorBars, SystemBars } from "@/components/app/dashboard/mini-charts";
 import { DashboardBoard } from "@/components/app/dashboard/board";
 import { QuickCreate } from "@/components/app/dashboard/quick-create";
 import { AwaitingCard, StatCard, type Trend } from "@/components/app/dashboard/stat-card";
@@ -125,15 +126,18 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
 
       <div className="ln-stagger grid gap-4 xl:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <StatCard label="აქტიური შეკვეთები" value={s.activeTotal} caption="მიმდინარე ჯამი" href="/orders?status=active" filled />
-          <StatCard label="დღევანდელი ვიზიტები" value={s.todayTotal} caption="დაგეგმილია დღეს" href="/schedule" />
-          <StatCard label="ვადაგადაცილებული" value={s.overdueCount} caption="მიმდინარე ჯამი" href="/orders?overdue=1" />
+          <StatCard label="აქტიური შეკვეთები" value={s.activeTotal} caption="მიმდინარე ჯამი" href="/orders?status=active" icon={ClipboardList} tone={{ bg: "#edf2ff", fg: "#3457d5" }} filled />
+          <StatCard label="დღევანდელი ვიზიტები" value={s.todayTotal} caption="დაგეგმილია დღეს" href="/schedule" icon={CalendarDays} tone={{ bg: "#fff3df", fg: "#a96308" }} />
+          <StatCard label="ვადაგადაცილებული" value={s.overdueCount} caption="მიმდინარე ჯამი" href="/orders?overdue=1" icon={TriangleAlert} tone={{ bg: "#fff0ed", fg: "#b13f32" }} />
           <StatCard
             label="შესრულებული"
             value={s.completed}
-            caption={`${rangeDef.period} · ${rangeDef.prev}`}
+            caption={rangeDef.period}
             href="/orders?status=done"
+            icon={CircleCheck}
+            tone={{ bg: "#eaf6ef", fg: "#25815a" }}
             trend={trendOf(s.completed, s.previous.completed, rangeDef.prev)}
+            spark={s.weekly.map((d) => d.completed)}
           />
         </div>
 
@@ -185,6 +189,28 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
         mail={{ configured: mail.configured, count: s.inbox.length, connectHref: "/inbox" }}
         money={{ paid: s.money.paid, unpaid: s.money.unpaid, periodLabel: rangeDef.period }}
       />
+
+      <div className="ln-stagger grid gap-4 lg:grid-cols-2">
+        <section className="ln-card p-[22px]" aria-label="შეკვეთები სისტემების მიხედვით">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+            <h3 className="flex items-center gap-2 font-heading text-[16px] font-semibold">
+              <Layers className="size-4 text-muted-foreground [stroke-width:1.7]" /> {toMtavruli("სისტემების მიხედვით")}
+            </h3>
+            <span className="text-[11.5px] text-muted-foreground">{rangeDef.period}</span>
+          </div>
+          <SystemBars rows={s.bySystem} />
+        </section>
+
+        <section className="ln-card p-[22px]" aria-label="შემსრულებლების შედეგი">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+            <h3 className="flex items-center gap-2 font-heading text-[16px] font-semibold">
+              <TrendingUp className="size-4 text-muted-foreground [stroke-width:1.7]" /> {toMtavruli("ჩაბარებული სამუშაო")}
+            </h3>
+            <span className="text-[11.5px] text-muted-foreground">{rangeDef.period} · შემსრულებლის მიხედვით</span>
+          </div>
+          <ExecutorBars rows={executors.map((u) => ({ id: u.id, name: u.name, image: u.image, done: s.byExecutor[u.id] ?? 0 }))} />
+        </section>
+      </div>
 
       <section className="ln-card p-[22px]" aria-label="აქტიური ობიექტები რუკაზე">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-2">

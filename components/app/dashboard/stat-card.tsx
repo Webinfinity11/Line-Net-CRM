@@ -1,6 +1,7 @@
-import { ArrowUpRight, ArrowDownRight, TrendingDown, TrendingUp } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, TrendingDown, TrendingUp, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { Sparkline } from "./mini-charts";
 
 export type Trend = { pct: number; label: string } | null;
 
@@ -30,6 +31,9 @@ export function StatCard({
   href,
   trend = null,
   filled = false,
+  icon: Icon,
+  tone,
+  spark,
 }: {
   label: string;
   value: number | string;
@@ -37,6 +41,10 @@ export function StatCard({
   href: string;
   trend?: Trend;
   filled?: boolean;
+  icon: LucideIcon;
+  tone: { bg: string; fg: string };
+  /** real daily series; omitted when no honest history exists */
+  spark?: number[];
 }) {
   return (
     <Link
@@ -47,7 +55,12 @@ export function StatCard({
       )}
     >
       <div className="flex items-start justify-between gap-3">
-        <span className={cn("text-[12.5px] leading-snug", filled ? "text-white/85" : "text-muted-foreground")}>{label}</span>
+        <span className="flex min-w-0 items-center gap-2">
+          <span className="grid size-9 shrink-0 place-items-center rounded-[12px]" style={filled ? { background: "rgba(255,255,255,0.18)", color: "#fff" } : { background: tone.bg, color: tone.fg }} aria-hidden>
+            <Icon className="size-[18px] [stroke-width:1.8]" />
+          </span>
+          <span className={cn("text-[12.5px] leading-snug", filled ? "text-white/85" : "text-muted-foreground")}>{label}</span>
+        </span>
         <span
           className={cn(
             "grid size-8 shrink-0 place-items-center rounded-full transition-transform duration-200 group-hover:-translate-y-0.5",
@@ -58,11 +71,14 @@ export function StatCard({
           <ArrowUpRight className="size-4 [stroke-width:1.8]" />
         </span>
       </div>
-      <div className="mt-5 flex flex-wrap items-center gap-2">
+      <div className="mt-4 flex flex-wrap items-center gap-2">
         <strong className={cn("tabular font-heading text-[34px] font-semibold leading-none tracking-[-1px]", filled ? "text-white" : "text-foreground")}>{value}</strong>
         {trend && <TrendChip trend={trend} filled={filled} />}
       </div>
-      <span className={cn("mt-2 text-[11px]", filled ? "text-white/70" : "text-muted-foreground")}>{caption}</span>
+      <div className="mt-2 flex items-end justify-between gap-3">
+        <span className={cn("truncate text-[11px]", filled ? "text-white/70" : "text-muted-foreground")}>{caption}</span>
+        {spark && spark.length > 1 && <Sparkline values={spark} color={filled ? "#ffffff" : tone.fg} width={78} height={22} />}
+      </div>
     </Link>
   );
 }
