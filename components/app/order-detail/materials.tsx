@@ -68,7 +68,40 @@ export function Materials({
       </CardHeader>
       <CardContent className="space-y-3">
         {materials.length > 0 && (
-          <div className="overflow-x-auto">
+          <ul className="divide-y divide-[#eef1f6] sm:hidden">
+            {materials.map((m) => (
+              <li key={m.id} className="flex items-start gap-3 py-2.5">
+                <div className="min-w-0 flex-1">
+                  <div className="text-[14px] font-medium">{m.name}</div>
+                  <div className="mt-0.5 text-[12.5px] text-muted-foreground">
+                    {Number(m.quantity)} {m.unit}
+                    {financeVisible && m.unitCost ? ` · ${formatMoney(Number(m.unitCost) * Number(m.quantity))}` : ""}
+                    {financeVisible && !m.unitCost ? " · ფასი არ არის" : ""}
+                  </div>
+                </div>
+                {(financeVisible || m.createdBy === meId) && !readOnly && (
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={`${m.name} წაშლა`}
+                    disabled={pending}
+                    onClick={() =>
+                      start(async () => {
+                        const res = await removeMaterial(m.id);
+                        if (!res.ok) toast.error(res.error);
+                        router.refresh();
+                      })
+                    }
+                  >
+                    <Trash2 className="size-4 text-muted-foreground" />
+                  </Button>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+        {materials.length > 0 && (
+          <div className="hidden overflow-x-auto sm:block">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-xs text-muted-foreground">
@@ -96,7 +129,7 @@ export function Materials({
                           defaultValue={m.unitCost ?? ""}
                           placeholder="—"
                           disabled={readOnly}
-                          className="h-7 w-24 rounded border bg-transparent px-1.5 text-right text-sm"
+                          className="h-9 w-24 rounded border bg-transparent px-1.5 text-right text-[16px] sm:h-7 sm:text-sm"
                           onBlur={(e) => {
                             const v = e.target.value === "" ? null : Number(e.target.value);
                             if ((v ?? null) === (m.unitCost === null ? null : Number(m.unitCost))) return;
@@ -157,14 +190,14 @@ export function Materials({
         )}
         {materials.length === 0 && <p className="text-sm text-muted-foreground">მასალები არ არის ჩაწერილი{financeVisible ? ", ხარჯი უცნობია" : ""}.</p>}
         {!readOnly && (
-          <form ref={formRef} onSubmit={submit} className="flex flex-wrap items-end gap-2">
-            <div className="min-w-[160px] flex-1">
-              <Input name="name" placeholder="მასალა, მაგ. UTP კაბელი" aria-label="მასალის დასახელება" required className="h-9" />
+          <form ref={formRef} onSubmit={submit} className="grid grid-cols-2 items-end gap-2 sm:flex sm:flex-wrap">
+            <div className="col-span-2 min-w-[160px] sm:flex-1">
+              <Input name="name" placeholder="მასალა, მაგ. UTP კაბელი" aria-label="მასალის დასახელება" required className="h-11 text-[16px] sm:h-9 sm:text-[13px]" />
             </div>
-            <Input name="quantity" type="number" step="0.01" min="0.01" defaultValue="1" className="h-9 w-20" aria-label="რაოდენობა" />
-            <Input name="unit" defaultValue="ცალი" className="h-9 w-20" aria-label="ერთეული" />
-            {financeVisible && <Input name="unitCost" type="number" step="0.01" min="0" placeholder="ფასი ₾" className="h-9 w-24" aria-label="ერთეულის ფასი" />}
-            <Button type="submit" size="default" variant="outline" disabled={pending}>
+            <Input name="quantity" type="number" step="0.01" min="0.01" defaultValue="1" className="h-11 w-full text-[16px] sm:h-9 sm:w-20 sm:text-[13px]" aria-label="რაოდენობა" />
+            <Input name="unit" defaultValue="ცალი" className="h-11 w-full text-[16px] sm:h-9 sm:w-20 sm:text-[13px]" aria-label="ერთეული" />
+            {financeVisible && <Input name="unitCost" type="number" step="0.01" min="0" placeholder="ფასი ₾" className="h-11 w-full text-[16px] sm:h-9 sm:w-24 sm:text-[13px]" aria-label="ერთეულის ფასი" />}
+            <Button type="submit" size="default" variant="outline" className="col-span-2 h-11 sm:col-span-1 sm:h-9" disabled={pending}>
               <Plus className="size-4" /> დამატება
             </Button>
           </form>

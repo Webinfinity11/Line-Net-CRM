@@ -83,7 +83,7 @@ export function OrderForm({
   const toggle = (id: string) => setAssignees((a) => (a.includes(id) ? a.filter((x) => x !== id) : [...a, id]));
 
   return (
-    <form onSubmit={onSubmit} className="grid gap-4 lg:grid-cols-3">
+    <form onSubmit={onSubmit} className="grid gap-4 pb-2 lg:grid-cols-3">
       <Card className="lg:col-span-2">
         <CardContent className="grid gap-4 pt-6 sm:grid-cols-2">
           <div className="space-y-1.5 sm:col-span-2">
@@ -237,11 +237,11 @@ export function OrderForm({
             </div>
           </CardContent>
         </Card>
-        <div className="flex gap-2">
-          <Button type="submit" className="flex-1" disabled={pending}>
+        <div className="ln-card sticky bottom-[76px] z-20 flex gap-2 p-3 shadow-[0_-8px_28px_rgba(16,24,40,0.12)] lg:static lg:bg-transparent lg:p-0 lg:shadow-none">
+          <Button type="submit" className="h-12 flex-1 lg:h-9" disabled={pending}>
             {pending ? "ინახება..." : submitLabel}
           </Button>
-          <Button type="button" variant="outline" onClick={() => router.push(cancelHref)}>
+          <Button type="button" variant="outline" className="h-12 lg:h-9" onClick={() => router.push(cancelHref)}>
             {t.common.cancel}
           </Button>
         </div>

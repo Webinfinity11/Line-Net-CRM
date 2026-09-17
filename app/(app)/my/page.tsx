@@ -39,12 +39,12 @@ function OrderCard({ o, meId, highlight }: { o: MyOrderItem; meId: string; highl
         {overdue && <OverdueBadge />}
         {unseen && <span className="rounded-[5px] border border-[#dbe3fd] bg-[#eef2ff] px-1.5 py-[2px] text-[10px] font-medium text-[#3457d5]">ახალი დანიშვნა</span>}
       </div>
-      <Link href={`/orders/${o.id}`} className="block text-[16px] font-semibold leading-snug hover:text-[#3457d5]">
+      <Link href={`/orders/${o.id}`} className="block font-heading text-[17px] font-bold leading-snug tracking-[-0.01em] hover:text-[#3457d5]">
         {o.title}
       </Link>
       {place && (
-        <div className="mt-1 flex items-start gap-1 text-[13px] text-muted-foreground">
-          <MapPin className="mt-0.5 size-3.5 shrink-0" />
+        <div className="mt-1.5 flex items-start gap-1.5 text-[14px] text-[#4a5a6c]">
+          <MapPin className="mt-0.5 size-4 shrink-0" />
           {maps ? (
             <a href={maps} target="_blank" rel="noreferrer" className="line-clamp-2 hover:text-[#3457d5] hover:underline">
               {place}
@@ -54,10 +54,10 @@ function OrderCard({ o, meId, highlight }: { o: MyOrderItem; meId: string; highl
           )}
         </div>
       )}
-      <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[12px] text-muted-foreground">
+      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-muted-foreground">
         {o.scheduledAt && (
           <span className="flex items-center gap-1 font-medium text-foreground">
-            <CalendarClock className="size-3.5" /> {formatDate(o.scheduledAt, true)}
+            <CalendarClock className="size-4" /> {formatDate(o.scheduledAt, true)}
             {o.plannedMinutes ? ` · ${formatDuration(o.plannedMinutes)}` : ""}
           </span>
         )}
@@ -108,7 +108,7 @@ export default async function MyOrdersPage() {
   const Section = ({ title, items, highlight }: { title: string; items: MyOrderItem[]; highlight?: boolean }) =>
     items.length === 0 ? null : (
       <section className="space-y-2">
-        <h2 className="flex items-center gap-2 text-[13px] font-semibold text-muted-foreground">
+        <h2 className="flex items-center gap-2 text-[13px] font-semibold text-[#5b6b7c]">
           {title} · {items.length}
         </h2>
         {items.map((o) => (
@@ -117,9 +117,21 @@ export default async function MyOrdersPage() {
       </section>
     );
 
+  const remainingToday = todays.length + current.length;
+
   return (
-    <div className="mx-auto max-w-2xl space-y-6 pb-8">
+    <div className="mx-auto max-w-2xl space-y-5">
       <PageHeader title={t.nav.my} subtitle={`${tbilisiTime(new Date())} · ${active.length} აქტიური`} />
+
+      {all.length > 0 && (
+        <div className="ln-card sticky top-[68px] z-10 flex items-center justify-between gap-3 px-4 py-3">
+          <span className="text-[13px] text-muted-foreground">დღეს დარჩენილი</span>
+          <span className="flex items-baseline gap-1.5">
+            <span className="tabular font-heading text-[22px] font-bold leading-none">{remainingToday}</span>
+            <span className="text-[13px] text-muted-foreground">ვიზიტი</span>
+          </span>
+        </div>
+      )}
       {all.length === 0 && (
         <div className="rounded-xl border border-dashed bg-white py-16 text-center text-sm text-muted-foreground dark:bg-neutral-900">
           დანიშნული შეკვეთები არ გაქვთ. როცა მენეჯერი დაგინიშნავთ, აქ გამოჩნდება და შეტყობინებას მიიღებთ.

@@ -6,7 +6,7 @@ import { ClientFields } from "@/components/app/client-forms";
 import { FormDialog } from "@/components/app/form-dialog";
 import { ImportClientsDialog } from "@/components/app/import-clients-dialog";
 import { PageHeader } from "@/components/app/page-header";
-import { Chip, EmptyState, tableCls } from "@/components/app/section-card";
+import { Chip, DataList, DataRow, EmptyState, tableCls } from "@/components/app/section-card";
 import { Button } from "@/components/ui/button";
 import { db } from "@/db";
 import { clients, orders, sites } from "@/db/schema";
@@ -42,13 +42,13 @@ export default async function ClientsPage({ searchParams }: PageProps<"/clients"
         title={t.nav.clients}
         subtitle={q ? `„${q}“ · ნაპოვნია ${rows.length}` : `${rows.length} კლიენტი`}
         actions={
-          <>
+          <div className="flex flex-wrap items-center gap-2">
             <ImportClientsDialog />
-            <Button render={<a href="/api/export?type=clients-list" />} variant="outline" size="sm">
+            <Button render={<a href="/api/export?type=clients-list" />} variant="outline" size="sm" className="h-10 sm:h-8">
               <Download className="size-4" /> Excel
             </Button>
             <FormDialog
-              trigger={<Button />}
+              trigger={<Button className="h-10 sm:h-9" />}
               triggerLabel={
                 <>
                   <Plus className="size-4" /> ახალი კლიენტი
@@ -60,25 +60,25 @@ export default async function ClientsPage({ searchParams }: PageProps<"/clients"
             >
               <ClientFields />
             </FormDialog>
-          </>
+          </div>
         }
       />
 
-      <form method="get" className="ln-enter ln-card flex flex-wrap items-center gap-3 p-3">
-        <div className="relative min-w-[220px] flex-1">
+      <form method="get" className="ln-enter ln-card flex flex-wrap items-center gap-2 p-3 sm:gap-3">
+        <div className="relative w-full min-w-[200px] flex-1 sm:w-auto">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground [stroke-width:1.7]" />
           <input
             name="q"
             defaultValue={q}
             placeholder="ძებნა: კომპანია, ს/კ, საკონტაქტო პირი"
-            className="h-9 w-full rounded-full border border-[#e6ebf2] bg-[#f8faff] pl-9 pr-4 text-[13px] outline-none transition focus:border-[#7f97e6] focus:bg-white"
+            className="h-11 w-full rounded-full border border-[#e6ebf2] bg-[#f8faff] pl-9 pr-4 text-[16px] outline-none transition focus:border-[#7f97e6] focus:bg-white sm:h-9 sm:text-[13px]"
           />
         </div>
-        <Button type="submit" variant="outline" size="sm">
+        <Button type="submit" variant="outline" size="sm" className="h-10 flex-1 sm:h-8 sm:flex-none">
           ძებნა
         </Button>
         {q && (
-          <Button render={<Link href="/clients" />} variant="ghost" size="sm">
+          <Button render={<Link href="/clients" />} variant="ghost" size="sm" className="h-10 flex-1 sm:h-8 sm:flex-none">
             გასუფთავება
           </Button>
         )}
@@ -92,7 +92,25 @@ export default async function ClientsPage({ searchParams }: PageProps<"/clients"
         />
       ) : (
         <div className={cn(tableCls.wrap, "ln-enter ln-enter-2")}>
-          <div className={tableCls.scroll}>
+          <DataList className="px-4 py-2">
+            {rows.map((c) => (
+              <DataRow
+                key={c.id}
+                href={`/clients/${c.id}`}
+                title={c.name}
+                meta={
+                  <>
+                    <div>{[c.idCode && `ს/კ ${c.idCode}`, c.phone].filter(Boolean).join(" · ") || "—"}</div>
+                    <div>
+                      {c.siteCount} ობიექტი · {c.orderCount} შეკვეთა
+                    </div>
+                  </>
+                }
+                right={c.activeCount > 0 ? <Chip tone="accent">{c.activeCount} აქტიური</Chip> : <span className="text-muted-foreground">—</span>}
+              />
+            ))}
+          </DataList>
+          <div className={cn(tableCls.scroll, "hidden sm:block")}>
             <table className={tableCls.table}>
               <thead className={tableCls.head}>
                 <tr>

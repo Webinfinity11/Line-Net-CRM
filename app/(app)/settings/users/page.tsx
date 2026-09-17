@@ -3,7 +3,7 @@ import { createUser, setUserBanned, updateUser } from "@/actions/users";
 import { ConfirmButton } from "@/components/app/confirm-button";
 import { FormDialog } from "@/components/app/form-dialog";
 import { PageHeader } from "@/components/app/page-header";
-import { Chip, EmptyState, tableCls } from "@/components/app/section-card";
+import { Chip, DataList, DataRow, EmptyState, tableCls } from "@/components/app/section-card";
 import { UserAvatar } from "@/components/app/user-avatar";
 import { UserFields } from "@/components/app/user-forms";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,46 @@ export default async function UsersPage() {
   const counts = users.reduce(
     (a, u) => ({ ...a, [u.role]: (a[u.role] ?? 0) + 1 }),
     {} as Record<string, number>,
+  );
+
+  const RoleChip = ({ role }: { role: string }) => (
+    <span className={cn("inline-flex rounded-[6px] px-2 py-[3px] text-[11px] font-medium", ROLE_TONE[role] ?? ROLE_TONE.executor)}>{ROLE_LABELS[role as UserRole] ?? role}</span>
+  );
+  const Status = ({ banned }: { banned: boolean }) =>
+    banned ? (
+      <span className="flex items-center gap-1.5 text-[11.5px] text-[#b13f32]">
+        <span className="size-1.5 rounded-full bg-[#b13f32]" /> დეაქტივირებული
+      </span>
+    ) : (
+      <span className="flex items-center gap-1.5 text-[11.5px] text-[#25815a]">
+        <span className="size-1.5 rounded-full bg-[#25815a]" /> აქტიური
+      </span>
+    );
+  const Actions = ({ u, labelled = false }: { u: (typeof users)[number]; labelled?: boolean }) => (
+    <>
+      <FormDialog
+        trigger={<Button variant="ghost" size={labelled ? "sm" : "icon-xs"} className={labelled ? "h-10" : undefined} aria-label="რედაქტირება" />}
+        triggerLabel={labelled ? <><Pencil className="size-3.5" /> რედაქტირება</> : <Pencil className="size-3.5" />}
+        title="მომხმარებლის რედაქტირება"
+        action={updateUser.bind(null, u.id)}
+      >
+        <UserFields initial={u} />
+      </FormDialog>
+      {u.id !== me.id && (
+        <ConfirmButton
+          title={u.banned ? "აქტივაცია" : "დეაქტივაცია"}
+          description={u.banned ? "მომხმარებელი კვლავ შეძლებს შესვლას." : "მომხმარებელი ვეღარ შევა სისტემაში. მონაცემები რჩება."}
+          confirmLabel={u.banned ? "აქტივაცია" : "დეაქტივაცია"}
+          variant="ghost"
+          size={labelled ? "sm" : "xs"}
+          className={cn(labelled && "h-10", u.banned ? "text-[#25815a]" : "text-[#b13f32]")}
+          action={setUserBanned.bind(null, u.id, !u.banned)}
+        >
+          {u.banned ? <UserCheck className="size-3.5" /> : <UserX className="size-3.5" />}
+          {labelled ? <span>{u.banned ? "აქტივაცია" : "დეაქტივაცია"}</span> : <span className="sr-only">{u.banned ? "აქტივაცია" : "დეაქტივაცია"}</span>}
+        </ConfirmButton>
+      )}
+    </>
   );
 
   return (
@@ -56,7 +96,40 @@ export default async function UsersPage() {
         <EmptyState icon={Users} message="მომხმარებლები არ არის." className="ln-card border-transparent py-16" />
       ) : (
         <div className={cn(tableCls.wrap, "ln-enter")}>
-          <div className={tableCls.scroll}>
+          <DataList className="px-4 py-2">
+            {users.map((u) => (
+              <DataRow
+                key={u.id}
+                title={
+                  <span className={cn("flex items-center gap-2.5", u.banned && "opacity-60")}>
+                    <UserAvatar name={u.name} image={u.image} size="md" tone="color" />
+                    <span className="min-w-0">
+                      <span className="block truncate">
+                        {u.name} {u.id === me.id && <span className="text-[11px] font-normal text-muted-foreground">(თქვენ)</span>}
+                      </span>
+                      <span className="block truncate text-[11.5px] font-normal text-muted-foreground">{u.email}</span>
+                    </span>
+                  </span>
+                }
+                meta={
+                  <>
+                    <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                      <RoleChip role={u.role} />
+                      {u.specializations.map((k) => (
+                        <Chip key={k}>{SYSTEM_LABELS[k as keyof typeof SYSTEM_LABELS] ?? k}</Chip>
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-3 pt-1">
+                      <span className="tabular">{u.phone ?? "—"}</span>
+                      <Status banned={u.banned} />
+                    </div>
+                  </>
+                }
+                actions={<Actions u={u} labelled />}
+              />
+            ))}
+          </DataList>
+          <div className={cn(tableCls.scroll, "hidden sm:block")}>
             <table className={tableCls.table}>
               <thead className={tableCls.head}>
                 <tr>
@@ -84,9 +157,7 @@ export default async function UsersPage() {
                       </div>
                     </td>
                     <td className={tableCls.td}>
-                      <span className={cn("inline-flex rounded-[6px] px-2 py-[3px] text-[11px] font-medium", ROLE_TONE[u.role] ?? ROLE_TONE.executor)}>
-                        {ROLE_LABELS[u.role as UserRole] ?? u.role}
-                      </span>
+                      <RoleChip role={u.role} />
                     </td>
                     <td className={cn(tableCls.td, "hidden max-w-[280px] lg:table-cell")}>
                       {u.specializations.length ? (
@@ -101,36 +172,12 @@ export default async function UsersPage() {
                     </td>
                     <td className={cn(tableCls.td, "hidden whitespace-nowrap tabular md:table-cell")}>{u.phone ?? "—"}</td>
                     <td className={cn(tableCls.td, "hidden sm:table-cell")}>
-                      {u.banned ? (
-                        <span className="flex items-center gap-1.5 text-[11.5px] text-[#b13f32]">
-                          <span className="size-1.5 rounded-full bg-[#b13f32]" /> დეაქტივირებული
-                        </span>
-                      ) : (
-                        <span className="flex items-center gap-1.5 text-[11.5px] text-[#25815a]">
-                          <span className="size-1.5 rounded-full bg-[#25815a]" /> აქტიური
-                        </span>
-                      )}
+                      <Status banned={u.banned} />
                     </td>
                     <td className={cn(tableCls.td, "hidden whitespace-nowrap text-[11px] text-muted-foreground xl:table-cell")}>{formatDate(u.createdAt)}</td>
                     <td className={cn(tableCls.td, "text-right")}>
                       <div className="flex justify-end gap-1">
-                        <FormDialog trigger={<Button variant="ghost" size="icon-xs" aria-label="რედაქტირება" />} triggerLabel={<Pencil className="size-3.5" />} title="მომხმარებლის რედაქტირება" action={updateUser.bind(null, u.id)}>
-                          <UserFields initial={u} />
-                        </FormDialog>
-                        {u.id !== me.id && (
-                          <ConfirmButton
-                            title={u.banned ? "აქტივაცია" : "დეაქტივაცია"}
-                            description={u.banned ? "მომხმარებელი კვლავ შეძლებს შესვლას." : "მომხმარებელი ვეღარ შევა სისტემაში. მონაცემები რჩება."}
-                            confirmLabel={u.banned ? "აქტივაცია" : "დეაქტივაცია"}
-                            variant="ghost"
-                            size="xs"
-                            className={u.banned ? "text-[#25815a]" : "text-[#b13f32]"}
-                            action={setUserBanned.bind(null, u.id, !u.banned)}
-                          >
-                            {u.banned ? <UserCheck className="size-3.5" /> : <UserX className="size-3.5" />}
-                            <span className="sr-only">{u.banned ? "აქტივაცია" : "დეაქტივაცია"}</span>
-                          </ConfirmButton>
-                        )}
+                        <Actions u={u} />
                       </div>
                     </td>
                   </tr>

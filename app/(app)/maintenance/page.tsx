@@ -7,7 +7,7 @@ import { FormDialog } from "@/components/app/form-dialog";
 import { GenerateNowButton } from "@/components/app/generate-now-button";
 import { PageHeader } from "@/components/app/page-header";
 import { ScheduleFields } from "@/components/app/schedule-form";
-import { EmptyState, tableCls } from "@/components/app/section-card";
+import { DataList, DataRow, EmptyState, tableCls } from "@/components/app/section-card";
 import { AvatarStack } from "@/components/app/user-avatar";
 import { Button } from "@/components/ui/button";
 import { listTemplates } from "@/lib/checklists";
@@ -27,6 +27,72 @@ export default async function MaintenancePage() {
   const tplOptions = templates.map((x) => ({ id: x.id, name: x.name, systemType: x.systemType }));
   const active = schedules.filter((s) => s.active);
   const inactive = schedules.filter((s) => !s.active);
+
+  const Actions = ({ s, labelled = false }: { s: (typeof schedules)[number]; labelled?: boolean }) => (
+    <>
+      <FormDialog
+        trigger={<Button variant="ghost" size={labelled ? "sm" : "icon-xs"} className={labelled ? "h-10" : undefined} aria-label="რედაქტირება" />}
+        triggerLabel={labelled ? <><Pencil className="size-3.5" /> რედაქტირება</> : <Pencil className="size-3.5" />}
+        title="გრაფიკის რედაქტირება"
+        action={updateSchedule.bind(null, s.id)}
+      >
+        <ScheduleFields clients={clientOptions} users={users} templates={tplOptions} initial={s} />
+      </FormDialog>
+      <ConfirmButton
+        title={s.active ? "გრაფიკის გაჩერება" : "გრაფიკის ჩართვა"}
+        description={s.active ? "შეკვეთები აღარ შეიქმნება, სანამ ისევ არ ჩართავთ." : "შეკვეთები ისევ შეიქმნება გრაფიკით."}
+        confirmLabel={s.active ? "გაჩერება" : "ჩართვა"}
+        variant="ghost"
+        size={labelled ? "sm" : "xs"}
+        className={labelled ? "h-10" : undefined}
+        action={toggleSchedule.bind(null, s.id, !s.active)}
+      >
+        {s.active ? "გაჩერება" : "ჩართვა"}
+      </ConfirmButton>
+      {me.role === "admin" && (
+        <ConfirmButton
+          title="გრაფიკის წაშლა"
+          description="უკვე შექმნილი შეკვეთები რჩება."
+          confirmLabel={t.common.delete}
+          variant="ghost"
+          size={labelled ? "sm" : "xs"}
+          className={labelled ? "h-10" : undefined}
+          action={deleteSchedule.bind(null, s.id)}
+        >
+          <Trash2 className="size-3.5 text-muted-foreground" />
+          {labelled ? <span>{t.common.delete}</span> : null}
+        </ConfirmButton>
+      )}
+    </>
+  );
+
+  const Card = ({ s }: { s: (typeof schedules)[number] }) => (
+    <DataRow
+      key={s.id}
+      title={
+        <span className={cn(!s.active && "opacity-60")}>
+          {s.title}
+          {!s.active && <span className="ml-1.5 text-[11px] font-normal text-muted-foreground">(გაჩერებული)</span>}
+        </span>
+      }
+      meta={
+        <>
+          <div>
+            {s.client.name}
+            {s.site ? ` · ${s.site.name}` : ""}
+          </div>
+          <div>
+            {FREQUENCY_LABELS[s.frequency]} · შემდეგი {formatDate(s.nextDate)}
+          </div>
+          <div className="flex items-center gap-2 pt-1">
+            <AvatarStack users={s.assigneeIds.map((id) => userMap.get(id)).filter((u): u is NonNullable<typeof u> => Boolean(u))} />
+            <span className="tabular">{formatMoney(s.amount)}</span>
+          </div>
+        </>
+      }
+      actions={<Actions s={s} labelled />}
+    />
+  );
 
   const Row = ({ s }: { s: (typeof schedules)[number] }) => (
     <tr className={cn(tableCls.row, !s.active && "opacity-55")}>
@@ -49,24 +115,7 @@ export default async function MaintenancePage() {
       <td className={cn(tableCls.td, "hidden whitespace-nowrap text-[11px] text-muted-foreground xl:table-cell")}>{s.lastGeneratedAt ? formatDate(s.lastGeneratedAt) : "—"}</td>
       <td className={cn(tableCls.td, "text-right")}>
         <div className="flex justify-end gap-1">
-          <FormDialog trigger={<Button variant="ghost" size="icon-xs" aria-label="რედაქტირება" />} triggerLabel={<Pencil className="size-3.5" />} title="გრაფიკის რედაქტირება" action={updateSchedule.bind(null, s.id)}>
-            <ScheduleFields clients={clientOptions} users={users} templates={tplOptions} initial={s} />
-          </FormDialog>
-          <ConfirmButton
-            title={s.active ? "გრაფიკის გაჩერება" : "გრაფიკის ჩართვა"}
-            description={s.active ? "შეკვეთები აღარ შეიქმნება, სანამ ისევ არ ჩართავთ." : "შეკვეთები ისევ შეიქმნება გრაფიკით."}
-            confirmLabel={s.active ? "გაჩერება" : "ჩართვა"}
-            variant="ghost"
-            size="xs"
-            action={toggleSchedule.bind(null, s.id, !s.active)}
-          >
-            {s.active ? "გაჩერება" : "ჩართვა"}
-          </ConfirmButton>
-          {me.role === "admin" && (
-            <ConfirmButton title="გრაფიკის წაშლა" description="უკვე შექმნილი შეკვეთები რჩება." confirmLabel={t.common.delete} variant="ghost" size="xs" action={deleteSchedule.bind(null, s.id)}>
-              <Trash2 className="size-3.5 text-muted-foreground" />
-            </ConfirmButton>
-          )}
+          <Actions s={s} />
         </div>
       </td>
     </tr>
@@ -78,7 +127,7 @@ export default async function MaintenancePage() {
         title={t.nav2.maintenance}
         subtitle={`${active.length} აქტიური გრაფიკი · სისტემა თვითონ ქმნის შეკვეთას ვადამდე რამდენიმე დღით ადრე`}
         actions={
-          <>
+          <div className="flex flex-wrap items-center gap-2">
             <GenerateNowButton />
             <FormDialog
               trigger={<Button />}
@@ -93,7 +142,7 @@ export default async function MaintenancePage() {
             >
               <ScheduleFields clients={clientOptions} users={users} templates={tplOptions} />
             </FormDialog>
-          </>
+          </div>
         }
       />
 
@@ -105,7 +154,12 @@ export default async function MaintenancePage() {
         />
       ) : (
         <div className={cn(tableCls.wrap, "ln-enter")}>
-          <div className={tableCls.scroll}>
+          <DataList className="px-4 py-2">
+            {[...active, ...inactive].map((s) => (
+              <Card key={s.id} s={s} />
+            ))}
+          </DataList>
+          <div className={cn(tableCls.scroll, "hidden sm:block")}>
             <table className={tableCls.table}>
               <thead className={tableCls.head}>
                 <tr>

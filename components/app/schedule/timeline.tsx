@@ -59,7 +59,56 @@ export function Timeline({
     return <div className="py-12 text-center text-sm text-muted-foreground">შემსრულებლები არ არიან დამატებული</div>;
   }
 
+  const phoneList = (
+    <div className="space-y-4 sm:hidden">
+      {lanes.map((lane) => (
+        <div key={lane.key}>
+          <div className="mb-2 flex items-center gap-2">
+            {!lane.unassigned && <UserAvatar name={lane.name} image={lane.image} size="sm" />}
+            <span className={cn("text-[13px] font-medium", lane.unassigned && "text-[#b13f32]")}>{lane.name}</span>
+            {lane.load && (
+              <span className={cn("tabular ml-auto text-[11px]", lane.load.over ? "font-medium text-[#b13f32]" : "text-muted-foreground")}>
+                {lane.load.hours} / {normHours} სთ
+              </span>
+            )}
+          </div>
+          {lane.blocks.length === 0 ? (
+            <p className="rounded-[12px] border border-dashed border-[#e6ebf2] px-3 py-3 text-center text-[12px] text-muted-foreground">თავისუფალია</p>
+          ) : (
+            <ul className="space-y-2">
+              {lane.blocks.map((b) => (
+                <li key={b.id}>
+                  <Link
+                    href={`/orders/${b.id}`}
+                    className="flex min-h-[56px] items-center gap-3 rounded-[12px] px-3 py-2.5"
+                    style={{ background: STATUS_TINT[b.status], borderLeft: `3px solid ${STATUS_HEX[b.status]}` }}
+                  >
+                    <span className="tabular w-[92px] shrink-0 text-[12px] font-medium text-[#4a5e73]">
+                      {formatMinutes(b.startMin)}–{formatMinutes(b.endMin)}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[13px] font-medium">{b.title}</span>
+                      {b.client && <span className="block truncate text-[11.5px] text-muted-foreground">{b.client}</span>}
+                      {b.clashWith.length > 0 && (
+                        <span className="mt-0.5 flex items-center gap-1 text-[11px] font-medium text-[#96610b]">
+                          <AlertTriangle className="size-3" /> ემთხვევა: {b.clashWith.join(", ")}
+                        </span>
+                      )}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+
   return (
+    <>
+      {phoneList}
+      <div className="hidden sm:block">
     <div className="overflow-x-auto [--lane-w:160px] [--time-w:48px] md:[--lane-w:220px] md:[--time-w:65px]">
       <div className="min-w-max pb-4">
         {/* lane headers */}
@@ -159,5 +208,7 @@ export function Timeline({
         </div>
       </div>
     </div>
+      </div>
+    </>
   );
 }

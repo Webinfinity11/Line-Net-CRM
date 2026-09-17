@@ -101,7 +101,24 @@ async function goto(path) {
   await sleep(300);
 }
 
-const FIND = `(function(sel, text, within){const n = ${NORM}; const root = within ? [...document.querySelectorAll('article,tr,li,section,div')].find(e => e.innerText && n(e.innerText).includes(within) && e.querySelector(sel)) : document; if(!root) return null; const els=[...root.querySelectorAll(sel)].filter(e=>{const r=e.getBoundingClientRect(); return r.width>0 && r.height>0 && (!text || n(e.innerText||e.value||e.getAttribute('aria-label')||'').includes(text));}); return els[0] ?? null;})`;
+const FIND = `(function(sel, text, within){
+  const n = ${NORM};
+  let root = document;
+  if (within) {
+    // the innermost container that holds both the text and the control, so a click
+    // never lands on a neighbouring row
+    const hit = [...document.querySelectorAll('article,tr,li,section,div,form')]
+      .filter(e => e.innerText && n(e.innerText).includes(within) && e.querySelector(sel))
+      .sort((a, b) => a.innerText.length - b.innerText.length)[0];
+    if (!hit) return null;
+    root = hit;
+  }
+  const els = [...root.querySelectorAll(sel)].filter(e => {
+    const r = e.getBoundingClientRect();
+    return r.width > 0 && r.height > 0 && (!text || n(e.innerText || e.value || e.getAttribute('aria-label') || '').includes(text));
+  });
+  return els[0] ?? null;
+})`;
 
 async function click(sel, text, within) {
   const at = await evalJs(`(()=>{const el=${FIND}(${JSON.stringify(sel)},${JSON.stringify(text ?? "")},${JSON.stringify(within ?? "")}); if(!el) return null; el.scrollIntoView({block:'center'}); const r=el.getBoundingClientRect(); return {x:r.x+r.width/2,y:r.y+r.height/2};})()`);
@@ -156,6 +173,7 @@ try {
     await goto("/schedule");
     await waitFor(hasText(TITLE));
     await click("button", "დანიშვნა", TITLE);
+    await waitFor("document.querySelector('[role=dialog]')");
     await waitFor("document.querySelector('select[id^=as-who-]')");
     const who = await evalJs(`document.querySelector('select[id^=as-who-]').id`);
     await selectByText(`#${who}`, "გიორგი");
@@ -205,9 +223,10 @@ try {
   });
   await step("manager: removes the test order", async () => {
     await goto(orderHref);
-    await click("button", "წაშლა");
+    // the danger zone, not a material's delete icon
+    await click("button", "წაშლა", "წაშლა შეუქცევადია");
     await waitFor(hasText("შეკვეთის წაშლა"));
-    await click("button", "დადასტურება");
+    await click("button", "წაშლა", "შეკვეთის წაშლა");
     await sleep(2000);
     await goto("/orders");
     if (await evalJs(hasText(TITLE))) throw new Error("the order is still listed");

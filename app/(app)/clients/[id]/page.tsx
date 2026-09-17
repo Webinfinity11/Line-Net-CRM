@@ -37,7 +37,7 @@ export default async function ClientPage({ params }: PageProps<"/clients/[id]">)
         title={client.name}
         subtitle={[client.idCode && `ს/კ ${client.idCode}`, client.contactName, client.phone, client.email].filter(Boolean).join(" · ")}
         actions={
-          <>
+          <div className="flex flex-wrap items-center gap-2">
             {me.role === "admin" && (
               <ConfirmButton
                 title="კლიენტის წაშლა"
@@ -63,10 +63,10 @@ export default async function ClientPage({ params }: PageProps<"/clients/[id]">)
             >
               <ClientFields initial={client} />
             </FormDialog>
-            <Button render={<Link href={`/orders/new?client=${client.id}`} />} size="sm">
+            <Button render={<Link href={`/orders/new?client=${client.id}`} />} size="sm" className="h-10 sm:h-8">
               <Plus className="size-4" /> {t.order.new}
             </Button>
-          </>
+          </div>
         }
       />
 
@@ -133,7 +133,7 @@ export default async function ClientPage({ params }: PageProps<"/clients/[id]">)
                               {e.model && <span className="text-muted-foreground">{e.model}</span>}
                               {e.serial && <span className="font-mono text-muted-foreground">{e.serial}</span>}
                               <SystemBadge system={e.systemType} className="px-1.5 py-0 text-[10px]" />
-                              <span className="ml-auto flex gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
+                              <span className="ml-auto flex gap-0.5 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
                                 <FormDialog trigger={<Button variant="ghost" size="icon-xs" aria-label="აღჭურვილობის რედაქტირება" />} triggerLabel={<Pencil className="size-3" />} title="აღჭურვილობის რედაქტირება" action={updateEquipment.bind(null, e.id)}>
                                   <EquipmentFields siteId={s.id} initial={e} />
                                 </FormDialog>

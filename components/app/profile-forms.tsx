@@ -4,11 +4,13 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { updateProfile } from "@/actions/notifications";
+import { formFields } from "@/components/app/section-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
+import { cn } from "@/lib/utils";
 
 export function ProfileForms({ name, phone }: { name: string; phone: string }) {
   const router = useRouter();
@@ -48,7 +50,7 @@ export function ProfileForms({ name, phone }: { name: string; phone: string }) {
           <CardTitle>მონაცემები</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={saveProfile} className="space-y-3">
+          <form onSubmit={saveProfile} className={cn("space-y-3", formFields)}>
             <div className="space-y-1.5">
               <Label htmlFor="p-name">სახელი, გვარი</Label>
               <Input id="p-name" name="name" required defaultValue={name} />
@@ -57,7 +59,7 @@ export function ProfileForms({ name, phone }: { name: string; phone: string }) {
               <Label htmlFor="p-phone">ტელეფონი</Label>
               <Input id="p-phone" name="phone" defaultValue={phone} />
             </div>
-            <Button type="submit" disabled={pending}>
+            <Button type="submit" className="h-11 w-full sm:h-9 sm:w-auto" disabled={pending}>
               შენახვა
             </Button>
           </form>
@@ -68,7 +70,7 @@ export function ProfileForms({ name, phone }: { name: string; phone: string }) {
           <CardTitle>პაროლის შეცვლა</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={changePassword} className="space-y-3">
+          <form onSubmit={changePassword} className={cn("space-y-3", formFields)}>
             <div className="space-y-1.5">
               <Label htmlFor="pw-cur">მიმდინარე პაროლი</Label>
               <Input id="pw-cur" type="password" autoComplete="current-password" required value={pw.current} onChange={(e) => setPw({ ...pw, current: e.target.value })} />
@@ -81,7 +83,7 @@ export function ProfileForms({ name, phone }: { name: string; phone: string }) {
               <Label htmlFor="pw-conf">გაიმეორეთ</Label>
               <Input id="pw-conf" type="password" autoComplete="new-password" required value={pw.confirm} onChange={(e) => setPw({ ...pw, confirm: e.target.value })} />
             </div>
-            <Button type="submit" variant="outline" disabled={pending}>
+            <Button type="submit" variant="outline" className="h-11 w-full sm:h-9 sm:w-auto" disabled={pending}>
               შეცვლა
             </Button>
           </form>

@@ -105,7 +105,7 @@ export function Checklist({ orderId, items, templates, staff, readOnly }: { orde
             }}
             className="flex flex-wrap gap-2"
           >
-            <Input ref={inputRef} placeholder="ახალი პუნქტი..." aria-label="ახალი პუნქტი" className="h-9 min-w-[180px] flex-1" />
+            <Input ref={inputRef} placeholder="ახალი პუნქტი..." aria-label="ახალი პუნქტი" className="min-w-[180px] flex-1 h-11 text-[16px] sm:h-9 sm:text-[13px]" />
             {staff && (
               <label className="flex items-center gap-1.5 text-xs">
                 <input type="checkbox" checked={required} onChange={(e) => setRequired(e.target.checked)} className="accent-amber-500" /> სავალდებულო
@@ -118,7 +118,7 @@ export function Checklist({ orderId, items, templates, staff, readOnly }: { orde
         )}
         {staff && !readOnly && templates.length > 0 && (
           <div className="flex gap-2">
-            <NativeSelect value={tpl} onChange={(e) => setTpl(e.target.value)} aria-label="ჩეკ-ლისტის შაბლონი" className="h-9 flex-1 text-sm">
+            <NativeSelect value={tpl} onChange={(e) => setTpl(e.target.value)} aria-label="ჩეკ-ლისტის შაბლონი" className="flex-1 h-11 text-[16px] sm:h-9 sm:text-[13px]">
               <NativeSelectOption value="">შაბლონიდან დამატება...</NativeSelectOption>
               {templates.map((x) => (
                 <NativeSelectOption key={x.id} value={String(x.id)}>

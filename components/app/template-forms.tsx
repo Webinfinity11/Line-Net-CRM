@@ -1,16 +1,18 @@
 "use client";
 
+import { formFields } from "@/components/app/section-card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
 import type { ChecklistTemplate, ChecklistTemplateItem } from "@/db/schema";
 import { SYSTEM_LABELS, SYSTEM_ORDER } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
 
 export function TemplateFields({ initial }: { initial?: Partial<ChecklistTemplate> & { items?: ChecklistTemplateItem[] } }) {
   const text = (initial?.items ?? []).map((i) => (i.required ? `* ${i.label}` : i.label)).join("\n");
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
+    <div className={cn("grid gap-3 sm:grid-cols-2", formFields)}>
       <div className="space-y-1.5 sm:col-span-2">
         <Label htmlFor="tpl-name">სახელი *</Label>
         <Input id="tpl-name" name="name" required defaultValue={initial?.name ?? ""} placeholder="მაგ. სახანძრო სისტემის ყოველთვიური შემოწმება" />

@@ -150,9 +150,9 @@ export function Payments({
 
         {!disabled && (
           <form ref={formRef} onSubmit={submit} className="grid grid-cols-2 gap-2 sm:grid-cols-[1fr_1fr_1fr_auto]">
-            <Input name="amount" type="number" step="0.01" min="0.01" required placeholder="თანხა ₾" aria-label="თანხა" className="h-9" defaultValue={remaining > 0 ? remaining.toFixed(2) : ""} />
-            <Input name="paidAt" type="date" defaultValue={today} aria-label="გადახდის თარიღი" className="h-9" />
-            <NativeSelect name="method" defaultValue="transfer" aria-label="მეთოდი" className="h-9 text-sm">
+            <Input name="amount" type="number" step="0.01" min="0.01" required placeholder="თანხა ₾" aria-label="თანხა" className="h-11 text-[16px] sm:h-9 sm:text-[13px]" defaultValue={remaining > 0 ? remaining.toFixed(2) : ""} />
+            <Input name="paidAt" type="date" defaultValue={today} aria-label="გადახდის თარიღი" className="h-11 text-[16px] sm:h-9 sm:text-[13px]" />
+            <NativeSelect name="method" defaultValue="transfer" aria-label="მეთოდი" className="h-11 text-[16px] sm:h-9 sm:text-[13px]">
               {Object.entries(PAYMENT_METHODS)
                 .filter(([k]) => k !== "migration")
                 .map(([k, v]) => (
@@ -161,10 +161,10 @@ export function Payments({
                   </NativeSelectOption>
                 ))}
             </NativeSelect>
-            <Button type="submit" size="default" variant="outline" disabled={pending}>
+            <Button type="submit" size="default" variant="outline" className="col-span-2 h-11 sm:col-span-1 sm:h-9" disabled={pending}>
               <Plus className="size-4" /> გადახდა
             </Button>
-            <Input name="note" placeholder="შენიშვნა (მაგ. ინვოისის №)" aria-label="შენიშვნა" className="col-span-2 h-9 sm:col-span-4" />
+            <Input name="note" placeholder="შენიშვნა (მაგ. ინვოისის №)" aria-label="შენიშვნა" className="col-span-2 sm:col-span-4 h-11 text-[16px] sm:h-9 sm:text-[13px]" />
           </form>
         )}
       </CardContent>

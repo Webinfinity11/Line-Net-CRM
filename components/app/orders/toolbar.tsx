@@ -36,23 +36,23 @@ export function OrdersToolbar({
 
   return (
     <div className="space-y-3">
-      <form ref={formRef} method="get" action="/orders" className="flex flex-wrap items-center gap-2 ln-card p-3">
+      <form ref={formRef} method="get" action="/orders" className="ln-card flex flex-wrap items-center gap-2 p-3">
         {Object.entries(hidden).map(([k, v]) => (
           <input key={k} type="hidden" name={k} value={v} />
         ))}
-        <div className="relative w-full min-w-[200px] sm:w-[320px]">
+        <div className="relative w-full min-w-0 sm:w-[320px]">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <input
             name="q"
             defaultValue={q}
             placeholder={t.common.search}
             aria-label={t.common.search}
-            className="h-9 w-full rounded-lg border border-[#e6ebf2] bg-[#f8faff] pl-9 pr-3 text-[13px] outline-none transition focus:border-[#7f97e6] focus:bg-white"
+            className="h-11 w-full rounded-lg border border-[#e6ebf2] bg-[#f8faff] pl-9 pr-3 text-[16px] outline-none transition focus:border-[#7f97e6] focus:bg-white sm:h-9 sm:text-[13px]"
           />
         </div>
-        <span className="text-[12px] text-muted-foreground">{total} შეკვეთა</span>
-        <div className="ml-auto flex flex-wrap items-center gap-2">
-          <Button type="button" variant="outline" size="sm" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
+        <span className="shrink-0 text-[12px] text-muted-foreground">{total} შეკვეთა</span>
+        <div className="flex w-full flex-wrap items-center gap-2 sm:ml-auto sm:w-auto">
+          <Button type="button" variant="outline" size="sm" className="h-10 sm:h-8" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
             <SlidersHorizontal className="size-3.5" /> ფილტრები
             {activeCount > 0 && <span className="ml-0.5 rounded-full bg-[#eef2ff] px-1.5 text-[10px] font-semibold text-[#3457d5]">{activeCount}</span>}
           </Button>
@@ -60,16 +60,16 @@ export function OrdersToolbar({
             name="sort"
             defaultValue={sort}
             aria-label="დალაგება"
-            className="h-9 w-auto text-[13px]"
+            className="order-3 h-10 w-full basis-full text-[14px] sm:order-none sm:h-9 sm:w-auto sm:basis-auto sm:text-[13px]"
             onChange={() => formRef.current?.requestSubmit()}
           >
             {SORTS.map((s) => (
               <NativeSelectOption key={s.key} value={s.key}>
-                დალაგება: {s.label}
+                {s.label}
               </NativeSelectOption>
             ))}
           </NativeSelect>
-          <Button render={<a href={excelHref} />} variant="outline" size="sm" title="ყველა შეკვეთა Excel-ად">
+          <Button render={<a href={excelHref} />} variant="outline" size="sm" className="h-10 sm:h-8" title="ყველა შეკვეთა Excel-ად">
             <Download className="size-3.5" /> Excel
           </Button>
         </div>

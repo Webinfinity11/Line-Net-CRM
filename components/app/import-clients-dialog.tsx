@@ -30,7 +30,7 @@ export function ImportClientsDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button variant="outline" />}>
+      <DialogTrigger render={<Button variant="outline" className="h-10 sm:h-9" />}>
         <FileSpreadsheet className="size-4" /> იმპორტი Excel
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
@@ -45,11 +45,11 @@ export function ImportClientsDialog() {
         </DialogHeader>
         <form onSubmit={submit} className="space-y-3">
           <input type="file" name="file" accept=".xlsx,.xls" required className="block w-full text-sm file:mr-3 file:rounded-md file:border-0 file:bg-neutral-100 file:px-3 file:py-1.5 file:text-sm" />
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <Button type="button" variant="outline" className="h-11 sm:h-9" onClick={() => setOpen(false)}>
               გაუქმება
             </Button>
-            <Button type="submit" disabled={pending}>
+            <Button type="submit" className="h-11 sm:h-9" disabled={pending}>
               <Upload className="size-4" /> {pending ? "იტვირთება..." : "იმპორტი"}
             </Button>
           </div>

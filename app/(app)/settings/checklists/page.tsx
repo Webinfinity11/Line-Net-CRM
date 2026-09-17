@@ -27,7 +27,7 @@ export default async function ChecklistSettingsPage() {
         title={t.nav2.checklists}
         subtitle="შაბლონი ავტომატურად ემატება ახალ შეკვეთას სისტემის მიხედვით. სავალდებულო პუნქტების გარეშე ჩაბარება არ დაიშვება."
         actions={
-          <FormDialog trigger={<Button />} triggerLabel={<><Plus className="size-4" /> ახალი შაბლონი</>} title="ახალი შაბლონი" action={createTemplate} submitLabel={t.common.create}>
+          <FormDialog trigger={<Button className="h-10 sm:h-9" />} triggerLabel={<><Plus className="size-4" /> ახალი შაბლონი</>} title="ახალი შაბლონი" action={createTemplate} submitLabel={t.common.create}>
             <TemplateFields />
           </FormDialog>
         }

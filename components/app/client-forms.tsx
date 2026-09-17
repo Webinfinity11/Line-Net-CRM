@@ -1,14 +1,16 @@
 "use client";
 
+import { formFields } from "@/components/app/section-card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { Client, Site } from "@/db/schema";
 import { LocationPicker } from "./location-picker";
+import { cn } from "@/lib/utils";
 
 export function ClientFields({ initial }: { initial?: Partial<Client> }) {
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
+    <div className={cn("grid gap-3 sm:grid-cols-2", formFields)}>
       <div className="space-y-1.5 sm:col-span-2">
         <Label htmlFor="name">კომპანია *</Label>
         <Input id="name" name="name" required defaultValue={initial?.name ?? ""} placeholder="შპს ..." />
@@ -39,7 +41,7 @@ export function ClientFields({ initial }: { initial?: Partial<Client> }) {
 
 export function SiteFields({ clientId, initial }: { clientId: number; initial?: Partial<Site> }) {
   return (
-    <div className="grid gap-3">
+    <div className={cn("grid gap-3", formFields)}>
       <input type="hidden" name="clientId" value={clientId} />
       <div className="space-y-1.5">
         <Label htmlFor="site-name">ობიექტის სახელი *</Label>

@@ -1,15 +1,17 @@
 "use client";
 
+import { formFields } from "@/components/app/section-card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
 import type { SiteEquipment } from "@/db/schema";
 import { SYSTEM_LABELS, SYSTEM_ORDER } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
 
 export function EquipmentFields({ siteId, initial }: { siteId: number; initial?: Partial<SiteEquipment> }) {
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
+    <div className={cn("grid gap-3 sm:grid-cols-2", formFields)}>
       <input type="hidden" name="siteId" value={siteId} />
       <div className="space-y-1.5 sm:col-span-2">
         <Label htmlFor="e-name">მოწყობილობა *</Label>

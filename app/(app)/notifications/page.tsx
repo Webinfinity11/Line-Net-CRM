@@ -28,7 +28,7 @@ export default async function NotificationsPage() {
   ].filter((g) => g.rows.length > 0);
 
   return (
-    <div className="mx-auto max-w-3xl space-y-4">
+    <div className="max-w-3xl space-y-4">
       <PageHeader
         title={t.nav2.notifications}
         subtitle={unread ? `${unread} წაუკითხავი` : "ყველა წაკითხულია"}

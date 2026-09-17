@@ -69,11 +69,12 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
   const plannedEndAt = order.scheduledAt ? plannedEnd(order.scheduledAt, order.plannedMinutes) : null;
 
   return (
-    <div className="space-y-4">
+    // extra bottom room on a phone: the action bar floats above the bottom navigation
+    <div className="space-y-4 pb-[104px] md:pb-0">
       {!staff && <MarkSeen orderId={order.id} />}
 
       {/* Summary header: status, people, place, time, next action */}
-      <div className="rounded-2xl border bg-white p-4 dark:bg-neutral-900 md:p-5">
+      <div className="ln-card p-4 md:p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             <div className="mb-1.5 flex flex-wrap items-center gap-2">
@@ -90,8 +91,8 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
                 </span>
               )}
             </div>
-            <h1 className="text-xl font-semibold leading-snug break-words md:text-2xl">{order.title}</h1>
-            <dl className="mt-3 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2 xl:grid-cols-4">
+            <h1 className="font-heading text-[19px] font-bold leading-snug break-words tracking-[-0.01em] md:text-[24px]">{order.title}</h1>
+            <dl className="mt-3 grid gap-x-6 gap-y-2.5 text-[13px] sm:grid-cols-2 sm:text-sm xl:grid-cols-4">
               <div className="flex items-start gap-2">
                 <Building2 className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
                 <div className="min-w-0">
@@ -150,12 +151,12 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
               </div>
             </dl>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Button render={<Link href={`/orders/${order.id}/sheet`} target="_blank" />} variant="outline" size="sm">
+          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+            <Button render={<Link href={`/orders/${order.id}/sheet`} target="_blank" />} variant="outline" size="sm" className="h-10 flex-1 sm:h-8 sm:flex-none">
               <Printer className="size-3.5" /> სამუშაო ფურცელი
             </Button>
             {staff && !readOnly && (
-              <Button render={<Link href={`/orders/${order.id}/edit`} />} variant="outline" size="sm">
+              <Button render={<Link href={`/orders/${order.id}/edit`} />} variant="outline" size="sm" className="h-10 flex-1 sm:h-8 sm:flex-none">
                 <Pencil className="size-3.5" /> {t.common.edit}
               </Button>
             )}
@@ -166,7 +167,7 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
       <StatusActions orderId={order.id} status={order.status} role={me.role} isAssignee={isAssignee} requiredLeft={requiredLeft} needsPhoto={needsPhoto} />
 
       <div className="grid gap-4 lg:grid-cols-3">
-        {/* Work column */}
+        {/* Work first, money after it: the technician never needs the finance block. */}
         <div className="space-y-4 lg:col-span-2">
           <Card>
             <CardHeader className="pb-1">
@@ -208,6 +209,9 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
 
           <Materials orderId={order.id} materials={order.materials} financeVisible={financeVisible} meId={me.id} amount={order.amount} readOnly={readOnly} />
 
+          <Attachments orderId={order.id} attachments={order.attachments} canDelete={staff && !readOnly} />
+          <Comments orderId={order.id} comments={order.comments} meId={me.id} />
+
           {financeVisible && (
             <Payments
               orderId={order.id}
@@ -222,11 +226,9 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
             />
           )}
 
-          <Attachments orderId={order.id} attachments={order.attachments} canDelete={staff && !readOnly} />
-          <Comments orderId={order.id} comments={order.comments} meId={me.id} />
         </div>
 
-        {/* Side column */}
+        {/* Side column: reference material, so it follows the work on a phone */}
         <div className="space-y-4">
           <Card>
             <CardHeader className="pb-1">

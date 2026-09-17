@@ -38,6 +38,66 @@ export type OrderRow = {
 
 const firstName = (n: string) => n.split(" ")[0];
 
+/** Row actions, shared by the desktop table and the phone cards. */
+function RowMenu({ o, onAssign }: { o: OrderRow; onAssign: (o: OrderRow) => void }) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" aria-label={`${o.number} მოქმედებები`} />}>
+        <MoreHorizontal className="size-4" />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-48">
+        <DropdownMenuGroup>
+          <DropdownMenuItem render={<Link href={`/orders/${o.id}`} />}>
+            <SquareArrowOutUpRight className="size-4" /> გახსნა
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onAssign(o)}>
+            <UserPlus className="size-4" /> დანიშვნა
+          </DropdownMenuItem>
+          <DropdownMenuItem render={<Link href={`/orders/${o.id}/edit`} />}>
+            <Pencil className="size-4" /> რედაქტირება
+          </DropdownMenuItem>
+          <DropdownMenuItem render={<a href={`/orders/${o.id}/sheet`} target="_blank" rel="noreferrer" />}>
+            <FileText className="size-4" /> სამუშაო ფურცელი
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+/** Phone row: one tappable card, no horizontal scrolling, actions in the thumb zone. */
+function OrderCardRow({ o, onAssign }: { o: OrderRow; onAssign: (o: OrderRow) => void }) {
+  const lead = o.assignees[0];
+  return (
+    <li className="relative border-t border-[#eef1f6] first:border-t-0">
+      <Link href={`/orders/${o.id}`} className="block px-4 py-3.5 pr-12 active:bg-[#f8faff]">
+        <span className="flex items-start gap-2">
+          <span className="min-w-0 flex-1">
+            <span className="block text-[15px] font-semibold leading-snug text-foreground">{o.title}</span>
+            <span className="mt-1 block truncate text-[12.5px] text-muted-foreground">
+              {o.number}
+              {o.client ? ` · ${o.client}` : ""}
+              {o.site ? ` · ${o.site}` : ""}
+            </span>
+          </span>
+          {o.priority === "urgent" && <span className="mt-0.5 shrink-0 text-[11px] font-semibold text-[#b13f32]">სასწრაფო</span>}
+        </span>
+        <span className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[12.5px]">
+          <StatusBadge status={o.status} />
+          <span className={cn("text-muted-foreground", o.overdue && "font-semibold text-[#b13f32]")}>
+            {o.dueLabel ? `ვადა ${o.dueLabel}` : "ვადის გარეშე"}
+          </span>
+          <span className="text-muted-foreground">{lead ? firstName(lead.name) : "დაუნიშნავი"}</span>
+          {o.amount && <span className="tabular ml-auto font-medium text-foreground">{formatMoney(o.amount)}</span>}
+        </span>
+      </Link>
+      <span className="absolute right-2 top-2.5">
+        <RowMenu o={o} onAssign={onAssign} />
+      </span>
+    </li>
+  );
+}
+
 export function OrdersTable({
   rows,
   executors,
@@ -79,7 +139,7 @@ export function OrdersTable({
   return (
     <div className="space-y-2">
       {selected.size > 0 && (
-        <div className="sticky top-[68px] z-10 flex flex-wrap items-center gap-3 rounded-lg border border-[#dbe3fd] bg-[#eef2ff] px-4 py-2 text-[12px] text-[#3457d5]">
+        <div className="sticky top-[68px] z-10 hidden flex-wrap items-center gap-3 sm:flex rounded-lg border border-[#dbe3fd] bg-[#eef2ff] px-4 py-2 text-[12px] text-[#3457d5]">
           <span className="font-medium">არჩეულია {selected.size}</span>
           <Button size="sm" onClick={() => setBulkOpen(true)}>
             <UserPlus className="size-3.5" /> ჯგუფური დანიშვნა
@@ -94,7 +154,13 @@ export function OrdersTable({
         {rows.length === 0 ? (
           <p className="p-10 text-center text-[13px] text-muted-foreground">{t.common.noResults}</p>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          <ul className="sm:hidden">
+            {rows.map((o) => (
+              <OrderCardRow key={o.id} o={o} onAssign={setAssignRow} />
+            ))}
+          </ul>
+          <div className="hidden overflow-x-auto sm:block">
             <table className="w-full text-[13px]">
               <thead className="bg-[#fbfcfe]">
                 <tr>
@@ -177,27 +243,7 @@ export function OrdersTable({
                         {o.amount && <PaymentBadge status={o.paymentStatus} className="mt-0.5 px-1.5 py-0 text-[10px]" />}
                       </td>
                       <td className="px-2 py-[14px] text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" aria-label={`${o.number} მოქმედებები`} />}>
-                            <MoreHorizontal className="size-4" />
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-48">
-                            <DropdownMenuGroup>
-                              <DropdownMenuItem render={<Link href={`/orders/${o.id}`} />}>
-                                <SquareArrowOutUpRight className="size-4" /> გახსნა
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => setAssignRow(o)}>
-                                <UserPlus className="size-4" /> დანიშვნა
-                              </DropdownMenuItem>
-                              <DropdownMenuItem render={<Link href={`/orders/${o.id}/edit`} />}>
-                                <Pencil className="size-4" /> რედაქტირება
-                              </DropdownMenuItem>
-                              <DropdownMenuItem render={<a href={`/orders/${o.id}/sheet`} target="_blank" rel="noreferrer" />}>
-                                <FileText className="size-4" /> სამუშაო ფურცელი
-                              </DropdownMenuItem>
-                            </DropdownMenuGroup>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        <RowMenu o={o} onAssign={setAssignRow} />
                       </td>
                     </tr>
                   );
@@ -205,6 +251,7 @@ export function OrdersTable({
               </tbody>
             </table>
           </div>
+          </>
         )}
         {pages > 1 && (
           <nav className="flex items-center justify-end gap-2 border-t border-[#eef1f6] px-4 py-2.5 text-[12px]" aria-label="გვერდები">

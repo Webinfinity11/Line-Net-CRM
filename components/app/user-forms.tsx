@@ -1,15 +1,17 @@
 "use client";
 
+import { formFields } from "@/components/app/section-card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import type { User } from "@/db/schema";
 import { ROLE_LABELS, SYSTEM_LABELS, SYSTEM_ORDER } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
 
 export function UserFields({ initial }: { initial?: Partial<User> }) {
   const editing = Boolean(initial?.id);
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
+    <div className={cn("grid gap-3 sm:grid-cols-2", formFields)}>
       <div className="space-y-1.5 sm:col-span-2">
         <Label htmlFor="u-name">სახელი, გვარი *</Label>
         <Input id="u-name" name="name" required defaultValue={initial?.name ?? ""} />

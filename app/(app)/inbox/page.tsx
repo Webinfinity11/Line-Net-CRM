@@ -73,8 +73,8 @@ export default async function InboxPage({ searchParams }: PageProps<"/inbox">) {
                 </div>
                 {o.description && <p className="mt-2 line-clamp-2 text-[12.5px] text-[#566b7d]">{o.description}</p>}
               </div>
-              <div className="flex shrink-0 flex-wrap gap-2">
-                <Button render={<Link href={`/orders/${o.id}/edit`} />} size="sm">
+              <div className="flex w-full shrink-0 flex-wrap gap-2 sm:w-auto">
+                <Button render={<Link href={`/orders/${o.id}/edit`} />} size="sm" className="h-11 flex-1 sm:h-8 sm:flex-none">
                   დამუშავება
                 </Button>
                 <ConfirmButton
@@ -83,6 +83,7 @@ export default async function InboxPage({ searchParams }: PageProps<"/inbox">) {
                   confirmLabel="გაუქმება"
                   variant="outline"
                   size="sm"
+                  className="h-11 flex-1 sm:h-8 sm:flex-none"
                   action={setStatus.bind(null, o.id, "cancelled")}
                 >
                   არ არის შეკვეთა

@@ -15,7 +15,7 @@ export function MailSyncStatus({ state, canManage }: { state: MailSyncState; can
   const router = useRouter();
   const [pending, start] = useTransition();
   const connectButton = (
-    <Button size="sm" disabled={pending || !state.canConnect} onClick={() => start(() => connectOutlook())}>
+    <Button size="sm" className="h-11 w-full sm:h-8 sm:w-auto" disabled={pending || !state.canConnect} onClick={() => start(() => connectOutlook())}>
       <Mail className="size-4" /> {state.configured ? "ხელახლა დაკავშირება" : "Outlook ფოსტის დაკავშირება"}
     </Button>
   );
@@ -29,7 +29,7 @@ export function MailSyncStatus({ state, canManage }: { state: MailSyncState; can
             <p className="text-[12.5px] text-muted-foreground">შეგიძლიათ გამოიყენოთ უფასო Outlook.com ან Hotmail ფოსტა — Microsoft 365-ის ფასიანი გამოწერა საჭირო არ არის.</p>
             <p className="text-[11.5px] text-muted-foreground">პირველად დაკავშირების შემდეგ მიღებული წერილები შეიქმნება დაუმუშავებელ შეკვეთებად და ხელმისაწვდომი იქნება CRM-ის ადმინისტრატორებისა და მენეჯერებისთვის.</p>
           </div>
-          {canManage && connectButton}
+          <div className="w-full sm:w-auto">{canManage && connectButton}</div>
         </div>
         {!state.canConnect && <p className="mt-3 text-[11.5px] text-[#96610b]">კავშირი ჯერ მოსამზადებელია — Microsoft-ის აპლიკაციის პარამეტრები არ არის გამართული.</p>}
         {!canManage && <p className="mt-3 text-[11.5px] text-muted-foreground">დაკავშირებისთვის მიმართეთ CRM-ის ადმინისტრატორს.</p>}
@@ -45,8 +45,8 @@ export function MailSyncStatus({ state, canManage }: { state: MailSyncState; can
           <p className="text-[11.5px] text-muted-foreground">ბოლო შემოწმება: {state.lastRunAt ? formatDate(state.lastRunAt, true) : "ჯერ არ შემოწმებულა"}</p>
           <p className="text-[11.5px] text-muted-foreground">{state.automatic ? "ავტომატური შემოწმება ყოველ 5 წუთში, სერვერის მუშაობისას." : "ავტომატური შემოწმება გამორთულია. გამოიყენეთ „შემოწმება ახლა“."}</p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button size="sm" variant="outline" disabled={pending} onClick={() => start(async () => {
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+          <Button size="sm" variant="outline" className="h-11 flex-1 sm:h-8 sm:flex-none" disabled={pending} onClick={() => start(async () => {
             const res = await pollMailNow();
             if (!res.ok) toast.error(res.error);
             else toast.success(`შემოწმდა: ${res.data!.fetched} წერილი, ${res.data!.created} ახალი`);

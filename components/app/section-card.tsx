@@ -1,7 +1,15 @@
 import type { LucideIcon } from "lucide-react";
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { toMtavruli } from "@/lib/mtavruli";
 import { cn } from "@/lib/utils";
+
+/**
+ * Phone sizing for form fields: comfortable touch targets below `sm`, dense on desktop.
+ * Put it on the wrapper that holds the inputs.
+ */
+export const formFields =
+  "[&_input:not([type=checkbox]):not([type=radio])]:h-11 [&_select]:h-11 [&_[data-slot=native-select-wrapper]]:w-full sm:[&_input:not([type=checkbox]):not([type=radio])]:h-8 sm:[&_select]:h-8";
 
 /** Shared table classes so every secondary page reads the same way. */
 export const tableCls = {
@@ -48,6 +56,51 @@ export function SectionCard({
       </div>
       <div className={bodyClassName}>{children}</div>
     </section>
+  );
+}
+
+/**
+ * Phone list: the same rows a table shows on desktop, as readable cards.
+ * Pair it with a `hidden sm:block` table so each viewport gets the right shape.
+ */
+export function DataList({ children, className }: { children: ReactNode; className?: string }) {
+  return <ul className={cn("divide-y divide-[#eef1f6] sm:hidden", className)}>{children}</ul>;
+}
+
+/** One row of a DataList: title with optional link, meta lines, a right-hand value and optional actions. */
+export function DataRow({
+  href,
+  title,
+  meta,
+  right,
+  actions,
+}: {
+  href?: string;
+  title: ReactNode;
+  meta?: ReactNode;
+  right?: ReactNode;
+  actions?: ReactNode;
+}) {
+  const head = (
+    <div className="flex items-start justify-between gap-3">
+      <div className="min-w-0 flex-1">
+        <div className="text-[14px] font-medium leading-snug text-foreground">{title}</div>
+        {meta ? <div className="mt-1 space-y-0.5 text-[12px] text-muted-foreground">{meta}</div> : null}
+      </div>
+      {right ? <div className="shrink-0 text-right text-[12.5px]">{right}</div> : null}
+    </div>
+  );
+  return (
+    <li className="py-3.5 first:pt-0 last:pb-0">
+      {href ? (
+        <Link href={href} className="block min-h-[44px] rounded-[12px] transition-colors active:bg-[#f8faff]">
+          {head}
+        </Link>
+      ) : (
+        head
+      )}
+      {actions ? <div className="mt-3 flex flex-wrap gap-2">{actions}</div> : null}
+    </li>
   );
 }
 

@@ -1,7 +1,7 @@
 import { Building2, Download, HardHat, Layers, TrendingUp } from "lucide-react";
 import { SystemBadge } from "@/components/app/badges";
 import { PageHeader } from "@/components/app/page-header";
-import { EmptyState, SectionCard, tableCls } from "@/components/app/section-card";
+import { DataList, DataRow, EmptyState, SectionCard, tableCls } from "@/components/app/section-card";
 import { Button } from "@/components/ui/button";
 import { formatMoney, t } from "@/lib/i18n";
 import { defaultPeriod, reportByClient, reportByExecutor, reportBySystem, reportMonthly, type Period } from "@/lib/reports";
@@ -42,23 +42,25 @@ export default async function ReportsPage({ searchParams }: PageProps<"/reports"
         actions={<ExportButton type="orders" p={p} label="შეკვეთები Excel" />}
       />
 
-      <form method="get" className="ln-enter ln-card flex flex-wrap items-end gap-3 p-4">
-        <div className="space-y-1.5">
-          <label htmlFor="from" className="block text-[11px] text-muted-foreground">
-            დაწყება
-          </label>
-          <input id="from" type="date" name="from" defaultValue={p.from} className="h-9 rounded-lg border border-[#e6ebf2] bg-white px-3 text-[13px] outline-none focus:border-[#7f97e6]" />
+      <form method="get" className="ln-enter ln-card grid gap-3 p-4 sm:flex sm:flex-wrap sm:items-end">
+        <div className="grid grid-cols-2 gap-3 sm:contents">
+          <div className="space-y-1.5">
+            <label htmlFor="from" className="block text-[11px] text-muted-foreground">
+              დაწყება
+            </label>
+            <input id="from" type="date" name="from" defaultValue={p.from} className="h-11 w-full rounded-lg border border-[#e6ebf2] bg-white px-3 text-[16px] outline-none focus:border-[#7f97e6] sm:h-9 sm:w-auto sm:text-[13px]" />
+          </div>
+          <div className="space-y-1.5">
+            <label htmlFor="to" className="block text-[11px] text-muted-foreground">
+              დასრულება
+            </label>
+            <input id="to" type="date" name="to" defaultValue={p.to} className="h-11 w-full rounded-lg border border-[#e6ebf2] bg-white px-3 text-[16px] outline-none focus:border-[#7f97e6] sm:h-9 sm:w-auto sm:text-[13px]" />
+          </div>
         </div>
-        <div className="space-y-1.5">
-          <label htmlFor="to" className="block text-[11px] text-muted-foreground">
-            დასრულება
-          </label>
-          <input id="to" type="date" name="to" defaultValue={p.to} className="h-9 rounded-lg border border-[#e6ebf2] bg-white px-3 text-[13px] outline-none focus:border-[#7f97e6]" />
-        </div>
-        <Button type="submit" size="sm">
+        <Button type="submit" size="sm" className="h-11 w-full sm:h-8 sm:w-auto">
           ჩვენება
         </Button>
-        <p className="ml-auto text-[11px] text-muted-foreground">
+        <p className="text-[11px] text-muted-foreground sm:ml-auto">
           {byClient.length} კლიენტი · {byExecutor.length} შემსრულებელი
         </p>
       </form>
@@ -70,7 +72,23 @@ export default async function ReportsPage({ searchParams }: PageProps<"/reports"
               <EmptyState icon={Building2} message="ამ პერიოდში მონაცემები არ არის." />
             </div>
           ) : (
-            <div className={tableCls.scroll}>
+            <>
+            <DataList className="px-6 pb-4">
+              {byClient.map((r) => (
+                <DataRow
+                  key={r.clientId}
+                  title={r.client}
+                  meta={`${r.total} შეკვეთა · ${r.completed} შესრულებული`}
+                  right={
+                    <>
+                      <div className="tabular font-medium">{formatMoney(r.amount)}</div>
+                      {r.unpaid > 0 && <div className="tabular text-[11.5px] text-[#b13f32]">{formatMoney(r.unpaid)}</div>}
+                    </>
+                  }
+                />
+              ))}
+            </DataList>
+            <div className={cn(tableCls.scroll, "hidden sm:block")}>
               <table className={tableCls.table}>
                 <thead className={tableCls.head}>
                   <tr>
@@ -103,6 +121,7 @@ export default async function ReportsPage({ searchParams }: PageProps<"/reports"
                 </tfoot>
               </table>
             </div>
+            </>
           )}
         </SectionCard>
 
@@ -112,7 +131,18 @@ export default async function ReportsPage({ searchParams }: PageProps<"/reports"
               <EmptyState icon={HardHat} message="ამ პერიოდში მონაცემები არ არის." />
             </div>
           ) : (
-            <div className={tableCls.scroll}>
+            <>
+            <DataList className="px-6 pb-4">
+              {byExecutor.map((r) => (
+                <DataRow
+                  key={r.userId}
+                  title={r.name}
+                  meta={`${r.total} შეკვეთა · ${r.completed} შესრულებული`}
+                  right={r.overdue > 0 ? <span className="font-medium text-[#b13f32]">{r.overdue} ვადაგად.</span> : <span className="text-muted-foreground">—</span>}
+                />
+              ))}
+            </DataList>
+            <div className={cn(tableCls.scroll, "hidden sm:block")}>
               <table className={tableCls.table}>
                 <thead className={tableCls.head}>
                   <tr>
@@ -134,6 +164,7 @@ export default async function ReportsPage({ searchParams }: PageProps<"/reports"
                 </tbody>
               </table>
             </div>
+            </>
           )}
         </SectionCard>
 
@@ -143,7 +174,23 @@ export default async function ReportsPage({ searchParams }: PageProps<"/reports"
               <EmptyState icon={Layers} message="ამ პერიოდში მონაცემები არ არის." />
             </div>
           ) : (
-            <div className={tableCls.scroll}>
+            <>
+            <DataList className="px-6 pb-4">
+              {bySystem.map((r, i) => (
+                <DataRow
+                  key={r.system ?? `none-${i}`}
+                  title={r.system ? <SystemBadge system={r.system} /> : <span className="text-muted-foreground">მიუთითებელი</span>}
+                  meta={`${r.total} შეკვეთა · ${r.completed} შესრულებული`}
+                  right={
+                    <>
+                      <div className="tabular font-medium">{formatMoney(r.amount)}</div>
+                      <div className="tabular text-[11.5px] text-[#25815a]">{formatMoney(r.paid)}</div>
+                    </>
+                  }
+                />
+              ))}
+            </DataList>
+            <div className={cn(tableCls.scroll, "hidden sm:block")}>
               <table className={tableCls.table}>
                 <thead className={tableCls.head}>
                   <tr>
@@ -176,11 +223,30 @@ export default async function ReportsPage({ searchParams }: PageProps<"/reports"
                 </tfoot>
               </table>
             </div>
+            </>
           )}
         </SectionCard>
 
         <SectionCard title="თვის ფინანსური" icon={TrendingUp} aside="12 თვე" action={<ExportButton type="monthly" />} bodyClassName="-mx-6 -mb-6">
-          <div className={tableCls.scroll}>
+          <DataList className="px-6 pb-4">
+            {monthly.months.map((m) => {
+              const [y, mo] = m.month.split("-");
+              return (
+                <DataRow
+                  key={m.month}
+                  title={`${MONTHS[Number(mo) - 1]} ${y}`}
+                  meta={`${m.created} შეკვეთა · ${m.completed} შესრულებული`}
+                  right={
+                    <>
+                      <div className="tabular text-[#25815a]">{formatMoney(m.revenue)}</div>
+                      <div className={cn("tabular text-[11.5px]", m.profit < 0 ? "text-[#b13f32]" : "text-muted-foreground")}>{formatMoney(m.profit)}</div>
+                    </>
+                  }
+                />
+              );
+            })}
+          </DataList>
+          <div className={cn(tableCls.scroll, "hidden sm:block")}>
             <table className={tableCls.table}>
               <thead className={tableCls.head}>
                 <tr>
