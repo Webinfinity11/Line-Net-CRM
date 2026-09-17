@@ -36,6 +36,8 @@ Spec: `docs/02-mvp-spec.md` (MVP) + `docs/04-phase-1.5-spec.md` (agreed addition
 - Contacts: a site carries its own `contact_name` / `contact_phone`; `orderContact()` in `lib/order-utils.ts` prefers it over the client-wide contact, and the order page, `/my`, the act and the quote PDF all go through it. A technician calls the branch, not the head office.
 - VAT: `orders.vat_percent` mirrors `quotes.vat_percent` and is copied on conversion. `orders.amount` is gross (VAT included) because payments are matched against it; `recomputeOrderAmount` applies the rate to the net lines. A rate of 0 hides every VAT row.
 - Finance: `order_payments` is the source of truth; `orders.paid_total`/`payment_status` are recomputed by `lib/payments.ts` inside the same transaction. Never set payment_status by hand. Executors get orders only through `getOrderForUser`/`listMyOrders`, which strip money fields on the server.
+- VAT: `orders.vat_percent` (default 0) mirrors `quotes.vat_percent` and is copied on conversion. `orders.amount` is the **gross** total — `recomputeOrderAmount` multiplies the line sum by the rate — so payments are matched against what the client owes. `vatBreakdown` in `lib/finance.ts` produces the net/VAT/gross rows for the order card and the handover act; a rate of 0 hides them.
+- Contacts: a site carries its own `contact_name`/`contact_phone` for branch networks. `orderContact` in `lib/order-utils.ts` resolves who to call — the branch wins over the company contact — and is used by the order page, the technician list, the act and the quote PDF. Never read `client.phone` directly for a call button.
 - Work flow: visits (`order_visits`, one open per executor+order) are separate from completion. `completeOrder` needs a note and is gated server-side by required checklist items and `requires_photo`. `done` → staff `closed` (verified). Closed orders are frozen except for admins.
 - Never export helpers from `actions/*.ts` ("use server" makes every export a public endpoint); put shared logic in `lib/*` with `server-only`.
 - Tests: `npm test` (vitest, pure logic in `tests/`).
@@ -43,7 +45,9 @@ Spec: `docs/02-mvp-spec.md` (MVP) + `docs/04-phase-1.5-spec.md` (agreed addition
 ## UI rendering rules
 - The Tailwind scale is px-based (`--spacing: 4px`, px text sizes, px breakpoints in `app/globals.css`). Some embedded browser panels force a large root/minimum font size; px keeps spacing stable. Do not reintroduce rem-based tokens.
 - `formatDate` / `formatMoney` in `lib/i18n.ts` are deterministic (manual formatting, Tbilisi timezone). Never use `toLocaleString`/`Intl` currency formatting in components: Node and browsers produce different output and React reports hydration mismatches.
-- Maps: `components/app/map-view.tsx` uses CARTO Positron raster tiles (free, keyless, retina via `{r}`), numbered `divIcon` pins with popups, `fadeAnimation: false` and a ResizeObserver-driven `invalidateSize`. Attribution for OSM and CARTO is required and already set.
+- Maps: `components/app/map-view.tsx` uses OpenStreetMap raster tiles (free, keyless), numbered `divIcon` pins with popups, `fadeAnimation: false` and a ResizeObserver-driven `invalidateSize`. CARTO tiles need an API key now; do not switch back. Optional Google Maps engine behind `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`.
+- Phone layouts: anything built on a time axis (the schedule timeline, the dashboard day strip) renders as a list below `sm`. The schedule week strip is `grid-cols-7` on phones so all seven days fit without a hidden horizontal scroll.
+- The deployment is public: `app/robots.ts` disallows every crawler and `next.config.ts` sends `X-Robots-Tag: noindex, nofollow`.
 
 ## Colour and type discipline
 - One accent (#3457d5) for primary actions and active state. Status chips use the muted family in `STATUS_COLORS`. Red (#b13f32) only for problems (overdue, unpaid, urgent). Green (#25815a) only for money received or success. Everything else is neutral grey.

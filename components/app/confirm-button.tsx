@@ -18,6 +18,7 @@ export function ConfirmButton({
   variant = "destructive",
   size = "sm",
   className,
+  ariaLabel,
 }: {
   children: ReactNode;
   title: string;
@@ -28,6 +29,8 @@ export function ConfirmButton({
   variant?: "destructive" | "outline" | "ghost" | "secondary" | "default";
   size?: "xs" | "sm" | "default";
   className?: string;
+  /** For icon-only triggers, which have no readable label of their own. */
+  ariaLabel?: string;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -48,7 +51,7 @@ export function ConfirmButton({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button variant={variant} size={size} className={className} />}>{children}</DialogTrigger>
+      <DialogTrigger render={<Button variant={variant} size={size} className={className} aria-label={ariaLabel} />}>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
