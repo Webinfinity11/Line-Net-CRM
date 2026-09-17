@@ -6,7 +6,7 @@ import { DashboardBoard } from "@/components/app/dashboard/board";
 import { SystemBars } from "@/components/app/dashboard/mini-charts";
 import { QuickCreate } from "@/components/app/dashboard/quick-create";
 import type { BoardOrder, TodayBlock } from "@/components/app/dashboard/types";
-import { MapView } from "@/components/app/map-view";
+import { MapView } from "@/components/app/map-switch";
 import { getMailSyncState } from "@/lib/graph-mail";
 import { STATUS_HEX, STATUS_LABELS, formatDate, formatMoney, t } from "@/lib/i18n";
 import { toMtavruli } from "@/lib/mtavruli";

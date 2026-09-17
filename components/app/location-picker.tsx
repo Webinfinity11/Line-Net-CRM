@@ -3,7 +3,7 @@
 import { MapPin, X } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { MapView } from "./map-view";
+import { MapView } from "./map-switch";
 
 export function LocationPicker({ lat, lng }: { lat?: string | number | null; lng?: string | number | null }) {
   const [pos, setPos] = useState<{ lat: number; lng: number } | null>(
@@ -39,7 +39,7 @@ export function LocationPicker({ lat, lng }: { lat?: string | number | null; lng
           center={pos ? [pos.lat, pos.lng] : undefined}
           zoom={pos ? 15 : 12}
           height={220}
-          onPick={(la, ln) => setPos({ lat: la, lng: ln })}
+          onPick={(la: number, ln: number) => setPos({ lat: la, lng: ln })}
         />
       )}
     </div>

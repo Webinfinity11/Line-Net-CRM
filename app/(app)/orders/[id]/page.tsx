@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { deleteOrder } from "@/actions/orders";
 import { OverdueBadge, PriorityLabel, StatusBadge, SystemBadge, TypeBadge } from "@/components/app/badges";
 import { ConfirmButton } from "@/components/app/confirm-button";
-import { MapView } from "@/components/app/map-view";
+import { MapView } from "@/components/app/map-switch";
 import { AssigneesEditor } from "@/components/app/order-detail/assignees-editor";
 import { Attachments } from "@/components/app/order-detail/attachments";
 import { Checklist } from "@/components/app/order-detail/checklist";

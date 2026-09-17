@@ -4,19 +4,7 @@ import "leaflet/dist/leaflet.css";
 import type { Map as LeafletMap } from "leaflet";
 import { useEffect, useRef, useState } from "react";
 
-export type MapMarker = {
-  id: string | number;
-  lat: number;
-  lng: number;
-  /** short text inside the pin, e.g. "1" or "LN-00012" */
-  code?: string;
-  /** label shown next to the pin */
-  label?: string;
-  /** popup body (plain text) */
-  detail?: string;
-  color?: string;
-  href?: string;
-};
+import type { MapMarker } from "./map-types";
 
 async function loadLeaflet() {
   const mod = (await import("leaflet")) as unknown as { default?: typeof import("leaflet") } & typeof import("leaflet");
@@ -24,6 +12,7 @@ async function loadLeaflet() {
 }
 
 const TBILISI: [number, number] = [41.7151, 44.8271];
+/** OpenStreetMap: free and keyless. CARTO now watermarks its tiles without an API key. */
 const TILES = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
 const ATTR = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
 
@@ -31,7 +20,7 @@ function escapeHtml(s: string) {
   return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] ?? c);
 }
 
-export function MapView({
+export function LeafletMapView({
   markers,
   center,
   zoom = 12,

@@ -8,7 +8,7 @@ import { ClientFields, SiteFields } from "@/components/app/client-forms";
 import { ConfirmButton } from "@/components/app/confirm-button";
 import { EquipmentFields } from "@/components/app/equipment-forms";
 import { FormDialog } from "@/components/app/form-dialog";
-import { MapView } from "@/components/app/map-view";
+import { MapView } from "@/components/app/map-switch";
 import { PageHeader } from "@/components/app/page-header";
 import { Chip, EmptyState, SectionCard } from "@/components/app/section-card";
 import { Button } from "@/components/ui/button";
