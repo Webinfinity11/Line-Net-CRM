@@ -190,6 +190,7 @@ export async function getOrder(id: number) {
       attachments: { orderBy: [asc(sql`created_at`)] },
       events: { with: { user: { columns: { id: true, name: true } } }, orderBy: [desc(sql`created_at`)] },
       materials: { orderBy: [asc(sql`created_at`)] },
+      items: { orderBy: [asc(sql`created_at`)] },
       checklist: { with: { doneByUser: { columns: { id: true, name: true } } }, orderBy: [asc(sql`position`), asc(sql`id`)] },
       payments: { with: { creator: { columns: { id: true, name: true } } }, orderBy: [desc(sql`paid_at`), desc(sql`id`)] },
       visits: { with: { user: { columns: { id: true, name: true, image: true } } }, orderBy: [desc(sql`started_at`)] },
@@ -219,6 +220,7 @@ export async function getOrderForUser(id: number, u: SessionUser): Promise<{ ord
     paymentReviewNeeded: false,
     payments: [],
     materials: order.materials.map((m) => ({ ...m, unitCost: null })),
+    items: [], // billable lines carry prices: executors never see them
     events: order.events.filter((e) => !e.type.startsWith("payment")),
   };
   return { order: stripped, financeVisible: false };

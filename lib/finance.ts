@@ -48,3 +48,8 @@ export const PAYMENT_METHODS: Record<string, string> = {
   migration: "გადატანილი",
   other: "სხვა",
 };
+
+/** Sum of billable lines on an order. */
+export function itemsTotal(items: { quantity: string; unitPrice: string }[]): number {
+  return items.reduce((sum, i) => sum + Number(i.quantity) * Number(i.unitPrice), 0);
+}

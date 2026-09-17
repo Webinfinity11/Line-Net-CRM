@@ -217,6 +217,47 @@ export const orders = pgTable(
   ],
 );
 
+/**
+ * Service catalogue: what the company sells, with a price per unit.
+ * Managed from the admin panel; order lines copy the name/unit/price so a later
+ * price change never rewrites what a client was already charged.
+ */
+export const services = pgTable(
+  "services",
+  {
+    id: serial("id").primaryKey(),
+    name: text("name").notNull(),
+    systemType: systemTypeEnum("system_type"),
+    unit: text("unit").notNull().default("ცალი"),
+    price: numeric("price", { precision: 12, scale: 2 }).notNull().default("0"),
+    description: text("description"),
+    active: boolean("active").notNull().default(true),
+    sort: integer("sort").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("services_active_idx").on(t.active), index("services_system_idx").on(t.systemType)],
+);
+
+/** Billable lines on one order. The order total is recomputed from these. */
+export const orderItems = pgTable(
+  "order_items",
+  {
+    id: serial("id").primaryKey(),
+    orderId: integer("order_id")
+      .notNull()
+      .references(() => orders.id, { onDelete: "cascade" }),
+    serviceId: integer("service_id").references(() => services.id, { onDelete: "set null" }),
+    name: text("name").notNull(),
+    unit: text("unit").notNull().default("ცალი"),
+    quantity: numeric("quantity", { precision: 12, scale: 2 }).notNull().default("1"),
+    unitPrice: numeric("unit_price", { precision: 12, scale: 2 }).notNull().default("0"),
+    createdBy: text("created_by").references(() => user.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("order_items_order_idx").on(t.orderId)],
+);
+
 export const orderMaterials = pgTable(
   "order_materials",
   {
@@ -484,6 +525,7 @@ export const orderRelations = relations(orders, ({ one, many }) => ({
   attachments: many(orderAttachments),
   events: many(orderEvents),
   materials: many(orderMaterials),
+  items: many(orderItems),
   checklist: many(orderChecklistItems),
   payments: many(orderPayments),
   visits: many(orderVisits),
@@ -497,6 +539,11 @@ export const orderPaymentRelations = relations(orderPayments, ({ one }) => ({
 export const orderVisitRelations = relations(orderVisits, ({ one }) => ({
   order: one(orders, { fields: [orderVisits.orderId], references: [orders.id] }),
   user: one(user, { fields: [orderVisits.userId], references: [user.id] }),
+}));
+
+export const orderItemRelations = relations(orderItems, ({ one }) => ({
+  order: one(orders, { fields: [orderItems.orderId], references: [orders.id] }),
+  service: one(services, { fields: [orderItems.serviceId], references: [services.id] }),
 }));
 
 export const orderMaterialRelations = relations(orderMaterials, ({ one }) => ({
@@ -554,3 +601,6 @@ export type Notification = typeof notifications.$inferSelect;
 export type OrderPayment = typeof orderPayments.$inferSelect;
 export type OrderVisit = typeof orderVisits.$inferSelect;
 export type ChecklistTemplate = typeof checklistTemplates.$inferSelect;
+
+export type Service = typeof services.$inferSelect;
+export type OrderItem = typeof orderItems.$inferSelect;

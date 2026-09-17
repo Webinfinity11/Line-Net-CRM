@@ -11,6 +11,7 @@ import { Checklist } from "@/components/app/order-detail/checklist";
 import { Comments } from "@/components/app/order-detail/comments";
 import { MarkSeen } from "@/components/app/order-detail/mark-seen";
 import { Materials } from "@/components/app/order-detail/materials";
+import { OrderServices } from "@/components/app/order-detail/services";
 import { Payments } from "@/components/app/order-detail/payments";
 import { StatusActions } from "@/components/app/order-detail/status-actions";
 import { UserAvatar } from "@/components/app/user-avatar";
@@ -19,6 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PAYMENT_METHODS } from "@/lib/finance";
 import { EVENT_LABELS, PAYMENT_LABELS, STATUS_LABELS, formatDate, formatDuration, formatMoney, t } from "@/lib/i18n";
 import { listTemplates } from "@/lib/checklists";
+import { listActiveServices } from "@/lib/services";
 import { getOrderForUser, listAssignableUsers, plannedMinutesByUser } from "@/lib/orders";
 import { AssignDialog } from "@/components/app/assign-form";
 import { getWorkHoursPerDay } from "@/lib/settings";
@@ -58,7 +60,7 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
   const staff = isStaff(me.role);
   const isAssignee = order.assignees.some((a) => a.userId === me.id);
   const readOnly = order.status === "closed" && me.role !== "admin";
-  const [users, templates, plannedToday, normHours] = await Promise.all([staff ? listAssignableUsers() : Promise.resolve([]), staff ? listTemplates() : Promise.resolve([]), staff ? plannedMinutesByUser(tbilisiToday()) : Promise.resolve({} as Record<string, number>), getWorkHoursPerDay()]);
+  const [users, templates, plannedToday, normHours, catalogue] = await Promise.all([staff ? listAssignableUsers() : Promise.resolve([]), staff ? listTemplates() : Promise.resolve([]), staff ? plannedMinutesByUser(tbilisiToday()) : Promise.resolve({} as Record<string, number>), getWorkHoursPerDay(), staff ? listActiveServices() : Promise.resolve([])]);
   const executorOptions = users.filter((u) => u.role === "executor").map((u) => ({ id: u.id, name: u.name, image: u.image, specializations: u.specializations ?? [], hours: Math.round(((plannedToday[u.id] ?? 0) / 60) * 10) / 10 }));
   const overdue = isOverdue(order);
   const siteCoords = order.site?.lat && order.site?.lng ? { lat: Number(order.site.lat), lng: Number(order.site.lng) } : null;
@@ -206,6 +208,8 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
             readOnly={readOnly}
           />
 
+
+          {financeVisible && <OrderServices orderId={order.id} items={order.items} catalogue={catalogue} readOnly={readOnly} />}
 
           <Materials orderId={order.id} materials={order.materials} financeVisible={financeVisible} meId={me.id} amount={order.amount} readOnly={readOnly} />
 
