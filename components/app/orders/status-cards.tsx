@@ -57,7 +57,7 @@ export function StatusCards({
             href={hrefFor(c.key)}
             aria-current={activeStatus === c.key ? "page" : undefined}
             className={cn(
-              "overflow-hidden rounded-xl border border-[#e6ebf2] bg-white transition-[box-shadow,border-color] duration-150 hover:border-[#c9d3e3] hover:shadow-[0_4px_14px_rgba(38,57,104,0.06)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3457d5]",
+              "overflow-hidden ln-card transition-[box-shadow,border-color] duration-150 hover:border-[#c9d3e3] hover:shadow-[0_4px_14px_rgba(38,57,104,0.06)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3457d5]",
               activeStatus === c.key && "border-[#3457d5] ring-2 ring-[#3457d5]",
             )}
           >

@@ -33,10 +33,10 @@ export function NavLinks({
             href={item.href}
             onClick={onNavigate}
             className={cn(
-              "flex items-center gap-2.5 rounded-md px-2.5 py-2 text-[13px] transition-colors duration-150",
+              "flex items-center gap-2.5 rounded-full px-3 py-2 text-[13px] transition-colors duration-150",
               active
-                ? "bg-[#eef2ff] font-medium text-[#3457d5] shadow-[inset_3px_0_0_#3457d5] dark:bg-blue-950/40 dark:text-blue-200"
-                : "text-[#4a5a6c] hover:bg-[#f3f6fb] hover:text-[#17212b] dark:text-neutral-300 dark:hover:bg-neutral-800",
+                ? "bg-[#eef2ff] font-medium text-[#3457d5] dark:bg-blue-950/40 dark:text-blue-200"
+                : "text-[#4a5a6c] hover:bg-[#f1f4f9] hover:text-[#17212b] dark:text-neutral-300 dark:hover:bg-neutral-800",
             )}
           >
             <Icon className="size-4 shrink-0 [stroke-width:1.7]" />
@@ -67,12 +67,12 @@ export function SidebarFooter({ user, onNavigate }: { user: SessionUser; onNavig
     router.refresh();
   }
   return (
-    <div className="border-t p-3">
+    <div className="p-3">
       <Link
         href="/profile"
         onClick={onNavigate}
         className={cn(
-          "flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm transition-colors",
+          "flex items-center gap-2.5 rounded-full px-3 py-2 text-sm transition-colors",
           pathname === "/profile" ? "bg-[#eef2ff] text-[#3457d5]" : "text-[#4a5a6c] hover:bg-[#f3f6fb] hover:text-[#17212b]",
         )}
       >
@@ -85,7 +85,7 @@ export function SidebarFooter({ user, onNavigate }: { user: SessionUser; onNavig
       <button
         type="button"
         onClick={logout}
-        className="mt-1 flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-sm text-[#4a5a6c] transition-colors hover:bg-[#fff1ed] hover:text-[#a73b2d] focus-visible:outline-2 focus-visible:outline-[#3457d5]"
+        className="mt-1 flex w-full items-center gap-2.5 rounded-full px-3 py-2 text-sm text-[#4a5a6c] transition-colors hover:bg-[#fff1ed] hover:text-[#a73b2d] focus-visible:outline-2 focus-visible:outline-[#3457d5]"
       >
         <LogOut className="size-4 shrink-0" />
         <span className="font-heading uppercase tracking-wide">{t.nav.logout}</span>
@@ -96,7 +96,7 @@ export function SidebarFooter({ user, onNavigate }: { user: SessionUser; onNavig
 
 export function Sidebar(props: { user: SessionUser; inboxCount: number; unseenCount: number }) {
   return (
-    <aside className="sticky top-0 hidden h-screen w-[212px] shrink-0 flex-col border-r border-[#e6ebf2] bg-white dark:bg-neutral-900 md:flex">
+    <aside className="sticky top-0 hidden h-screen w-[212px] shrink-0 flex-col bg-white dark:bg-neutral-900 md:flex">
       <div className="flex h-16 items-center gap-2.5 px-4">
         <div className="flex size-8 items-center justify-center rounded-[10px] bg-[#3457d5] font-heading text-xs font-bold text-white shadow-[0_3px_7px_rgba(52,87,213,0.14)]">LN</div>
         <div className="leading-tight">

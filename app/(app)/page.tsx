@@ -137,9 +137,9 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
           />
         </div>
 
-        <section className="rounded-[20px] border border-border bg-white p-5" aria-label="კვირის დინამიკა">
+        <section className="ln-card p-[22px]" aria-label="კვირის დინამიკა">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-            <h3 className="font-heading text-[15px] font-medium">{toMtavruli("კვირის დინამიკა")}</h3>
+            <h3 className="font-heading text-[16px] font-semibold">{toMtavruli("კვირის დინამიკა")}</h3>
             <span className="text-[11.5px] text-muted-foreground">ბოლო 7 დღე · შექმნილი და შესრულებული</span>
           </div>
           <WeeklyBars data={s.weekly} height={236} />
@@ -165,9 +165,9 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
           icon={CircleCheck}
           tone={{ bg: "#eaf6ef", fg: "#25815a" }}
         />
-        <section className="rounded-[20px] border border-border bg-white p-5" aria-label="შეკვეთები სტატუსებით">
+        <section className="ln-card p-[22px]" aria-label="შეკვეთები სტატუსებით">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <h3 className="font-heading text-[15px] font-medium">{toMtavruli("შეკვეთები სტატუსებით")}</h3>
+            <h3 className="font-heading text-[16px] font-semibold">{toMtavruli("შეკვეთები სტატუსებით")}</h3>
             <span className="text-[11.5px] text-muted-foreground">{rangeDef.period}</span>
           </div>
           {donutTotal === 0 ? <p className="py-10 text-center text-[12.5px] text-muted-foreground">ამ პერიოდში შეკვეთა არ არის</p> : <StatusDonut data={donut} total={donutTotal} />}
@@ -186,9 +186,9 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
         money={{ paid: s.money.paid, unpaid: s.money.unpaid, periodLabel: rangeDef.period }}
       />
 
-      <section className="rounded-[20px] border border-border bg-white p-5" aria-label="აქტიური ობიექტები რუკაზე">
+      <section className="ln-card p-[22px]" aria-label="აქტიური ობიექტები რუკაზე">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-          <h3 className="flex items-center gap-2 font-heading text-[15px] font-medium">
+          <h3 className="flex items-center gap-2 font-heading text-[16px] font-semibold">
             <MapPinned className="size-4 text-muted-foreground [stroke-width:1.7]" /> {toMtavruli("აქტიური ობიექტები რუკაზე")}
             <span className="text-[11.5px] font-normal text-muted-foreground">{s.mapPoints.length} ობიექტი</span>
           </h3>

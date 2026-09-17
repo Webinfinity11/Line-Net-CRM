@@ -2,14 +2,37 @@
 
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
+type SliceLabel = { cx: number; cy: number; midAngle: number; innerRadius: number; outerRadius: number; percent: number };
+
 export function StatusDonut({ data, total }: { data: { name: string; value: number; color: string }[]; total: number }) {
   const rows = data.filter((d) => d.value > 0);
   return (
     <div className="flex items-center gap-4">
-      <div className="relative h-40 w-40 shrink-0">
+      <div className="relative h-44 w-44 shrink-0">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
-            <Pie data={rows} dataKey="value" nameKey="name" innerRadius={52} outerRadius={80} paddingAngle={2} stroke="none" isAnimationActive={false}>
+            <Pie
+              data={rows}
+              dataKey="value"
+              nameKey="name"
+              innerRadius={52}
+              outerRadius={82}
+              paddingAngle={2}
+              stroke="none"
+              isAnimationActive={false}
+              labelLine={false}
+              label={(raw: unknown) => {
+                const p = raw as SliceLabel;
+                if (!p || p.percent < 0.08) return null; // no room for a label on a thin slice
+                const r = p.innerRadius + (p.outerRadius - p.innerRadius) / 2;
+                const rad = (-p.midAngle * Math.PI) / 180;
+                return (
+                  <text x={p.cx + r * Math.cos(rad)} y={p.cy + r * Math.sin(rad)} fill="#fff" fontSize={10} fontWeight={600} textAnchor="middle" dominantBaseline="central">
+                    {Math.round(p.percent * 100)}%
+                  </text>
+                );
+              }}
+            >
               {rows.map((d) => (
                 <Cell key={d.name} fill={d.color} />
               ))}
@@ -18,7 +41,7 @@ export function StatusDonut({ data, total }: { data: { name: string; value: numb
           </PieChart>
         </ResponsiveContainer>
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-          <div className="text-2xl font-semibold leading-none">{total}</div>
+          <div className="font-heading text-[26px] font-semibold leading-none">{total}</div>
           <div className="text-[11px] text-muted-foreground">სულ</div>
         </div>
       </div>
@@ -41,7 +64,7 @@ export function WeeklyBars({ data, height = 192 }: { data: { label: string; crea
     <div style={{ height }}>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} barGap={4} margin={{ top: 4, right: 4, left: -22, bottom: 0 }}>
-          <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#e5e5e5" />
+          <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#eef1f6" />
           <XAxis dataKey="label" tickLine={false} axisLine={false} fontSize={11} />
           <YAxis allowDecimals={false} tickLine={false} axisLine={false} fontSize={11} />
           <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} cursor={{ fill: "rgba(0,0,0,0.04)" }} />

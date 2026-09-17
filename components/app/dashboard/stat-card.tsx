@@ -42,10 +42,8 @@ export function StatCard({
     <Link
       href={href}
       className={cn(
-        "group flex min-h-[132px] flex-col justify-between rounded-[20px] border p-5 transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3457d5]",
-        filled
-          ? "border-transparent bg-[#3457d5] text-white shadow-[0_10px_24px_rgba(52,87,213,0.22)] hover:shadow-[0_14px_30px_rgba(52,87,213,0.28)]"
-          : "border-border bg-white hover:border-[#c9d3e3] hover:shadow-[0_8px_22px_rgba(38,57,104,0.07)]",
+        "group ln-card-link flex min-h-[148px] flex-col justify-between rounded-[20px] p-[22px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3457d5]",
+        filled ? "bg-[#3457d5] text-white shadow-[0_10px_26px_rgba(52,87,213,0.28)]" : "ln-card",
       )}
     >
       <div className="flex items-start justify-between gap-3">
@@ -61,7 +59,7 @@ export function StatCard({
         </span>
       </div>
       <div className="mt-5 flex flex-wrap items-center gap-2">
-        <strong className={cn("tabular font-heading text-[30px] font-medium leading-none tracking-[-0.8px]", filled ? "text-white" : "text-foreground")}>{value}</strong>
+        <strong className={cn("tabular font-heading text-[34px] font-semibold leading-none tracking-[-1px]", filled ? "text-white" : "text-foreground")}>{value}</strong>
         {trend && <TrendChip trend={trend} filled={filled} />}
       </div>
       <span className={cn("mt-2 text-[11px]", filled ? "text-white/70" : "text-muted-foreground")}>{caption}</span>
@@ -90,9 +88,9 @@ export function AwaitingCard({
   return (
     <Link
       href={href}
-      className="group flex flex-col justify-between rounded-[20px] border border-border bg-white p-5 transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-0.5 hover:border-[#c9d3e3] hover:shadow-[0_8px_22px_rgba(38,57,104,0.07)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3457d5]"
+      className="group flex flex-col justify-between ln-card p-5 transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-0.5 hover:border-[#c9d3e3] hover:shadow-[0_8px_22px_rgba(38,57,104,0.07)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3457d5]"
     >
-      <div className="flex items-start justify-between gap-3">
+      <div className="relative flex items-start justify-between gap-3">
         <span className="grid size-10 place-items-center rounded-full" style={{ background: tone.bg, color: tone.fg }}>
           <Icon className="size-[18px] [stroke-width:1.8]" />
         </span>
@@ -100,11 +98,11 @@ export function AwaitingCard({
           <ArrowUpRight className="size-4 [stroke-width:1.8]" />
         </span>
       </div>
-      <div className="mt-6 flex items-baseline gap-2">
-        <strong className="tabular font-heading text-[38px] font-medium leading-none tracking-[-1px]">{value}</strong>
+      <div className="relative mt-6 flex items-baseline gap-2">
+        <strong className="tabular font-heading text-[40px] font-semibold leading-none tracking-[-1.2px]">{value}</strong>
         <span className="text-[15px] text-muted-foreground">{unit}</span>
       </div>
-      <p className="mt-2 text-[12px] text-muted-foreground">
+      <p className="relative mt-2 text-[12px] text-muted-foreground">
         {sentence[0]} <span style={{ color: tone.fg }}>{highlight}</span> {sentence[1]}
       </p>
     </Link>

@@ -36,7 +36,7 @@ export function OrdersToolbar({
 
   return (
     <div className="space-y-3">
-      <form ref={formRef} method="get" action="/orders" className="flex flex-wrap items-center gap-2 rounded-xl border border-[#e6ebf2] bg-white p-3">
+      <form ref={formRef} method="get" action="/orders" className="flex flex-wrap items-center gap-2 ln-card p-3">
         {Object.entries(hidden).map(([k, v]) => (
           <input key={k} type="hidden" name={k} value={v} />
         ))}

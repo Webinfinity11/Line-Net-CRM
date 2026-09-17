@@ -89,7 +89,7 @@ export function OrdersTable({
         </div>
       )}
 
-      <div className="overflow-hidden rounded-xl border border-[#e6ebf2] bg-white">
+      <div className="overflow-hidden ln-card">
         {rows.length === 0 ? (
           <p className="p-10 text-center text-[13px] text-muted-foreground">{t.common.noResults}</p>
         ) : (

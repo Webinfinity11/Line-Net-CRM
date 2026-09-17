@@ -90,7 +90,7 @@
 }
 
 :root {
-  --background: #f6f8fc;
+  --background: #f4f6fa;
   --foreground: #17212b;
   --card: oklch(1 0 0);
   --card-foreground: #17212b;
@@ -195,6 +195,29 @@
   * { transition-duration: 0.01ms !important; }
 }
 .tabular { font-variant-numeric: tabular-nums; }
+
+/* Soft floating card: no hairline border, layered shadow (matches the approved reference) */
+.ln-card {
+  background: #fff;
+  border-radius: 20px;
+  box-shadow:
+    0 1px 2px rgba(16, 24, 40, 0.04),
+    0 10px 26px rgba(16, 24, 40, 0.05);
+}
+.ln-card-link {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.ln-card-link:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 2px 4px rgba(16, 24, 40, 0.05),
+    0 16px 34px rgba(16, 24, 40, 0.09);
+}
+.dark .ln-card {
+  background: var(--card);
+  box-shadow: none;
+  border: 1px solid var(--border);
+}
 html {
   -webkit-text-size-adjust: 100%;
 }

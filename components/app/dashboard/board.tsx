@@ -11,8 +11,8 @@ import { OrderDrawer } from "./order-drawer";
 import type { BoardOrder, Executor, MailPeek, Visit, WorkloadRow } from "./types";
 
 const ACTIVE = new Set(["new", "assigned", "in_progress"]);
-const card = "rounded-[20px] border border-border bg-white p-5";
-const cardTitle = "flex items-center gap-2 font-heading text-[13px] font-medium";
+const card = "ln-card p-[22px]";
+const cardTitle = "flex items-center gap-2 font-heading text-[14px] font-semibold";
 
 /** Operational row of the dashboard: what needs attention, today's visits, team load, money. */
 export function DashboardBoard({

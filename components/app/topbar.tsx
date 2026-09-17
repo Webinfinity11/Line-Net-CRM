@@ -49,7 +49,7 @@ export function Topbar({
   }
 
   return (
-    <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-[#e6ebf2] bg-white/95 px-4 backdrop-blur dark:bg-neutral-900/90 md:px-6">
+    <header className="sticky top-0 z-20 flex h-16 items-center gap-3 bg-[#f4f6fa]/90 px-4 backdrop-blur dark:bg-neutral-900/90 md:px-6">
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger render={<Button variant="ghost" size="icon" className="md:hidden" aria-label="მენიუ" />}>
           <Menu className="size-5" />
@@ -69,7 +69,7 @@ export function Topbar({
           <input
             name="q"
             placeholder="ძებნა: შეკვეთა, კლიენტი, მისამართი..."
-            className="h-9 w-full rounded-lg border border-[#e6ebf2] bg-[#f6f8fc] pl-10 pr-3 text-sm outline-none transition focus:border-[#7f97e6] focus:bg-white focus:ring-2 focus:ring-[#3457d5]/15 dark:bg-neutral-800"
+            className="h-10 w-full rounded-full border border-transparent bg-white pl-10 pr-4 text-sm shadow-[0_1px_2px_rgba(16,24,40,0.04)] outline-none transition focus:border-[#a5b5ed] focus:shadow-[0_2px_8px_rgba(52,87,213,0.1)] focus:ring-2 focus:ring-[#3457d5]/15 dark:bg-neutral-800"
           />
         </form>
       ) : (
