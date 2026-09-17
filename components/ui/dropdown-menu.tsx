@@ -3,6 +3,8 @@
 import * as React from "react"
 import { Menu as MenuPrimitive } from "@base-ui/react/menu"
 import { cn } from "cn"
+import { Button } from "@/components/ui/button"
+import { mtavruliNodes } from "@/lib/mtavruli"
 import { ChevronRightIcon, CheckIcon } from "lucide-react"
 
 function DropdownMenu({ ...props }: MenuPrimitive.Root.Props) {
@@ -13,8 +15,17 @@ function DropdownMenuPortal({ ...props }: MenuPrimitive.Portal.Props) {
   return <MenuPrimitive.Portal data-slot="dropdown-menu-portal" {...props} />
 }
 
-function DropdownMenuTrigger({ ...props }: MenuPrimitive.Trigger.Props) {
-  return <MenuPrimitive.Trigger data-slot="dropdown-menu-trigger" {...props} />
+/** A trigger rendered as our Button follows the button rule: Georgian labels in Mtavruli. */
+function triggerChildren(render: unknown, children: React.ReactNode): React.ReactNode {
+  return React.isValidElement(render) && render.type === Button ? mtavruliNodes(children) : children
+}
+
+function DropdownMenuTrigger({ children, ...props }: MenuPrimitive.Trigger.Props) {
+  return (
+    <MenuPrimitive.Trigger data-slot="dropdown-menu-trigger" {...props}>
+      {triggerChildren(props.render, children)}
+    </MenuPrimitive.Trigger>
+  )
 }
 
 function DropdownMenuContent({

@@ -42,10 +42,10 @@ export function ProfileForms({ name, phone }: { name: string; phone: string }) {
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-2">
+    <div className="ln-enter ln-enter-2 grid gap-4 md:grid-cols-2">
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-base">მონაცემები</CardTitle>
+          <CardTitle>მონაცემები</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={saveProfile} className="space-y-3">
@@ -65,7 +65,7 @@ export function ProfileForms({ name, phone }: { name: string; phone: string }) {
       </Card>
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-base">პაროლის შეცვლა</CardTitle>
+          <CardTitle>პაროლის შეცვლა</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={changePassword} className="space-y-3">

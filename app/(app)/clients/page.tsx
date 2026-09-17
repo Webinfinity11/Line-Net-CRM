@@ -1,16 +1,18 @@
-import { count, eq, sql } from "drizzle-orm";
-import { Download, Plus } from "lucide-react";
+import { sql } from "drizzle-orm";
+import { Building2, Download, Plus, Search } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/actions/clients";
 import { ClientFields } from "@/components/app/client-forms";
 import { FormDialog } from "@/components/app/form-dialog";
 import { ImportClientsDialog } from "@/components/app/import-clients-dialog";
 import { PageHeader } from "@/components/app/page-header";
+import { Chip, EmptyState, tableCls } from "@/components/app/section-card";
 import { Button } from "@/components/ui/button";
 import { db } from "@/db";
 import { clients, orders, sites } from "@/db/schema";
 import { t } from "@/lib/i18n";
 import { requireUser } from "@/lib/session";
+import { cn } from "@/lib/utils";
 
 export const metadata = { title: "კლიენტები" };
 
@@ -35,82 +37,99 @@ export default async function ClientsPage({ searchParams }: PageProps<"/clients"
     .orderBy(clients.name);
 
   return (
-    <div>
+    <div className="space-y-4">
       <PageHeader
         title={t.nav.clients}
-        subtitle={`${rows.length} კლიენტი`}
+        subtitle={q ? `„${q}“ · ნაპოვნია ${rows.length}` : `${rows.length} კლიენტი`}
         actions={
           <>
-            <Button render={<a href="/api/export?type=clients-list" />} variant="outline">
+            <ImportClientsDialog />
+            <Button render={<a href="/api/export?type=clients-list" />} variant="outline" size="sm">
               <Download className="size-4" /> Excel
             </Button>
-            <ImportClientsDialog />
-          <FormDialog
-            trigger={<Button />}
-            triggerLabel={
-              <>
-                <Plus className="size-4" /> ახალი კლიენტი
-              </>
-            }
-            title="ახალი კლიენტი"
-            action={createClient}
-            submitLabel={t.common.create}
-          >
-            <ClientFields />
-          </FormDialog>
+            <FormDialog
+              trigger={<Button />}
+              triggerLabel={
+                <>
+                  <Plus className="size-4" /> ახალი კლიენტი
+                </>
+              }
+              title="ახალი კლიენტი"
+              action={createClient}
+              submitLabel={t.common.create}
+            >
+              <ClientFields />
+            </FormDialog>
           </>
         }
       />
-      <form method="get" className="mb-3">
-        <input
-          name="q"
-          defaultValue={q}
-          placeholder="ძებნა კლიენტებში..."
-          className="h-9 w-full max-w-sm rounded-lg border bg-white px-3 text-sm outline-none focus:border-blue-500 dark:bg-neutral-900"
-        />
+
+      <form method="get" className="ln-enter ln-card flex flex-wrap items-center gap-3 p-3">
+        <div className="relative min-w-[220px] flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground [stroke-width:1.7]" />
+          <input
+            name="q"
+            defaultValue={q}
+            placeholder="ძებნა: კომპანია, ს/კ, საკონტაქტო პირი"
+            className="h-9 w-full rounded-full border border-[#e6ebf2] bg-[#f8faff] pl-9 pr-4 text-[13px] outline-none transition focus:border-[#7f97e6] focus:bg-white"
+          />
+        </div>
+        <Button type="submit" variant="outline" size="sm">
+          ძებნა
+        </Button>
+        {q && (
+          <Button render={<Link href="/clients" />} variant="ghost" size="sm">
+            გასუფთავება
+          </Button>
+        )}
       </form>
-      <div className="overflow-x-auto rounded-xl border bg-white dark:bg-neutral-900">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b text-left text-xs text-muted-foreground">
-              <th className="px-4 py-2.5 font-medium">კომპანია</th>
-              <th className="px-3 py-2.5 font-medium">ს/კ</th>
-              <th className="px-3 py-2.5 font-medium">კონტაქტი</th>
-              <th className="px-3 py-2.5 text-center font-medium">ობიექტები</th>
-              <th className="px-3 py-2.5 text-center font-medium">შეკვეთები</th>
-              <th className="px-3 py-2.5 text-center font-medium">აქტიური</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.length === 0 && (
-              <tr>
-                <td colSpan={6} className="p-8 text-center text-muted-foreground">
-                  {t.common.noResults}
-                </td>
-              </tr>
-            )}
-            {rows.map((c) => (
-              <tr key={c.id} className="border-b last:border-0 hover:bg-neutral-50 dark:hover:bg-neutral-800/60">
-                <td className="px-4 py-2.5">
-                  <Link href={`/clients/${c.id}`} className="font-medium hover:text-blue-700">
-                    {c.name}
-                  </Link>
-                </td>
-                <td className="px-3 py-2.5 font-mono text-xs text-muted-foreground">{c.idCode ?? "—"}</td>
-                <td className="px-3 py-2.5">
-                  <div>{c.contactName ?? "—"}</div>
-                  <div className="text-xs text-muted-foreground">{c.phone}</div>
-                </td>
-                <td className="px-3 py-2.5 text-center">{c.siteCount}</td>
-                <td className="px-3 py-2.5 text-center">{c.orderCount}</td>
-                <td className="px-3 py-2.5 text-center">
-                  {c.activeCount > 0 ? <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">{c.activeCount}</span> : "—"}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+
+      {rows.length === 0 ? (
+        <EmptyState
+          icon={Building2}
+          message={q ? "ამ ძებნაზე კლიენტი ვერ მოიძებნა." : "კლიენტები ჯერ არ არის. დაამატეთ პირველი კომპანია, მერე მის ობიექტებს დაამატებთ."}
+          className="ln-card border-transparent py-16"
+        />
+      ) : (
+        <div className={cn(tableCls.wrap, "ln-enter ln-enter-2")}>
+          <div className={tableCls.scroll}>
+            <table className={tableCls.table}>
+              <thead className={tableCls.head}>
+                <tr>
+                  <th className={tableCls.th}>კომპანია</th>
+                  <th className={cn(tableCls.th, "hidden md:table-cell")}>ს/კ</th>
+                  <th className={cn(tableCls.th, "hidden lg:table-cell")}>საკონტაქტო</th>
+                  <th className={cn(tableCls.thRight, "hidden sm:table-cell")}>ობიექტი</th>
+                  <th className={cn(tableCls.thRight, "hidden sm:table-cell")}>შეკვეთა</th>
+                  <th className={tableCls.thRight}>აქტიური</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((c) => (
+                  <tr key={c.id} className={tableCls.row}>
+                    <td className={tableCls.td}>
+                      <Link href={`/clients/${c.id}`} className="block">
+                        <span className="block font-medium text-foreground hover:text-[#3457d5]">{c.name}</span>
+                        <span className="mt-0.5 block text-[11px] text-muted-foreground md:hidden">
+                          {[c.idCode, c.phone].filter(Boolean).join(" · ") || "—"}
+                        </span>
+                      </Link>
+                    </td>
+                    <td className={cn(tableCls.td, "hidden font-mono text-[11px] text-muted-foreground md:table-cell")}>{c.idCode ?? "—"}</td>
+                    <td className={cn(tableCls.td, "hidden lg:table-cell")}>
+                      <span className="block">{c.contactName ?? "—"}</span>
+                      <span className="block text-[11px] text-muted-foreground">{c.phone ?? ""}</span>
+                    </td>
+                    <td className={cn(tableCls.tdRight, "hidden text-muted-foreground sm:table-cell")}>{c.siteCount}</td>
+                    <td className={cn(tableCls.tdRight, "hidden text-muted-foreground sm:table-cell")}>{c.orderCount}</td>
+                    <td className={tableCls.tdRight}>{c.activeCount > 0 ? <Chip tone="accent">{c.activeCount}</Chip> : <span className="text-muted-foreground">—</span>}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

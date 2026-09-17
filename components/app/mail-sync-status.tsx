@@ -22,28 +22,28 @@ export function MailSyncStatus({ state, canManage }: { state: MailSyncState; can
 
   if (!state.configured) {
     return (
-      <div className="mb-5 rounded-xl border bg-white p-4 dark:bg-neutral-900">
+      <div className="ln-card ln-enter p-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-2xl space-y-1.5">
-            <h2 className="flex items-center gap-2 text-sm font-medium"><Mail className="size-4 text-blue-600" /> {toMtavruli('Outlook ფოსტა')}</h2>
-            <p className="text-sm text-muted-foreground">შეგიძლიათ გამოიყენოთ უფასო Outlook.com ან Hotmail ფოსტა — Microsoft 365-ის ფასიანი გამოწერა საჭირო არ არის.</p>
-            <p className="text-xs text-muted-foreground">პირველად დაკავშირების შემდეგ მიღებული წერილები შეიქმნება დაუმუშავებელ შეკვეთებად და ხელმისაწვდომი იქნება CRM-ის ადმინისტრატორებისა და მენეჯერებისთვის.</p>
+            <h2 className="flex items-center gap-2 font-heading text-[15px] font-semibold"><Mail className="size-4 text-[#3457d5] [stroke-width:1.7]" /> {toMtavruli('Outlook ფოსტა')}</h2>
+            <p className="text-[12.5px] text-muted-foreground">შეგიძლიათ გამოიყენოთ უფასო Outlook.com ან Hotmail ფოსტა — Microsoft 365-ის ფასიანი გამოწერა საჭირო არ არის.</p>
+            <p className="text-[11.5px] text-muted-foreground">პირველად დაკავშირების შემდეგ მიღებული წერილები შეიქმნება დაუმუშავებელ შეკვეთებად და ხელმისაწვდომი იქნება CRM-ის ადმინისტრატორებისა და მენეჯერებისთვის.</p>
           </div>
           {canManage && connectButton}
         </div>
-        {!state.canConnect && <p className="mt-3 text-xs text-amber-700 dark:text-amber-400">კავშირი ჯერ მოსამზადებელია — Microsoft-ის აპლიკაციის პარამეტრები არ არის გამართული.</p>}
-        {!canManage && <p className="mt-3 text-xs text-muted-foreground">დაკავშირებისთვის მიმართეთ CRM-ის ადმინისტრატორს.</p>}
+        {!state.canConnect && <p className="mt-3 text-[11.5px] text-[#96610b]">კავშირი ჯერ მოსამზადებელია — Microsoft-ის აპლიკაციის პარამეტრები არ არის გამართული.</p>}
+        {!canManage && <p className="mt-3 text-[11.5px] text-muted-foreground">დაკავშირებისთვის მიმართეთ CRM-ის ადმინისტრატორს.</p>}
       </div>
     );
   }
 
   return (
-    <div className="mb-5 space-y-3 rounded-xl border bg-white p-4 dark:bg-neutral-900">
+    <div className="ln-card ln-enter space-y-3 p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0 space-y-1">
-          <p className="flex items-center gap-2 text-sm font-medium"><Mail className="size-4 shrink-0 text-blue-600" /><span className="break-all">{state.mailbox}</span></p>
-          <p className="text-xs text-muted-foreground">ბოლო შემოწმება: {state.lastRunAt ? formatDate(state.lastRunAt, true) : "ჯერ არ შემოწმებულა"}</p>
-          <p className="text-xs text-muted-foreground">{state.automatic ? "ავტომატური შემოწმება ყოველ 5 წუთში, სერვერის მუშაობისას." : "ავტომატური შემოწმება გამორთულია. გამოიყენეთ „შემოწმება ახლა“."}</p>
+          <p className="flex items-center gap-2 text-[13px] font-medium"><Mail className="size-4 shrink-0 text-[#3457d5] [stroke-width:1.7]" /><span className="break-all">{state.mailbox}</span></p>
+          <p className="text-[11.5px] text-muted-foreground">ბოლო შემოწმება: {state.lastRunAt ? formatDate(state.lastRunAt, true) : "ჯერ არ შემოწმებულა"}</p>
+          <p className="text-[11.5px] text-muted-foreground">{state.automatic ? "ავტომატური შემოწმება ყოველ 5 წუთში, სერვერის მუშაობისას." : "ავტომატური შემოწმება გამორთულია. გამოიყენეთ „შემოწმება ახლა“."}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Button size="sm" variant="outline" disabled={pending} onClick={() => start(async () => {

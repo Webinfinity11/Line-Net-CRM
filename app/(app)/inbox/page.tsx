@@ -1,18 +1,19 @@
+import { inArray } from "drizzle-orm";
 import { Inbox, Mail, Paperclip } from "lucide-react";
 import Link from "next/link";
 import { setStatus } from "@/actions/orders";
 import { ConfirmButton } from "@/components/app/confirm-button";
 import { MailSyncStatus } from "@/components/app/mail-sync-status";
 import { PageHeader } from "@/components/app/page-header";
+import { EmptyState } from "@/components/app/section-card";
 import { Button } from "@/components/ui/button";
-import { formatDate, t } from "@/lib/i18n";
-import { getMailSyncState } from "@/lib/graph-mail";
-import { outlookMessages, type OutlookErrorCode } from "@/lib/outlook-oauth";
-import { listOrders } from "@/lib/orders";
-import { requireUser } from "@/lib/session";
 import { db } from "@/db";
 import { orderAttachments } from "@/db/schema";
-import { inArray } from "drizzle-orm";
+import { getMailSyncState } from "@/lib/graph-mail";
+import { formatDate, t } from "@/lib/i18n";
+import { listOrders } from "@/lib/orders";
+import { outlookMessages, type OutlookErrorCode } from "@/lib/outlook-oauth";
+import { requireUser } from "@/lib/session";
 
 export const metadata = { title: "შემოსულები" };
 
@@ -28,42 +29,51 @@ export default async function InboxPage({ searchParams }: PageProps<"/inbox">) {
   for (const f of files) fileCount.set(f.orderId, (fileCount.get(f.orderId) ?? 0) + 1);
 
   return (
-    <div>
-      <PageHeader
-        title={t.nav.inbox}
-        subtitle="ელფოსტიდან ავტომატურად შექმნილი შეკვეთები. დაამუშავეთ: შეავსეთ კლიენტი, ობიექტი და დანიშნეთ შემსრულებელი."
-      />
-      {outcome === "connected" && <p role="status" className="mb-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200">Outlook ფოსტა დაკავშირებულია. ახალი წერილები გამოჩნდება შემდეგი შემოწმებისას.</p>}
-      {connectionError && <p role="alert" className="mb-4 rounded-lg bg-rose-50 p-3 text-sm text-rose-700 dark:bg-rose-950 dark:text-rose-200">{connectionError}</p>}
+    <div className="space-y-4">
+      <PageHeader title={t.nav.inbox} subtitle={items.length ? `${items.length} დაუმუშავებელი წერილი` : "ელფოსტიდან შექმნილი შეკვეთები"} />
+
+      {outcome === "connected" && (
+        <p role="status" className="ln-card p-4 text-[12.5px] text-[#25815a]">
+          Outlook ფოსტა დაკავშირებულია. ახალი წერილები გამოჩნდება შემდეგი შემოწმებისას.
+        </p>
+      )}
+      {connectionError && (
+        <p role="alert" className="ln-card p-4 text-[12.5px] text-[#b13f32]">
+          {connectionError}
+        </p>
+      )}
+
       <MailSyncStatus state={mailState} canManage={user.role === "admin"} />
+
       {items.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border bg-white py-16 text-center dark:bg-neutral-900">
-          <Inbox className="mb-3 size-10 text-neutral-300" />
-          <p className="text-sm text-muted-foreground">დაუმუშავებელი წერილები არ არის</p>
-        </div>
+        <EmptyState
+          icon={Inbox}
+          message="დაუმუშავებელი წერილები არ არის. დაკავშირებული ფოსტიდან შემოსული მოთხოვნა აქ გამოჩნდება, სანამ მენეჯერი არ დაამუშავებს."
+          className="ln-card border-transparent py-16"
+        />
       ) : (
-        <div className="space-y-2">
+        <ul className="ln-enter ln-enter-2 space-y-2">
           {items.map((o) => (
-            <div key={o.id} className="flex flex-wrap items-start gap-3 rounded-xl border bg-white p-4 dark:bg-neutral-900">
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-700 dark:bg-blue-950/40">
-                <Mail className="size-5" />
-              </div>
+            <li key={o.id} className="ln-card flex flex-wrap items-start gap-4 p-4">
+              <span className="grid size-10 shrink-0 place-items-center rounded-full bg-[#edf2ff] text-[#3457d5]">
+                <Mail className="size-[18px] [stroke-width:1.7]" />
+              </span>
               <div className="min-w-0 flex-1">
-                <Link href={`/orders/${o.id}`} className="block truncate text-base font-medium hover:text-blue-700">
+                <Link href={`/orders/${o.id}`} className="block truncate text-[14px] font-medium hover:text-[#3457d5]">
                   {o.emailSubject ?? o.title}
                 </Link>
-                <div className="flex flex-wrap gap-x-3 text-xs text-muted-foreground">
-                  <span>{o.emailFrom}</span>
-                  <span>{formatDate(o.emailReceivedAt ?? o.createdAt, true)}</span>
+                <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+                  <span className="truncate">{o.emailFrom}</span>
+                  <span className="tabular">{formatDate(o.emailReceivedAt ?? o.createdAt, true)}</span>
                   {fileCount.get(o.id) ? (
                     <span className="flex items-center gap-1">
-                      <Paperclip className="size-3" /> {fileCount.get(o.id)}
+                      <Paperclip className="size-3 [stroke-width:1.7]" /> {fileCount.get(o.id)}
                     </span>
                   ) : null}
                 </div>
-                {o.description && <p className="mt-1.5 line-clamp-2 text-sm text-neutral-600 dark:text-neutral-300">{o.description}</p>}
+                {o.description && <p className="mt-2 line-clamp-2 text-[12.5px] text-[#566b7d]">{o.description}</p>}
               </div>
-              <div className="flex shrink-0 gap-2">
+              <div className="flex shrink-0 flex-wrap gap-2">
                 <Button render={<Link href={`/orders/${o.id}/edit`} />} size="sm">
                   დამუშავება
                 </Button>
@@ -72,14 +82,15 @@ export default async function InboxPage({ searchParams }: PageProps<"/inbox">) {
                   description="შეკვეთა გადავა „გაუქმებული“ სტატუსში და შემოსულებიდან წაიშლება."
                   confirmLabel="გაუქმება"
                   variant="outline"
+                  size="sm"
                   action={setStatus.bind(null, o.id, "cancelled")}
                 >
                   არ არის შეკვეთა
                 </ConfirmButton>
               </div>
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
     </div>
   );

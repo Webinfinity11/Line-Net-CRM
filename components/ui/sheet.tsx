@@ -12,8 +12,17 @@ function Sheet({ ...props }: SheetPrimitive.Root.Props) {
   return <SheetPrimitive.Root data-slot="sheet" {...props} />
 }
 
-function SheetTrigger({ ...props }: SheetPrimitive.Trigger.Props) {
-  return <SheetPrimitive.Trigger data-slot="sheet-trigger" {...props} />
+/** A trigger rendered as our Button follows the button rule: Georgian labels in Mtavruli. */
+function triggerChildren(render: unknown, children: React.ReactNode): React.ReactNode {
+  return React.isValidElement(render) && render.type === Button ? mtavruliNodes(children) : children
+}
+
+function SheetTrigger({ children, ...props }: SheetPrimitive.Trigger.Props) {
+  return (
+    <SheetPrimitive.Trigger data-slot="sheet-trigger" {...props}>
+      {triggerChildren(props.render, children)}
+    </SheetPrimitive.Trigger>
+  )
 }
 
 function SheetClose({ ...props }: SheetPrimitive.Close.Props) {

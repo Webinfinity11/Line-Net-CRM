@@ -7,6 +7,7 @@ import type { ActionResult } from "@/actions/orders";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { t } from "@/lib/i18n";
+import { mtavruliNodes } from "@/lib/mtavruli";
 
 export function FormDialog({
   trigger,
@@ -51,7 +52,7 @@ export function FormDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={trigger}>{triggerLabel}</DialogTrigger>
+      <DialogTrigger render={trigger}>{mtavruliNodes(triggerLabel)}</DialogTrigger>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>

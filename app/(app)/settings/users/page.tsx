@@ -1,8 +1,9 @@
-import { Pencil, Plus } from "lucide-react";
+import { Pencil, Plus, UserCheck, UserX, Users } from "lucide-react";
 import { createUser, setUserBanned, updateUser } from "@/actions/users";
 import { ConfirmButton } from "@/components/app/confirm-button";
 import { FormDialog } from "@/components/app/form-dialog";
 import { PageHeader } from "@/components/app/page-header";
+import { Chip, EmptyState, tableCls } from "@/components/app/section-card";
 import { UserAvatar } from "@/components/app/user-avatar";
 import { UserFields } from "@/components/app/user-forms";
 import { Button } from "@/components/ui/button";
@@ -14,15 +15,25 @@ import { cn } from "@/lib/utils";
 
 export const metadata = { title: "მომხმარებლები" };
 
+const ROLE_TONE: Record<string, string> = {
+  admin: "bg-[#fdeeee] text-[#a33f3f]",
+  manager: "bg-[#f0ecfc] text-[#7251ad]",
+  executor: "bg-[#f1f4f9] text-[#566b7d]",
+};
+
 export default async function UsersPage() {
   const me = await requireUser(["admin"]);
   const users = await listAllUsers();
+  const counts = users.reduce(
+    (a, u) => ({ ...a, [u.role]: (a[u.role] ?? 0) + 1 }),
+    {} as Record<string, number>,
+  );
 
   return (
-    <div>
+    <div className="space-y-4">
       <PageHeader
         title={t.nav.users}
-        subtitle={`${users.length} მომხმარებელი · ადმინი, მენეჯერი, შემსრულებელი`}
+        subtitle={`${users.length} მომხმარებელი · ${counts.admin ?? 0} ადმინი, ${counts.manager ?? 0} მენეჯერი, ${counts.executor ?? 0} შემსრულებელი`}
         actions={
           <FormDialog
             trigger={<Button />}
@@ -40,75 +51,95 @@ export default async function UsersPage() {
           </FormDialog>
         }
       />
-      <div className="overflow-x-auto rounded-xl border bg-white dark:bg-neutral-900">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b text-left text-xs text-muted-foreground">
-              <th className="px-4 py-2.5 font-medium">მომხმარებელი</th>
-              <th className="px-3 py-2.5 font-medium">როლი</th>
-              <th className="px-3 py-2.5 font-medium">სპეციალიზაცია</th>
-              <th className="px-3 py-2.5 font-medium">ტელეფონი</th>
-              <th className="px-3 py-2.5 font-medium">სტატუსი</th>
-              <th className="px-3 py-2.5 font-medium">დამატებულია</th>
-              <th className="px-3 py-2.5 text-right font-medium">{t.common.actions}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((u) => (
-              <tr key={u.id} className={cn("border-b last:border-0", u.banned && "opacity-60")}>
-                <td className="px-4 py-2.5">
-                  <div className="flex items-center gap-2.5">
-                    <UserAvatar name={u.name} image={u.image} size="md" />
-                    <div>
-                      <div className="font-medium">
-                        {u.name} {u.id === me.id && <span className="text-xs text-muted-foreground">(თქვენ)</span>}
+
+      {users.length === 0 ? (
+        <EmptyState icon={Users} message="მომხმარებლები არ არის." className="ln-card border-transparent py-16" />
+      ) : (
+        <div className={cn(tableCls.wrap, "ln-enter")}>
+          <div className={tableCls.scroll}>
+            <table className={tableCls.table}>
+              <thead className={tableCls.head}>
+                <tr>
+                  <th className={tableCls.th}>მომხმარებელი</th>
+                  <th className={tableCls.th}>როლი</th>
+                  <th className={cn(tableCls.th, "hidden lg:table-cell")}>სპეციალიზაცია</th>
+                  <th className={cn(tableCls.th, "hidden md:table-cell")}>ტელეფონი</th>
+                  <th className={cn(tableCls.th, "hidden sm:table-cell")}>სტატუსი</th>
+                  <th className={cn(tableCls.th, "hidden xl:table-cell")}>დამატებულია</th>
+                  <th className={tableCls.thRight}>{t.common.actions}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.map((u) => (
+                  <tr key={u.id} className={cn(tableCls.row, u.banned && "opacity-55")}>
+                    <td className={tableCls.td}>
+                      <div className="flex items-center gap-3">
+                        <UserAvatar name={u.name} image={u.image} size="md" tone="color" />
+                        <div className="min-w-0">
+                          <div className="font-medium">
+                            {u.name} {u.id === me.id && <span className="text-[11px] font-normal text-muted-foreground">(თქვენ)</span>}
+                          </div>
+                          <div className="truncate text-[11px] text-muted-foreground">{u.email}</div>
+                        </div>
                       </div>
-                      <div className="text-xs text-muted-foreground">{u.email}</div>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-3 py-2.5">
-                  <span
-                    className={cn(
-                      "rounded-md px-2 py-0.5 text-xs font-medium",
-                      u.role === "admin" ? "bg-rose-100 text-rose-800" : u.role === "manager" ? "bg-violet-100 text-violet-800" : "bg-neutral-100 text-neutral-700",
-                    )}
-                  >
-                    {ROLE_LABELS[u.role as UserRole] ?? u.role}
-                  </span>
-                </td>
-                <td className="max-w-[260px] px-3 py-2.5 text-xs text-muted-foreground">
-                  {u.specializations.length ? u.specializations.map((k) => SYSTEM_LABELS[k as keyof typeof SYSTEM_LABELS] ?? k).join(", ") : "—"}
-                </td>
-                <td className="px-3 py-2.5">{u.phone ?? "—"}</td>
-                <td className="px-3 py-2.5">
-                  {u.banned ? <span className="text-xs text-rose-600">დეაქტივირებული</span> : <span className="text-xs text-emerald-600">აქტიური</span>}
-                </td>
-                <td className="px-3 py-2.5 text-xs text-muted-foreground">{formatDate(u.createdAt)}</td>
-                <td className="px-3 py-2.5">
-                  <div className="flex justify-end gap-1">
-                    <FormDialog trigger={<Button variant="ghost" size="icon-xs" aria-label="რედაქტირება" />} triggerLabel={<Pencil className="size-3.5" />} title="მომხმარებლის რედაქტირება" action={updateUser.bind(null, u.id)}>
-                      <UserFields initial={u} />
-                    </FormDialog>
-                    {u.id !== me.id && (
-                      <ConfirmButton
-                        title={u.banned ? "აქტივაცია" : "დეაქტივაცია"}
-                        description={u.banned ? "მომხმარებელი კვლავ შეძლებს შესვლას." : "მომხმარებელი ვეღარ შევა სისტემაში. მონაცემები რჩება."}
-                        confirmLabel={u.banned ? "აქტივაცია" : "დეაქტივაცია"}
-                        variant={u.banned ? "outline" : "destructive"}
-                        size="xs"
-                        action={setUserBanned.bind(null, u.id, !u.banned)}
-                      >
-                        {u.banned ? "აქტივაცია" : "დეაქტივაცია"}
-                      </ConfirmButton>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                    </td>
+                    <td className={tableCls.td}>
+                      <span className={cn("inline-flex rounded-[6px] px-2 py-[3px] text-[11px] font-medium", ROLE_TONE[u.role] ?? ROLE_TONE.executor)}>
+                        {ROLE_LABELS[u.role as UserRole] ?? u.role}
+                      </span>
+                    </td>
+                    <td className={cn(tableCls.td, "hidden max-w-[280px] lg:table-cell")}>
+                      {u.specializations.length ? (
+                        <span className="flex flex-wrap gap-1">
+                          {u.specializations.map((k) => (
+                            <Chip key={k}>{SYSTEM_LABELS[k as keyof typeof SYSTEM_LABELS] ?? k}</Chip>
+                          ))}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </td>
+                    <td className={cn(tableCls.td, "hidden whitespace-nowrap tabular md:table-cell")}>{u.phone ?? "—"}</td>
+                    <td className={cn(tableCls.td, "hidden sm:table-cell")}>
+                      {u.banned ? (
+                        <span className="flex items-center gap-1.5 text-[11.5px] text-[#b13f32]">
+                          <span className="size-1.5 rounded-full bg-[#b13f32]" /> დეაქტივირებული
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1.5 text-[11.5px] text-[#25815a]">
+                          <span className="size-1.5 rounded-full bg-[#25815a]" /> აქტიური
+                        </span>
+                      )}
+                    </td>
+                    <td className={cn(tableCls.td, "hidden whitespace-nowrap text-[11px] text-muted-foreground xl:table-cell")}>{formatDate(u.createdAt)}</td>
+                    <td className={cn(tableCls.td, "text-right")}>
+                      <div className="flex justify-end gap-1">
+                        <FormDialog trigger={<Button variant="ghost" size="icon-xs" aria-label="რედაქტირება" />} triggerLabel={<Pencil className="size-3.5" />} title="მომხმარებლის რედაქტირება" action={updateUser.bind(null, u.id)}>
+                          <UserFields initial={u} />
+                        </FormDialog>
+                        {u.id !== me.id && (
+                          <ConfirmButton
+                            title={u.banned ? "აქტივაცია" : "დეაქტივაცია"}
+                            description={u.banned ? "მომხმარებელი კვლავ შეძლებს შესვლას." : "მომხმარებელი ვეღარ შევა სისტემაში. მონაცემები რჩება."}
+                            confirmLabel={u.banned ? "აქტივაცია" : "დეაქტივაცია"}
+                            variant="ghost"
+                            size="xs"
+                            className={u.banned ? "text-[#25815a]" : "text-[#b13f32]"}
+                            action={setUserBanned.bind(null, u.id, !u.banned)}
+                          >
+                            {u.banned ? <UserCheck className="size-3.5" /> : <UserX className="size-3.5" />}
+                            <span className="sr-only">{u.banned ? "აქტივაცია" : "დეაქტივაცია"}</span>
+                          </ConfirmButton>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

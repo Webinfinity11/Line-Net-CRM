@@ -61,8 +61,8 @@ export function StatusActions({
               : "შეკვეთა გაუქმებულია";
 
   return (
-    <div className="flex flex-wrap items-center gap-2 rounded-2xl border bg-white p-3 dark:bg-neutral-900" aria-live="polite">
-      <span className="mr-auto text-sm text-muted-foreground">{next}</span>
+    <div className="ln-card flex flex-wrap items-center gap-2 p-4" aria-live="polite">
+      <span className="mr-auto text-[12.5px] text-muted-foreground">{next}</span>
       {canComplete && <CompleteDialog orderId={orderId} requiredLeft={requiredLeft} needsPhoto={needsPhoto} />}
       {staff && status === "done" && (
         <Button size="default" disabled={pending} onClick={() => run("closed")}>

@@ -14,6 +14,7 @@ import type { OrderPriority, OrderStatus, PaymentStatus, SystemType } from "@/db
 import { formatMoney, t } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { BulkAssignDialog } from "./bulk-assign-dialog";
+import { toMtavruli } from "@/lib/mtavruli";
 
 /** Serializable row: dates are already formatted on the server. */
 export type OrderRow = {
@@ -84,7 +85,7 @@ export function OrdersTable({
             <UserPlus className="size-3.5" /> ჯგუფური დანიშვნა
           </Button>
           <button type="button" onClick={clear} className="text-muted-foreground underline-offset-2 hover:text-foreground hover:underline">
-            მონიშვნის მოხსნა
+            {toMtavruli("მონიშვნის მოხსნა")}
           </button>
         </div>
       )}

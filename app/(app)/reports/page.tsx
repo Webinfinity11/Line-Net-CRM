@@ -1,21 +1,23 @@
-import { Download } from "lucide-react";
+import { Building2, Download, HardHat, Layers, TrendingUp } from "lucide-react";
 import { SystemBadge } from "@/components/app/badges";
 import { PageHeader } from "@/components/app/page-header";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { EmptyState, SectionCard, tableCls } from "@/components/app/section-card";
+import { Button } from "@/components/ui/button";
 import { formatMoney, t } from "@/lib/i18n";
 import { defaultPeriod, reportByClient, reportByExecutor, reportBySystem, reportMonthly, type Period } from "@/lib/reports";
 import { requireUser } from "@/lib/session";
+import { cn } from "@/lib/utils";
 
 export const metadata = { title: "ანგარიშები" };
 
 const MONTHS = ["იან", "თებ", "მარ", "აპრ", "მაი", "ივნ", "ივლ", "აგვ", "სექ", "ოქტ", "ნოე", "დეკ"];
 
-function ExportLink({ type, p, label = "Excel" }: { type: string; p?: Period; label?: string }) {
+function ExportButton({ type, p, label = "Excel" }: { type: string; p?: Period; label?: string }) {
   const qs = new URLSearchParams({ type, ...(p ? { from: p.from, to: p.to } : {}) });
   return (
-    <a href={`/api/export?${qs}`} className="flex items-center gap-1 rounded-md border px-2 py-1 text-xs hover:bg-neutral-50 dark:hover:bg-neutral-800">
+    <Button render={<a href={`/api/export?${qs}`} />} variant="outline" size="xs">
       <Download className="size-3" /> {label}
-    </a>
+    </Button>
   );
 }
 
@@ -28,180 +30,196 @@ export default async function ReportsPage({ searchParams }: PageProps<"/reports"
     to: typeof sp.to === "string" && /^\d{4}-\d{2}-\d{2}$/.test(sp.to) ? sp.to : d.to,
   };
   const [byClient, byExecutor, bySystem, monthly] = await Promise.all([reportByClient(p), reportByExecutor(p), reportBySystem(p), reportMonthly(12)]);
-  const th = "px-3 py-2 text-left text-xs font-medium text-muted-foreground";
-  const thr = "px-3 py-2 text-right text-xs font-medium text-muted-foreground";
-  const td = "px-3 py-2";
-  const tdr = "px-3 py-2 text-right whitespace-nowrap";
+
+  const clientTotals = byClient.reduce((a, r) => ({ total: a.total + r.total, amount: a.amount + Number(r.amount ?? 0), unpaid: a.unpaid + Number(r.unpaid ?? 0) }), { total: 0, amount: 0, unpaid: 0 });
+  const systemTotals = bySystem.reduce((a, r) => ({ total: a.total + r.total, amount: a.amount + Number(r.amount ?? 0), paid: a.paid + Number(r.paid ?? 0) }), { total: 0, amount: 0, paid: 0 });
 
   return (
     <div className="space-y-4">
       <PageHeader
         title={t.nav2.reports}
-        subtitle="პერიოდი შეკვეთის შექმნის თარიღით. „შემოსული“ რეალური გადახდებიდან ითვლება, „მასალების ხარჯი“ მხოლოდ ფასიანი პოზიციებიდან (სხვა ხარჯი არ იგულისხმება)."
-        actions={
-          <form method="get" className="flex items-center gap-2 text-sm">
-            <input type="date" name="from" defaultValue={p.from} className="h-8 rounded-lg border bg-white px-2 dark:bg-neutral-900" />
-            <span className="text-muted-foreground">—</span>
-            <input type="date" name="to" defaultValue={p.to} className="h-8 rounded-lg border bg-white px-2 dark:bg-neutral-900" />
-            <button type="submit" className="h-8 rounded-lg bg-blue-600 px-3 text-sm font-medium text-white hover:bg-blue-700">
-              ჩვენება
-            </button>
-            <ExportLink type="orders" p={p} label="შეკვეთები Excel" />
-          </form>
-        }
+        subtitle="პერიოდი შეკვეთის შექმნის თარიღით. „შემოსული“ რეალური გადახდებიდან ითვლება."
+        actions={<ExportButton type="orders" p={p} label="შეკვეთები Excel" />}
       />
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card>
-          <CardHeader className="flex-row items-center justify-between pb-2">
-            <CardTitle className="text-base">კლიენტების მიხედვით</CardTitle>
-            <ExportLink type="clients" p={p} />
-          </CardHeader>
-          <CardContent className="overflow-x-auto p-0">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b">
-                  <th className={th}>კლიენტი</th>
-                  <th className={thr}>შეკვ.</th>
-                  <th className={thr}>შესრ.</th>
-                  <th className={thr}>თანხა</th>
-                  <th className={thr}>გადაუხდელი</th>
-                </tr>
-              </thead>
-              <tbody>
-                {byClient.length === 0 && (
+      <form method="get" className="ln-enter ln-card flex flex-wrap items-end gap-3 p-4">
+        <div className="space-y-1.5">
+          <label htmlFor="from" className="block text-[11px] text-muted-foreground">
+            დაწყება
+          </label>
+          <input id="from" type="date" name="from" defaultValue={p.from} className="h-9 rounded-lg border border-[#e6ebf2] bg-white px-3 text-[13px] outline-none focus:border-[#7f97e6]" />
+        </div>
+        <div className="space-y-1.5">
+          <label htmlFor="to" className="block text-[11px] text-muted-foreground">
+            დასრულება
+          </label>
+          <input id="to" type="date" name="to" defaultValue={p.to} className="h-9 rounded-lg border border-[#e6ebf2] bg-white px-3 text-[13px] outline-none focus:border-[#7f97e6]" />
+        </div>
+        <Button type="submit" size="sm">
+          ჩვენება
+        </Button>
+        <p className="ml-auto text-[11px] text-muted-foreground">
+          {byClient.length} კლიენტი · {byExecutor.length} შემსრულებელი
+        </p>
+      </form>
+
+      <div className="ln-enter ln-enter-2 grid gap-4 xl:grid-cols-2">
+        <SectionCard title="კლიენტების მიხედვით" icon={Building2} action={<ExportButton type="clients" p={p} />} bodyClassName="-mx-6 -mb-6">
+          {byClient.length === 0 ? (
+            <div className="px-6 pb-6">
+              <EmptyState icon={Building2} message="ამ პერიოდში მონაცემები არ არის." />
+            </div>
+          ) : (
+            <div className={tableCls.scroll}>
+              <table className={tableCls.table}>
+                <thead className={tableCls.head}>
                   <tr>
-                    <td colSpan={5} className="p-6 text-center text-muted-foreground">
-                      ამ პერიოდში მონაცემები არ არის
-                    </td>
+                    <th className={tableCls.th}>კლიენტი</th>
+                    <th className={tableCls.thRight}>შეკვ.</th>
+                    <th className={tableCls.thRight}>შესრ.</th>
+                    <th className={tableCls.thRight}>თანხა</th>
+                    <th className={tableCls.thRight}>გადაუხდელი</th>
                   </tr>
-                )}
-                {byClient.map((r) => (
-                  <tr key={r.clientId} className="border-b last:border-0">
-                    <td className={td}>{r.client}</td>
-                    <td className={tdr}>{r.total}</td>
-                    <td className={tdr}>{r.completed}</td>
-                    <td className={tdr}>{formatMoney(r.amount)}</td>
-                    <td className={`${tdr} ${r.unpaid > 0 ? "text-rose-600" : ""}`}>{formatMoney(r.unpaid)}</td>
+                </thead>
+                <tbody>
+                  {byClient.map((r) => (
+                    <tr key={r.clientId} className={tableCls.row}>
+                      <td className={cn(tableCls.td, "font-medium")}>{r.client}</td>
+                      <td className={tableCls.tdRight}>{r.total}</td>
+                      <td className={tableCls.tdRight}>{r.completed}</td>
+                      <td className={tableCls.tdRight}>{formatMoney(r.amount)}</td>
+                      <td className={cn(tableCls.tdRight, r.unpaid > 0 && "font-medium text-[#b13f32]")}>{formatMoney(r.unpaid)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr className="border-t border-[#eef1f6] bg-[#fbfcfe]">
+                    <td className={cn(tableCls.td, "text-[11px] text-muted-foreground")}>სულ</td>
+                    <td className={cn(tableCls.tdRight, "font-semibold")}>{clientTotals.total}</td>
+                    <td className={tableCls.tdRight} />
+                    <td className={cn(tableCls.tdRight, "font-semibold")}>{formatMoney(clientTotals.amount)}</td>
+                    <td className={cn(tableCls.tdRight, "font-semibold text-[#b13f32]")}>{formatMoney(clientTotals.unpaid)}</td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </CardContent>
-        </Card>
+                </tfoot>
+              </table>
+            </div>
+          )}
+        </SectionCard>
 
-        <Card>
-          <CardHeader className="flex-row items-center justify-between pb-2">
-            <CardTitle className="text-base">შემსრულებლების მიხედვით</CardTitle>
-            <ExportLink type="executors" p={p} />
-          </CardHeader>
-          <CardContent className="overflow-x-auto p-0">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b">
-                  <th className={th}>შემსრულებელი</th>
-                  <th className={thr}>შეკვ.</th>
-                  <th className={thr}>შესრ.</th>
-                  <th className={thr}>ვადაგად.</th>
-                </tr>
-              </thead>
-              <tbody>
-                {byExecutor.length === 0 && (
+        <SectionCard title="შემსრულებლების მიხედვით" icon={HardHat} action={<ExportButton type="executors" p={p} />} bodyClassName="-mx-6 -mb-6">
+          {byExecutor.length === 0 ? (
+            <div className="px-6 pb-6">
+              <EmptyState icon={HardHat} message="ამ პერიოდში მონაცემები არ არის." />
+            </div>
+          ) : (
+            <div className={tableCls.scroll}>
+              <table className={tableCls.table}>
+                <thead className={tableCls.head}>
                   <tr>
-                    <td colSpan={5} className="p-6 text-center text-muted-foreground">
-                      ამ პერიოდში მონაცემები არ არის
-                    </td>
+                    <th className={tableCls.th}>შემსრულებელი</th>
+                    <th className={tableCls.thRight}>შეკვ.</th>
+                    <th className={tableCls.thRight}>შესრ.</th>
+                    <th className={tableCls.thRight}>ვადაგად.</th>
                   </tr>
-                )}
-                {byExecutor.map((r) => (
-                  <tr key={r.userId} className="border-b last:border-0">
-                    <td className={td}>{r.name}</td>
-                    <td className={tdr}>{r.total}</td>
-                    <td className={tdr}>{r.completed}</td>
-                    <td className={`${tdr} ${r.overdue > 0 ? "text-rose-600" : ""}`}>{r.overdue}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </CardContent>
-        </Card>
+                </thead>
+                <tbody>
+                  {byExecutor.map((r) => (
+                    <tr key={r.userId} className={tableCls.row}>
+                      <td className={cn(tableCls.td, "font-medium")}>{r.name}</td>
+                      <td className={tableCls.tdRight}>{r.total}</td>
+                      <td className={tableCls.tdRight}>{r.completed}</td>
+                      <td className={cn(tableCls.tdRight, r.overdue > 0 && "font-medium text-[#b13f32]")}>{r.overdue}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </SectionCard>
 
-        <Card>
-          <CardHeader className="flex-row items-center justify-between pb-2">
-            <CardTitle className="text-base">სისტემების მიხედვით</CardTitle>
-            <ExportLink type="systems" p={p} />
-          </CardHeader>
-          <CardContent className="overflow-x-auto p-0">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b">
-                  <th className={th}>სისტემა</th>
-                  <th className={thr}>შეკვ.</th>
-                  <th className={thr}>შესრ.</th>
-                  <th className={thr}>თანხა</th>
-                  <th className={thr}>გადახდილი</th>
-                </tr>
-              </thead>
-              <tbody>
-                {bySystem.map((r, i) => (
-                  <tr key={r.system ?? `none-${i}`} className="border-b last:border-0">
-                    <td className={td}>{r.system ? <SystemBadge system={r.system} /> : <span className="text-muted-foreground">მიუთითებელი</span>}</td>
-                    <td className={tdr}>{r.total}</td>
-                    <td className={tdr}>{r.completed}</td>
-                    <td className={tdr}>{formatMoney(r.amount)}</td>
-                    <td className={tdr}>{formatMoney(r.paid)}</td>
+        <SectionCard title="სისტემების მიხედვით" icon={Layers} action={<ExportButton type="systems" p={p} />} bodyClassName="-mx-6 -mb-6">
+          {bySystem.length === 0 ? (
+            <div className="px-6 pb-6">
+              <EmptyState icon={Layers} message="ამ პერიოდში მონაცემები არ არის." />
+            </div>
+          ) : (
+            <div className={tableCls.scroll}>
+              <table className={tableCls.table}>
+                <thead className={tableCls.head}>
+                  <tr>
+                    <th className={tableCls.th}>სისტემა</th>
+                    <th className={tableCls.thRight}>შეკვ.</th>
+                    <th className={tableCls.thRight}>შესრ.</th>
+                    <th className={tableCls.thRight}>თანხა</th>
+                    <th className={tableCls.thRight}>გადახდილი</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </CardContent>
-        </Card>
+                </thead>
+                <tbody>
+                  {bySystem.map((r, i) => (
+                    <tr key={r.system ?? `none-${i}`} className={tableCls.row}>
+                      <td className={tableCls.td}>{r.system ? <SystemBadge system={r.system} /> : <span className="text-muted-foreground">მიუთითებელი</span>}</td>
+                      <td className={tableCls.tdRight}>{r.total}</td>
+                      <td className={tableCls.tdRight}>{r.completed}</td>
+                      <td className={tableCls.tdRight}>{formatMoney(r.amount)}</td>
+                      <td className={cn(tableCls.tdRight, "text-[#25815a]")}>{formatMoney(r.paid)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr className="border-t border-[#eef1f6] bg-[#fbfcfe]">
+                    <td className={cn(tableCls.td, "text-[11px] text-muted-foreground")}>სულ</td>
+                    <td className={cn(tableCls.tdRight, "font-semibold")}>{systemTotals.total}</td>
+                    <td className={tableCls.tdRight} />
+                    <td className={cn(tableCls.tdRight, "font-semibold")}>{formatMoney(systemTotals.amount)}</td>
+                    <td className={cn(tableCls.tdRight, "font-semibold text-[#25815a]")}>{formatMoney(systemTotals.paid)}</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          )}
+        </SectionCard>
 
-        <Card>
-          <CardHeader className="flex-row items-center justify-between pb-2">
-            <CardTitle className="text-base">თვის ფინანსური (12 თვე)</CardTitle>
-            <ExportLink type="monthly" />
-          </CardHeader>
-          <CardContent className="overflow-x-auto p-0">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b">
-                  <th className={th}>თვე</th>
-                  <th className={thr}>შეკვ.</th>
-                  <th className={thr}>შესრ.</th>
-                  <th className={thr}>შემოსული</th>
-                  <th className={thr}>მასალების ხარჯი</th>
-                  <th className={thr}>სხვაობა მასალების შემდეგ</th>
+        <SectionCard title="თვის ფინანსური" icon={TrendingUp} aside="12 თვე" action={<ExportButton type="monthly" />} bodyClassName="-mx-6 -mb-6">
+          <div className={tableCls.scroll}>
+            <table className={tableCls.table}>
+              <thead className={tableCls.head}>
+                <tr>
+                  <th className={tableCls.th}>თვე</th>
+                  <th className={tableCls.thRight}>შეკვ.</th>
+                  <th className={tableCls.thRight}>შესრ.</th>
+                  <th className={tableCls.thRight}>შემოსული</th>
+                  <th className={tableCls.thRight}>მასალები</th>
+                  <th className={tableCls.thRight}>სხვაობა</th>
                 </tr>
               </thead>
               <tbody>
                 {monthly.months.map((m) => {
                   const [y, mo] = m.month.split("-");
                   return (
-                    <tr key={m.month} className="border-b last:border-0">
-                      <td className={td}>
+                    <tr key={m.month} className={tableCls.row}>
+                      <td className={cn(tableCls.td, "whitespace-nowrap font-medium")}>
                         {MONTHS[Number(mo) - 1]} {y}
                       </td>
-                      <td className={tdr}>{m.created}</td>
-                      <td className={tdr}>{m.completed}</td>
-                      <td className={tdr}>{formatMoney(m.revenue)}</td>
-                      <td className={tdr}>{formatMoney(m.cost)}</td>
-                      <td className={`${tdr} font-medium ${m.profit < 0 ? "text-rose-600" : "text-emerald-700"}`}>{formatMoney(m.profit)}</td>
+                      <td className={tableCls.tdRight}>{m.created}</td>
+                      <td className={tableCls.tdRight}>{m.completed}</td>
+                      <td className={cn(tableCls.tdRight, "text-[#25815a]")}>{formatMoney(m.revenue)}</td>
+                      <td className={tableCls.tdRight}>{formatMoney(m.cost)}</td>
+                      <td className={cn(tableCls.tdRight, "font-medium", m.profit < 0 ? "text-[#b13f32]" : "text-[#25815a]")}>{formatMoney(m.profit)}</td>
                     </tr>
                   );
                 })}
               </tbody>
               <tfoot>
-                <tr className="border-t bg-neutral-50 dark:bg-neutral-800/50">
-                  <td colSpan={5} className="px-3 py-2 text-right text-xs text-muted-foreground">
+                <tr className="border-t border-[#eef1f6] bg-[#fbfcfe]">
+                  <td colSpan={5} className={cn(tableCls.td, "text-right text-[11px] text-muted-foreground")}>
                     დებიტორული დავალიანება (სულ)
                   </td>
-                  <td className={`${tdr} font-semibold text-rose-600`}>{formatMoney(monthly.outstanding)}</td>
+                  <td className={cn(tableCls.tdRight, "font-semibold text-[#b13f32]")}>{formatMoney(monthly.outstanding)}</td>
                 </tr>
               </tfoot>
             </table>
-          </CardContent>
-        </Card>
+          </div>
+        </SectionCard>
       </div>
     </div>
   );

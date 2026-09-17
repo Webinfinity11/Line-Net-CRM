@@ -12,8 +12,17 @@ function Dialog({ ...props }: DialogPrimitive.Root.Props) {
   return <DialogPrimitive.Root data-slot="dialog" {...props} />
 }
 
-function DialogTrigger({ ...props }: DialogPrimitive.Trigger.Props) {
-  return <DialogPrimitive.Trigger data-slot="dialog-trigger" {...props} />
+/** A trigger rendered as our Button follows the button rule: Georgian labels in Mtavruli. */
+function triggerChildren(render: unknown, children: React.ReactNode): React.ReactNode {
+  return React.isValidElement(render) && render.type === Button ? mtavruliNodes(children) : children
+}
+
+function DialogTrigger({ children, ...props }: DialogPrimitive.Trigger.Props) {
+  return (
+    <DialogPrimitive.Trigger data-slot="dialog-trigger" {...props}>
+      {triggerChildren(props.render, children)}
+    </DialogPrimitive.Trigger>
+  )
 }
 
 function DialogPortal({ ...props }: DialogPrimitive.Portal.Props) {
