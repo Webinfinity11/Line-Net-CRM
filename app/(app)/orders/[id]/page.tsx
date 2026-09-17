@@ -107,8 +107,8 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
                 <div>
                   <dt className="text-xs text-muted-foreground">{t.order.scheduledAt}</dt>
                   <dd className="font-medium">
-                    {order.scheduledAt ? `${formatDate(order.scheduledAt, true)}${plannedEndAt ? ` – ${tbilisiTime(plannedEndAt)}` : ""}` : "დაუგეგმავი"}
-                    {order.plannedMinutes ? <span className="text-xs text-muted-foreground"> · {formatDuration(order.plannedMinutes)}</span> : null}
+                    <span className="whitespace-nowrap">{order.scheduledAt ? `${formatDate(order.scheduledAt, true)}${plannedEndAt ? ` – ${tbilisiTime(plannedEndAt)}` : ""}` : "დაუგეგმავი"}</span>
+                    {order.plannedMinutes ? <span className="whitespace-nowrap text-xs text-muted-foreground"> · {formatDuration(order.plannedMinutes)}</span> : null}
                   </dd>
                 </div>
               </div>
@@ -116,7 +116,7 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
                 <CalendarDays className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
                 <div>
                   <dt className="text-xs text-muted-foreground">{t.order.dueDate}</dt>
-                  <dd className={overdue ? "font-semibold text-rose-600" : "font-medium"}>{formatDate(order.dueDate)}</dd>
+                  <dd className={overdue ? "font-semibold text-[#b13f32]" : "font-medium"}>{formatDate(order.dueDate)}</dd>
                 </div>
               </div>
               <div className="flex items-start gap-2">
@@ -124,7 +124,7 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
                 <div className="min-w-0">
                   <dt className="text-xs text-muted-foreground">{t.order.assignees}</dt>
                   <dd className="flex flex-wrap items-center gap-1.5 font-medium">
-                    {order.assignees.length === 0 && <span className="text-rose-600">{t.order.unassigned}</span>}
+                    {order.assignees.length === 0 && <span className="text-[#b13f32]">{t.order.unassigned}</span>}
                     {order.assignees.map((a) => (
                       <span key={a.userId} className="inline-flex items-center gap-1">
                         <UserAvatar name={a.user.name} image={a.user.image} size="xs" /> {a.user.name.split(" ")[0]}
@@ -321,7 +321,7 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
           {me.role === "admin" && (
             <Card className="ring-rose-200">
               <CardHeader className="pb-1">
-                <CardTitle className="text-rose-700">საშიში მოქმედებები</CardTitle>
+                <CardTitle className="text-[#b13f32]">საშიში მოქმედებები</CardTitle>
               </CardHeader>
               <CardContent className="flex items-center justify-between gap-3">
                 <p className="text-xs text-muted-foreground">წაშლა შეუქცევადია: შეკვეთა, ვიზიტები, გადახდები, ფაილები.</p>

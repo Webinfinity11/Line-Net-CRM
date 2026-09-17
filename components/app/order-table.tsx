@@ -39,7 +39,7 @@ export function OrderTable({ orders, compact = false, showMoney = true }: { orde
                   <Link href={`/orders/${o.id}`} className="block">
                     <div className="flex items-center gap-1.5">
                       <span className="truncate font-medium group-hover:text-blue-700">{o.title}</span>
-                      {compact && o.priority === "urgent" && <span className="shrink-0 text-[10px] font-semibold text-rose-600">სასწრაფო</span>}
+                      {compact && o.priority === "urgent" && <span className="shrink-0 text-[10px] font-semibold text-[#b13f32]">სასწრაფო</span>}
                     </div>
                     {compact && (
                       <div className="truncate text-xs text-muted-foreground">
@@ -73,7 +73,7 @@ export function OrderTable({ orders, compact = false, showMoney = true }: { orde
                     {overdue && !compact && <OverdueBadge />}
                   </div>
                 </td>
-                <td className={cn("px-3 py-2.5 whitespace-nowrap", overdue && "font-semibold text-rose-600")}>{formatDate(o.dueDate)}</td>
+                <td className={cn("px-3 py-2.5 whitespace-nowrap", overdue && "font-semibold text-[#b13f32]")}>{formatDate(o.dueDate)}</td>
                 {showMoney && !compact && (
                   <td className="px-3 py-2.5 text-right whitespace-nowrap">
                     <div>{formatMoney(o.amount)}</div>

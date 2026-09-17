@@ -86,7 +86,7 @@ export function Kanban({ orders }: { orders: OrderListItem[] }) {
                     <AvatarStack users={o.assignees.map((a) => a.user)} />
                     <div className="flex flex-col items-end text-[11px]">
                       <PriorityLabel priority={o.priority} />
-                      {o.dueDate && <span className={cn(isOverdue(o) ? "font-semibold text-rose-600" : "text-muted-foreground")}>{formatDate(o.dueDate)}</span>}
+                      {o.dueDate && <span className={cn(isOverdue(o) ? "font-semibold text-[#b13f32]" : "text-muted-foreground")}>{formatDate(o.dueDate)}</span>}
                     </div>
                   </div>
                   {o.amount && <div className="mt-1.5 text-right text-xs font-medium">{formatMoney(o.amount)}</div>}

@@ -80,7 +80,7 @@ export function CompleteDialog({
             autoFocus
           />
           {error && (
-            <p className="text-sm text-rose-700" role="alert">
+            <p className="text-sm text-[#b13f32]" role="alert">
               {error}
             </p>
           )}

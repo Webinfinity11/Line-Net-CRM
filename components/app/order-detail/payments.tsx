@@ -80,11 +80,11 @@ export function Payments({
             <div className="font-heading text-sm font-bold">{formatMoney(amount)}</div>
           </div>
           <div className="rounded-lg bg-emerald-50 p-2 dark:bg-emerald-950/30">
-            <div className="text-[11px] text-emerald-700">მიღებული</div>
+            <div className="text-[11px] text-[#25815a]">მიღებული</div>
             <div className="font-heading text-sm font-bold text-emerald-800">{formatMoney(paidTotal)}</div>
           </div>
           <div className={remaining > 0 ? "rounded-lg bg-rose-50 p-2 dark:bg-rose-950/30" : "rounded-lg bg-slate-50 p-2 dark:bg-neutral-800"}>
-            <div className={remaining > 0 ? "text-[11px] text-rose-700" : "text-[11px] text-muted-foreground"}>ნაშთი</div>
+            <div className={remaining > 0 ? "text-[11px] text-[#b13f32]" : "text-[11px] text-muted-foreground"}>ნაშთი</div>
             <div className={remaining > 0 ? "font-heading text-sm font-bold text-rose-800" : "font-heading text-sm font-bold"}>{amount ? formatMoney(remaining) : "—"}</div>
           </div>
         </div>

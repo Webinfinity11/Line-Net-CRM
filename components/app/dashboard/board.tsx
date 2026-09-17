@@ -127,7 +127,7 @@ export function DashboardBoard({
       </section>
 
       {/* zone 2 — the day */}
-      <div className="ln-enter ln-enter-2 grid gap-4 xl:grid-cols-[minmax(0,8fr)_minmax(0,4fr)]">
+      <div className="ln-enter ln-enter-2 grid items-start gap-4 xl:grid-cols-[minmax(0,8fr)_minmax(0,4fr)]">
         <section className="ln-card min-w-0 p-6" aria-label="დღევანდელი განრიგი">
           <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
             <h2 className="font-heading text-[15px] font-semibold">{toMtavruli("დღევანდელი განრიგი")}</h2>
@@ -137,7 +137,7 @@ export function DashboardBoard({
           </div>
 
           {laneRows.length === 0 || blocks.length === 0 ? (
-            <div className="rounded-[14px] border border-dashed border-[#e6ebf2] px-4 py-8 text-center">
+            <div className="rounded-[14px] border border-dashed border-[#e6ebf2] px-4 py-6 text-center">
               <p className="text-[12.5px] text-muted-foreground">დღეს დაგეგმილი ვიზიტი არ არის.</p>
               <Link href="/schedule" className="mt-2 inline-flex items-center gap-1 text-[12px] font-medium text-[#3457d5] hover:underline">
                 დაგეგმე დღე <ArrowRight className="size-3.5" />

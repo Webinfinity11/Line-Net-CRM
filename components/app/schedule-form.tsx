@@ -108,7 +108,7 @@ export function ScheduleFields({
               <input type="checkbox" name="assigneeIds" value={u.id} defaultChecked={initial?.assigneeIds?.includes(u.id)} className="accent-blue-600" />
               <UserAvatar name={u.name} image={u.image} />
               {u.name}
-              {u.specializations?.includes(system) && <span className="text-[11px] text-emerald-600">სპეც.</span>}
+              {u.specializations?.includes(system) && <span className="text-[11px] text-[#25815a]">სპეც.</span>}
             </label>
           ))}
         </div>

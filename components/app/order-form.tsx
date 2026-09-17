@@ -226,7 +226,7 @@ export function OrderForm({
                     <UserAvatar name={u.name} image={u.image} />
                     <span className="flex-1 truncate">{u.name}</span>
                     {fit && (
-                      <span title="შესაბამისი სპეციალიზაცია" className="text-emerald-600">
+                      <span title="შესაბამისი სპეციალიზაცია" className="text-[#25815a]">
                         <BadgeCheck className="size-4" />
                       </span>
                     )}

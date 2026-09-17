@@ -38,12 +38,12 @@ export function Checklist({ orderId, items, templates, staff, readOnly }: { orde
         <CardTitle className="flex items-center gap-2">
           <ClipboardCheck className="size-4 text-muted-foreground" /> {t.order.checklist}
           {items.length > 0 && (
-            <span className={cn("text-sm font-normal", done === items.length ? "text-emerald-600" : "text-muted-foreground")}>
+            <span className={cn("text-sm font-normal", done === items.length ? "text-[#25815a]" : "text-muted-foreground")}>
               {done}/{items.length}
             </span>
           )}
         </CardTitle>
-        {requiredLeft > 0 && <span className="text-xs font-medium text-amber-700">{requiredLeft} სავალდებულო დარჩა</span>}
+        {requiredLeft > 0 && <span className="text-xs font-medium text-[#96610b]">{requiredLeft} სავალდებულო დარჩა</span>}
       </CardHeader>
       <CardContent className="space-y-3">
         {items.length > 0 && (

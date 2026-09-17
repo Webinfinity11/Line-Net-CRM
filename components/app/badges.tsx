@@ -61,7 +61,7 @@ export function PriorityLabel({ priority, className }: { priority: OrderPriority
 
 export function OverdueBadge({ className }: { className?: string }) {
   return (
-    <span className={cn(base, "bg-rose-600 text-white", className)}>
+    <span className={cn(base, "bg-[#b13f32] text-white", className)}>
       <AlertTriangle className="size-3" /> ვადაგადაცილებული
     </span>
   );

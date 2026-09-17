@@ -145,7 +145,7 @@ export function Materials({
                     <td colSpan={3} className="py-1 text-right text-muted-foreground">
                       სხვაობა მასალების ხარჯის შემდეგ (თანხა − მასალები)
                     </td>
-                    <td className={margin === null ? "py-1 text-right text-muted-foreground" : margin >= 0 ? "py-1 text-right font-semibold text-emerald-700" : "py-1 text-right font-semibold text-rose-700"}>
+                    <td className={margin === null ? "py-1 text-right text-muted-foreground" : margin >= 0 ? "py-1 text-right font-semibold text-[#25815a]" : "py-1 text-right font-semibold text-[#b13f32]"}>
                       {margin === null ? "—" : formatMoney(margin)}
                     </td>
                     <td />

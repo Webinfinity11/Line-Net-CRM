@@ -95,7 +95,7 @@ export function Visits({
         )}
 
         {anyOpen.filter((v) => v.user.id !== meId).length > 0 && (
-          <p className="text-xs text-emerald-700">
+          <p className="text-xs text-[#25815a]">
             ახლა ობიექტზეა: {anyOpen.filter((v) => v.user.id !== meId).map((v) => v.user.name).join(", ")}
           </p>
         )}

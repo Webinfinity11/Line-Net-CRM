@@ -62,7 +62,7 @@ export function MailSyncStatus({ state, canManage }: { state: MailSyncState; can
           </>}
         </div>
       </div>
-      {state.lastError && <p role="alert" className="text-xs text-rose-600 dark:text-rose-400">{state.lastError}</p>}
+      {state.lastError && <p role="alert" className="text-xs text-[#b13f32] dark:text-rose-400">{state.lastError}</p>}
     </div>
   );
 }

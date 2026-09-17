@@ -73,7 +73,7 @@ export function Attachments({ orderId, attachments, canDelete }: { orderId: numb
                       <img src={`/api/files/${a.id}`} alt="" className="size-10 shrink-0 rounded object-cover" />
                     ) : (
                       <span className="flex size-10 shrink-0 items-center justify-center rounded bg-neutral-100 dark:bg-neutral-800">
-                        {a.mimeType === "application/pdf" ? <FileText className="size-5 text-rose-600" /> : <ImageIcon className="size-5 text-muted-foreground" />}
+                        {a.mimeType === "application/pdf" ? <FileText className="size-5 text-[#b13f32]" /> : <ImageIcon className="size-5 text-muted-foreground" />}
                       </span>
                     )}
                     <span className="min-w-0">
