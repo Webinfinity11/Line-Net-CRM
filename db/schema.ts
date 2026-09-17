@@ -218,6 +218,23 @@ export const orders = pgTable(
 );
 
 /**
+ * The systems the company works with. The enum stays the stable key on orders, while
+ * the label, order, colour and visibility live here so an admin can manage the list.
+ */
+export const systems = pgTable(
+  "systems",
+  {
+    key: systemTypeEnum("key").primaryKey(),
+    name: text("name").notNull(),
+    color: text("color"),
+    sort: integer("sort").notNull().default(0),
+    active: boolean("active").notNull().default(true),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("systems_sort_idx").on(t.sort)],
+);
+
+/**
  * Service catalogue: what the company sells, with a price per unit.
  * Managed from the admin panel; order lines copy the name/unit/price so a later
  * price change never rewrites what a client was already charged.
@@ -604,3 +621,5 @@ export type ChecklistTemplate = typeof checklistTemplates.$inferSelect;
 
 export type Service = typeof services.$inferSelect;
 export type OrderItem = typeof orderItems.$inferSelect;
+
+export type SystemRow = typeof systems.$inferSelect;

@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
+import { useActiveSystems } from "@/components/app/systems-provider";
 import { Textarea } from "@/components/ui/textarea";
 import { PRIORITY_LABELS, TYPE_LABELS, t, SYSTEM_LABELS } from "@/lib/i18n";
 import type { ClientOption } from "./types";
@@ -17,6 +18,7 @@ import type { ClientOption } from "./types";
 /** Compact "ახალი შეკვეთა" form; the full form stays on /orders/new. */
 export function QuickCreate({ clients }: { clients: ClientOption[] }) {
   const router = useRouter();
+  const systemOptions = useActiveSystems();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
@@ -89,9 +91,9 @@ export function QuickCreate({ clients }: { clients: ClientOption[] }) {
               <Label htmlFor="qc-system">სისტემა</Label>
               <NativeSelect id="qc-system" name="systemType" className="w-full" defaultValue="">
                 <NativeSelectOption value="">— აირჩიეთ —</NativeSelectOption>
-                {Object.entries(SYSTEM_LABELS).map(([k, v]) => (
-                  <NativeSelectOption key={k} value={k}>
-                    {v}
+                {systemOptions.map((sys) => (
+                  <NativeSelectOption key={sys.key} value={sys.key}>
+                    {sys.name}
                   </NativeSelectOption>
                 ))}
               </NativeSelect>

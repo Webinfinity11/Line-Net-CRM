@@ -1,3 +1,5 @@
+"use client";
+
 import { AlertTriangle } from "lucide-react";
 import type { OrderPriority, OrderStatus, OrderType, PaymentStatus, SystemType } from "@/db/schema";
 import {
@@ -12,6 +14,7 @@ import {
   TYPE_LABELS,
 } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import { useSystemLabel } from "./systems-provider";
 
 const base = "inline-flex items-center gap-1.5 rounded-[5px] px-1.5 py-[3px] text-[11px] font-medium whitespace-nowrap";
 
@@ -68,6 +71,7 @@ export function OverdueBadge({ className }: { className?: string }) {
 }
 
 export function SystemBadge({ system, className }: { system: SystemType | null | undefined; className?: string }) {
-  if (!system) return null;
-  return <span className={cn(base, SYSTEM_COLORS[system], className)}>{SYSTEM_LABELS[system]}</span>;
+  const label = useSystemLabel(system);
+  if (!system || !label) return null;
+  return <span className={cn(base, SYSTEM_COLORS[system], className)}>{label}</span>;
 }

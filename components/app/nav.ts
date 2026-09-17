@@ -1,4 +1,4 @@
-import { BarChart3, Building2, CalendarDays, CalendarSync, ClipboardList, Inbox, LayoutDashboard, ReceiptText, Users, type LucideIcon } from "lucide-react";
+import { BarChart3, Building2, CalendarDays, CalendarSync, ClipboardList, Inbox, LayoutDashboard, Layers, ReceiptText, Users, type LucideIcon } from "lucide-react";
 import type { UserRole } from "@/db/schema";
 import { t } from "@/lib/i18n";
 
@@ -18,6 +18,9 @@ export function navFor(role: UserRole, counts: { inbox: number; unseen: number }
     { href: "/reports", label: t.nav2.reports, icon: BarChart3 },
     { href: "/settings/services", label: "სერვისები", icon: ReceiptText },
   ];
-  if (role === "admin") items.push({ href: "/settings/users", label: t.nav.users, icon: Users });
+  if (role === "admin") {
+    items.push({ href: "/settings/systems", label: "სისტემები", icon: Layers });
+    items.push({ href: "/settings/users", label: t.nav.users, icon: Users });
+  }
   return items;
 }

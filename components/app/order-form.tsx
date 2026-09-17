@@ -11,6 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
+import { useActiveSystems } from "@/components/app/systems-provider";
 import { Textarea } from "@/components/ui/textarea";
 import type { Order, SystemType } from "@/db/schema";
 import { PRIORITY_LABELS, ROLE_LABELS, SYSTEM_LABELS, SYSTEM_ORDER, TYPE_LABELS, t } from "@/lib/i18n";
@@ -50,6 +51,7 @@ export function OrderForm({
   compact?: boolean;
 }) {
   const router = useRouter();
+  const systemOptions = useActiveSystems();
   const [pending, start] = useTransition();
   const [clientId, setClientId] = useState(initial?.clientId ? String(initial.clientId) : "");
   const [siteId, setSiteId] = useState(initial?.siteId ? String(initial.siteId) : "");
@@ -98,9 +100,9 @@ export function OrderForm({
             <Field label={t.order.system} htmlFor="systemType">
               <NativeSelect id="systemType" name="systemType" value={system} onChange={(e) => setSystem(e.target.value)}>
                 <NativeSelectOption value="">— აირჩიეთ —</NativeSelectOption>
-                {SYSTEM_ORDER.map((k: SystemType) => (
-                  <NativeSelectOption key={k} value={k}>
-                    {SYSTEM_LABELS[k]}
+                {systemOptions.map((sys) => (
+                  <NativeSelectOption key={sys.key} value={sys.key}>
+                    {sys.name}
                   </NativeSelectOption>
                 ))}
               </NativeSelect>

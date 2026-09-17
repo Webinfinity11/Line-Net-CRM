@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
+import { useActiveSystems } from "@/components/app/systems-provider";
 import { Textarea } from "@/components/ui/textarea";
 import type { Service } from "@/db/schema";
 import { SYSTEM_LABELS } from "@/lib/i18n";
@@ -15,6 +16,7 @@ import { SYSTEM_LABELS } from "@/lib/i18n";
 const UNITS = ["ცალი", "მეტრი", "წერტილი", "საათი", "კომპლექტი", "მ²"];
 
 function Fields({ initial }: { initial?: Service }) {
+  const systemOptions = useActiveSystems();
   return (
     <div className={`grid gap-3 sm:grid-cols-2 ${formFields}`}>
       <div className="space-y-1.5 sm:col-span-2">
@@ -25,9 +27,9 @@ function Fields({ initial }: { initial?: Service }) {
         <Label htmlFor="s-system">სისტემა</Label>
         <NativeSelect id="s-system" name="systemType" defaultValue={initial?.systemType ?? ""} className="w-full">
           <NativeSelectOption value="">— ყველა —</NativeSelectOption>
-          {Object.entries(SYSTEM_LABELS).map(([k, v]) => (
-            <NativeSelectOption key={k} value={k}>
-              {v}
+          {systemOptions.map((sys) => (
+            <NativeSelectOption key={sys.key} value={sys.key}>
+              {sys.name}
             </NativeSelectOption>
           ))}
         </NativeSelect>
