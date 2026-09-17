@@ -1,13 +1,14 @@
 "use client";
 
-import { CheckCircle2 } from "lucide-react";
+import { Camera, CheckCircle2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
-import { completeOrder } from "@/actions/orders";
+import { completeOrder, uploadAttachment } from "@/actions/orders";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 
 /**
  * "სამუშაო შესრულებულია": asks for a short summary; the server enforces required
@@ -31,7 +32,34 @@ export function CompleteDialog({
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
-  const blocked = requiredLeft > 0 || needsPhoto;
+  const photoInput = useRef<HTMLInputElement>(null);
+  const [photoName, setPhotoName] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const photoMissing = needsPhoto && !photoName;
+  const blocked = requiredLeft > 0 || photoMissing;
+
+  // the technician is standing on site: the photo is taken here, not on another screen
+  function addPhoto(files: FileList | null) {
+    const file = files?.[0];
+    if (!file) return;
+    setUploading(true);
+    setError(null);
+    start(async () => {
+      const fd = new FormData();
+      fd.set("file", file);
+      const res = await uploadAttachment(orderId, fd);
+      setUploading(false);
+      if (photoInput.current) photoInput.current.value = "";
+      if (!res.ok) {
+        setError(res.error);
+        toast.error(res.error);
+        return;
+      }
+      setPhotoName(file.name);
+      toast.success("ფოტო აიტვირთა");
+      router.refresh();
+    });
+  }
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -61,10 +89,47 @@ export function CompleteDialog({
           <DialogTitle>სამუშაოს ჩაბარება</DialogTitle>
           <DialogDescription>მოკლედ აღწერეთ, რა გაკეთდა. ეს ტექსტი კლიენტის ანგარიშში და ისტორიაში ჩაიწერება.</DialogDescription>
         </DialogHeader>
-        {blocked && (
+        {/* `needsPhoto` turns false as soon as the upload lands, so the confirmation is kept by local state */}
+        {(needsPhoto || photoName) && (
+          <div
+            className={cn(
+              "rounded-lg border p-2.5 text-xs",
+              photoName ? "border-[#bfe0cd] bg-[#f1f8f4] text-[#1f6b4b]" : "border-amber-300 bg-amber-50 text-amber-900",
+            )}
+            role="alert"
+          >
+            {photoName ? (
+              <div className="flex items-center gap-1.5">
+                <CheckCircle2 className="size-3.5 shrink-0" /> ფოტო დამატებულია: {photoName}
+              </div>
+            ) : (
+              <>
+                <div>ამ სამუშაოს ჩასაბარებლად ფოტო სავალდებულოა.</div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="mt-2 h-10 w-full sm:h-8 sm:w-auto"
+                  disabled={uploading || pending}
+                  onClick={() => photoInput.current?.click()}
+                >
+                  <Camera className="size-4" /> {uploading ? "იტვირთება..." : "ფოტოს დამატება"}
+                </Button>
+              </>
+            )}
+            <input
+              ref={photoInput}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              onChange={(e) => addPhoto(e.target.files)}
+            />
+          </div>
+        )}
+        {requiredLeft > 0 && (
           <div className="rounded-lg border border-amber-300 bg-amber-50 p-2.5 text-xs text-amber-900" role="alert">
-            {needsPhoto && <div>ამ სამუშაოს ჩასაბარებლად ფოტო სავალდებულოა (ატვირთეთ დანართებში).</div>}
-            <div className="mt-1 opacity-80">სერვერი ჩაბარებას ამ პირობების გარეშე არ მიიღებს.</div>
+            შესასრულებელი პუნქტები დარჩა: {requiredLeft}
           </div>
         )}
         <form onSubmit={submit} className="space-y-3">
@@ -87,7 +152,7 @@ export function CompleteDialog({
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               გაუქმება
             </Button>
-            <Button type="submit" variant="success" disabled={pending || note.trim().length < 5}>
+            <Button type="submit" variant="success" disabled={pending || blocked || note.trim().length < 5}>
               {pending ? "ინახება..." : "ჩაბარება"}
             </Button>
           </div>

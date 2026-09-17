@@ -64,6 +64,13 @@
       "when": 1789643345078,
       "tag": "0008_site_contacts",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1789648800000,
+      "tag": "0009_order_vat",
+      "breakpoints": true
     }
   ]
 }

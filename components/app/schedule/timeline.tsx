@@ -145,7 +145,15 @@ export function Timeline({
         <div className="relative grid gap-x-2 pt-2" style={{ gridTemplateColumns: columns }}>
           <div className="relative" style={{ height: canvasH }}>
             {hours.map((m) => (
-              <div key={m} className="absolute right-2 -translate-y-1/2 text-[11px] text-muted-foreground tabular" style={{ top: y(m) }}>
+              // the "now" marker carries its own time; hiding the hour underneath keeps both readable
+              <div
+                key={m}
+                className={cn(
+                  "absolute right-2 -translate-y-1/2 text-[11px] text-muted-foreground tabular",
+                  showNow && Math.abs((nowMin as number) - m) < 25 && "opacity-0",
+                )}
+                style={{ top: y(m) }}
+              >
                 {formatMinutes(m)}
               </div>
             ))}
@@ -160,7 +168,7 @@ export function Timeline({
               }}
             >
               {lane.blocks.length === 0 && (
-                <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 text-center text-[11px] text-muted-foreground">თავისუფალია</div>
+                <div className="absolute inset-x-0 top-3 text-center text-[11px] text-[#8b98a9]">თავისუფალია</div>
               )}
               {lane.blocks.map((b) => {
                 const clash = b.clashWith.length > 0;
@@ -182,11 +190,11 @@ export function Timeline({
                     }}
                     title={`${b.number} · ${b.title}`}
                   >
-                    <div className="tabular font-medium text-[#4a5e73]">
+                    <div className="tabular font-medium text-[#41556b]">
                       {formatMinutes(b.startMin)}–{formatMinutes(b.endMin)}
                     </div>
                     <div className="line-clamp-2 font-medium">{b.title}</div>
-                    {b.client && <div className="truncate text-muted-foreground">{b.client}</div>}
+                    {b.client && <div className="truncate text-[#5b6b7c]">{b.client}</div>}
                     {clash && (
                       <div className="mt-0.5 flex items-center gap-1 text-[10px] font-medium text-[#96610b]">
                         <AlertTriangle className="size-3" /> ემთხვევა: {b.clashWith.join(", ")}

@@ -58,15 +58,15 @@ function SiteRows() {
     <div className="rounded-[14px] border border-[#eef1f6] p-3">
       <div className="mb-2 flex items-center justify-between gap-2">
         <span className="font-heading text-[13px] font-semibold text-[#4a5e73]">ობიექტები</span>
-        <span className="text-[11px] text-muted-foreground">მისამართიდან კოორდინატები თავისით მოიძებნება</span>
+        <span className="text-[11px] text-muted-foreground">ობიექტის პირი და ნომერი შეკვეთაზე ჩანს; კოორდინატები მისამართიდან მოიძებნება</span>
       </div>
       <div className="space-y-2">
         {rows.map((key, i) => (
-          <div key={key} className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,1fr)_auto]">
+          <div key={key} className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)_minmax(0,1fr)_minmax(0,0.9fr)_auto]">
             <Input name="siteName" placeholder={i === 0 ? "მაგ. ფილიალი ვაკე" : "ობიექტის სახელი"} aria-label="ობიექტის სახელი" />
             <Input name="siteAddress" placeholder="მისამართი" aria-label="მისამართი" />
+            <Input name="siteContact" placeholder="საკონტაქტო პირი" aria-label="ობიექტის საკონტაქტო პირი" />
             <Input name="sitePhone" placeholder="ტელეფონი" aria-label="ობიექტის ტელეფონი" />
-            <input type="hidden" name="siteContact" value="" />
             <Button
               type="button"
               variant="ghost"

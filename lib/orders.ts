@@ -160,8 +160,8 @@ export async function listMyOrders(userId: string) {
       createdAt: true,
     },
     with: {
-      client: { columns: { id: true, name: true, phone: true } },
-      site: { columns: { id: true, name: true, address: true, lat: true, lng: true } },
+      client: { columns: { id: true, name: true, phone: true, contactName: true } },
+      site: { columns: { id: true, name: true, address: true, lat: true, lng: true, contactName: true, contactPhone: true } },
       assignees: { columns: { userId: true, seenAt: true } },
       visits: { columns: { id: true, userId: true, startedAt: true, endedAt: true } },
       checklist: { columns: { id: true, done: true, required: true } },

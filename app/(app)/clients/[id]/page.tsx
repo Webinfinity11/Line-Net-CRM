@@ -120,18 +120,17 @@ export default async function ClientPage({ params }: PageProps<"/clients/[id]">)
                       </div>
                     </div>
 
+                    {/* an empty equipment block repeated per branch is noise; then only the add link stays */}
                     <div className="mt-3 border-t border-[#e6ebf2] pt-3">
-                      <div className="mb-2 flex items-center justify-between gap-2">
+                      <div className={cn("flex items-center justify-between gap-2", s.equipment.length > 0 && "mb-2")}>
                         <span className="flex items-center gap-1.5 text-[11.5px] text-muted-foreground">
-                          <Cpu className="size-3.5 [stroke-width:1.7]" /> აღჭურვილობა · {s.equipment.length}
+                          <Cpu className="size-3.5 [stroke-width:1.7]" /> აღჭურვილობა {s.equipment.length > 0 ? `· ${s.equipment.length}` : ""}
                         </span>
                         <FormDialog trigger={<Button variant="ghost" size="xs" />} triggerLabel={<><Plus className="size-3" /> დამატება</>} title={`აღჭურვილობა · ${s.name}`} action={createEquipment} submitLabel={t.common.create}>
                           <EquipmentFields siteId={s.id} />
                         </FormDialog>
                       </div>
-                      {s.equipment.length === 0 ? (
-                        <p className="text-[11.5px] text-muted-foreground">აღჭურვილობა ჯერ არ არის ჩაწერილი.</p>
-                      ) : (
+                      {s.equipment.length === 0 ? null : (
                         <ul className="space-y-1">
                           {s.equipment.map((e) => (
                             <li key={e.id} className="group flex flex-wrap items-center gap-2 rounded-[8px] px-1.5 py-1 text-[11.5px] transition-colors hover:bg-white">

@@ -193,7 +193,9 @@ export const orders = pgTable(
     completionNote: text("completion_note"),
     verifiedBy: text("verified_by").references(() => user.id, { onDelete: "set null" }),
     verifiedAt: timestamp("verified_at", { withTimezone: true }),
+    /** Gross, VAT included: what the client owes and what payments are matched against. */
     amount: numeric("amount", { precision: 12, scale: 2 }),
+    vatPercent: numeric("vat_percent", { precision: 5, scale: 2 }).notNull().default("0"),
     paidTotal: numeric("paid_total", { precision: 12, scale: 2 }).notNull().default("0"),
     paymentStatus: paymentStatusEnum("payment_status").notNull().default("unpaid"),
     paymentReviewNeeded: boolean("payment_review_needed").notNull().default(false),

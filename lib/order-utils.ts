@@ -27,6 +27,30 @@ export function toLocalInput(d: Date | string | null | undefined): string {
   return new Date(x.getTime() - x.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
 }
 
+type ContactSource = {
+  client?: { name: string; contactName?: string | null; phone?: string | null } | null;
+  site?: { contactName?: string | null; contactPhone?: string | null } | null;
+};
+
+/**
+ * Who the technician should call for this order. A branch with its own manager and
+ * number wins over the company-wide contact, which is why sites carry both.
+ */
+export function orderContact(o: ContactSource): { name: string; phone: string | null; onSite: boolean } {
+  const sitePhone = o.site?.contactPhone?.trim() || null;
+  const siteName = o.site?.contactName?.trim() || null;
+  if (sitePhone || siteName) {
+    return { name: siteName ?? o.client?.contactName ?? o.client?.name ?? "—", phone: sitePhone ?? o.client?.phone ?? null, onSite: true };
+  }
+  return { name: o.client?.contactName ?? o.client?.name ?? "—", phone: o.client?.phone ?? null, onSite: false };
+}
+
+/** Digits only, so `tel:` links work with numbers written with spaces. */
+export function telHref(phone: string | null | undefined): string | null {
+  const n = phone?.replace(/[^\d+]/g, "");
+  return n ? `tel:${n}` : null;
+}
+
 export function minutesBetween(a: Date | string | null | undefined, b: Date | string | null | undefined): number | null {
   if (!a || !b) return null;
   const ms = new Date(b).getTime() - new Date(a).getTime();

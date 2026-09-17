@@ -158,7 +158,7 @@ export default async function SchedulePage({ searchParams }: PageProps<"/schedul
         }
       />
 
-      <div className="mb-4 flex gap-1.5 overflow-x-auto pb-1">
+      <div className="mb-4 grid grid-cols-7 gap-1 sm:flex sm:gap-1.5">
         {week.map((w) => {
           const wd = new Date(w + "T00:00:00Z");
           return (
@@ -167,7 +167,7 @@ export default async function SchedulePage({ searchParams }: PageProps<"/schedul
               href={`/schedule?date=${w}`}
               aria-current={w === day ? "date" : undefined}
               className={cn(
-                "min-w-[72px] flex-1 rounded-md border px-2 py-1.5 text-center text-[11px] transition-colors duration-150",
+                "rounded-md border px-1 py-1.5 text-center text-[11px] transition-colors duration-150 sm:min-w-[72px] sm:flex-1 sm:px-2",
                 w === day
                   ? "border-[#3457d5] bg-[#3457d5] text-white"
                   : w === today

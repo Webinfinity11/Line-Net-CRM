@@ -49,7 +49,9 @@ export default async function QuotePdfPage({ params }: PageProps<"/quotes/[id]/p
           </tr>
           <tr>
             <td className="w-40 border px-2 py-1 text-xs text-neutral-500">ობიექტი</td>
-            <td className="border px-2 py-1 text-sm">{[...new Set([quote.site?.name, quote.site?.address].filter(Boolean))].join(" · ") || "—"}</td>
+            <td className="border px-2 py-1 text-sm">
+              {[...new Set([quote.site?.name, quote.site?.address, quote.site?.contactName, quote.site?.contactPhone].filter(Boolean))].join(" · ") || "—"}
+            </td>
           </tr>
           <tr>
             <td className="w-40 border px-2 py-1 text-xs text-neutral-500">სისტემა</td>

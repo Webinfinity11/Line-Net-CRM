@@ -33,6 +33,8 @@ Spec: `docs/02-mvp-spec.md` (MVP) + `docs/04-phase-1.5-spec.md` (agreed addition
 - Maps: `components/app/map-view.tsx` wraps Leaflet (client-only, dynamic import). Sites carry `lat/lng`; `lib/geocode.ts` uses Nominatim best-effort on site save.
 - Excel: `/api/export?type=...` (SheetJS) and `actions/import.ts` for client import. Reports queries in `lib/reports.ts`.
 - Times: all "today"/day boundaries use Asia/Tbilisi explicitly (`lib/schedule-utils.ts`).
+- Contacts: a site carries its own `contact_name` / `contact_phone`; `orderContact()` in `lib/order-utils.ts` prefers it over the client-wide contact, and the order page, `/my`, the act and the quote PDF all go through it. A technician calls the branch, not the head office.
+- VAT: `orders.vat_percent` mirrors `quotes.vat_percent` and is copied on conversion. `orders.amount` is gross (VAT included) because payments are matched against it; `recomputeOrderAmount` applies the rate to the net lines. A rate of 0 hides every VAT row.
 - Finance: `order_payments` is the source of truth; `orders.paid_total`/`payment_status` are recomputed by `lib/payments.ts` inside the same transaction. Never set payment_status by hand. Executors get orders only through `getOrderForUser`/`listMyOrders`, which strip money fields on the server.
 - Work flow: visits (`order_visits`, one open per executor+order) are separate from completion. `completeOrder` needs a note and is gated server-side by required checklist items and `requires_photo`. `done` → staff `closed` (verified). Closed orders are frozen except for admins.
 - Never export helpers from `actions/*.ts` ("use server" makes every export a public endpoint); put shared logic in `lib/*` with `server-only`.

@@ -11,18 +11,18 @@ import { Input } from "@/components/ui/input";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import type { OrderItem } from "@/db/schema";
 import { formatMoney } from "@/lib/i18n";
-import { itemsTotal } from "@/lib/finance";
+import { vatBreakdown } from "@/lib/finance";
 
 export type ServiceOption = { id: number; name: string; unit: string; price: string };
 
 /** Billable lines. The order total follows this list, so the manager edits prices here. */
-export function OrderServices({ orderId, items, catalogue, readOnly }: { orderId: number; items: OrderItem[]; catalogue: ServiceOption[]; readOnly?: boolean }) {
+export function OrderServices({ orderId, items, catalogue, readOnly, vatPercent }: { orderId: number; items: OrderItem[]; catalogue: ServiceOption[]; readOnly?: boolean; vatPercent?: string | number | null }) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const busy = useRef(false);
   const [pending, start] = useTransition();
   const [picked, setPicked] = useState("");
-  const total = itemsTotal(items);
+  const sums = vatBreakdown(items, vatPercent);
   const chosen = catalogue.find((c) => String(c.id) === picked);
 
   function submit(e: React.FormEvent<HTMLFormElement>) {
@@ -166,9 +166,23 @@ export function OrderServices({ orderId, items, catalogue, readOnly }: { orderId
               </table>
             </div>
 
-            <div className="flex items-center justify-between border-t border-[#eef1f6] pt-3">
-              <span className="text-[12.5px] text-muted-foreground">შეკვეთის ჯამი</span>
-              <span className="tabular font-heading text-[18px] font-semibold">{formatMoney(total)}</span>
+            <div className="space-y-1.5 border-t border-[#eef1f6] pt-3">
+              {sums.rate > 0 && (
+                <>
+                  <div className="flex items-center justify-between text-[12.5px] text-muted-foreground">
+                    <span>ჯამი დღგ-ს გარეშე</span>
+                    <span className="tabular">{formatMoney(sums.net)}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-[12.5px] text-muted-foreground">
+                    <span>დღგ {sums.rate}%</span>
+                    <span className="tabular">{formatMoney(sums.vat)}</span>
+                  </div>
+                </>
+              )}
+              <div className="flex items-center justify-between">
+                <span className="text-[12.5px] text-muted-foreground">შეკვეთის ჯამი</span>
+                <span className="tabular font-heading text-[18px] font-semibold">{formatMoney(sums.gross)}</span>
+              </div>
             </div>
           </>
         )}

@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import { PrintButton } from "@/components/app/print-button";
+import { vatBreakdown } from "@/lib/finance";
 import { formatDate, formatMoney } from "@/lib/i18n";
+import { orderContact } from "@/lib/order-utils";
 import { getOrder } from "@/lib/orders";
 import { requireUser } from "@/lib/session";
 import { systemLabels } from "@/lib/systems";
@@ -18,9 +20,10 @@ export default async function ActPage({ params }: PageProps<"/orders/[id]/act">)
   if (!order) notFound();
 
   const lines = order.items ?? [];
-  const total = lines.reduce((sum, i) => sum + Number(i.quantity) * Number(i.unitPrice), 0);
-  const amount = lines.length > 0 ? total : Number(order.amount ?? 0);
+  const sums = vatBreakdown(lines, order.vatPercent);
+  const amount = lines.length > 0 ? sums.gross : Number(order.amount ?? 0);
   const done = order.completedAt ?? order.updatedAt;
+  const contact = orderContact(order);
 
   return (
     <main className="mx-auto max-w-[210mm] bg-white p-8 text-neutral-900 print:p-0">
@@ -54,9 +57,7 @@ export default async function ActPage({ params }: PageProps<"/orders/[id]/act">)
           <div className="font-semibold">{order.client?.name ?? "—"}</div>
           {order.client?.idCode && <div>ს/კ {order.client.idCode}</div>}
           {order.site?.address && <div>{order.site.address}</div>}
-          <div>
-            {[order.client?.contactName, order.client?.phone].filter(Boolean).join(" · ") || "—"}
-          </div>
+          <div>{[contact.name !== "—" ? contact.name : null, contact.phone].filter(Boolean).join(" · ") || "—"}</div>
         </div>
       </section>
 
@@ -108,9 +109,25 @@ export default async function ActPage({ params }: PageProps<"/orders/[id]/act">)
                   <td className="border border-neutral-300 px-2 py-1 text-right">{formatMoney(Number(i.quantity) * Number(i.unitPrice))}</td>
                 </tr>
               ))}
+              {sums.rate > 0 && (
+                <>
+                  <tr>
+                    <td colSpan={5} className="border border-neutral-300 px-2 py-1 text-right">
+                      ჯამი დღგ-ს გარეშე
+                    </td>
+                    <td className="border border-neutral-300 px-2 py-1 text-right">{formatMoney(sums.net)}</td>
+                  </tr>
+                  <tr>
+                    <td colSpan={5} className="border border-neutral-300 px-2 py-1 text-right">
+                      დღგ {sums.rate}%
+                    </td>
+                    <td className="border border-neutral-300 px-2 py-1 text-right">{formatMoney(sums.vat)}</td>
+                  </tr>
+                </>
+              )}
               <tr>
                 <td colSpan={5} className="border border-neutral-300 px-2 py-1 text-right font-semibold">
-                  სულ
+                  სულ გადასახდელი
                 </td>
                 <td className="border border-neutral-300 px-2 py-1 text-right font-semibold">{formatMoney(amount)}</td>
               </tr>

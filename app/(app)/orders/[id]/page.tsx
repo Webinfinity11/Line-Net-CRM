@@ -23,7 +23,7 @@ import { listActiveServices } from "@/lib/services";
 import { getOrderForUser, listAssignableUsers, plannedMinutesByUser } from "@/lib/orders";
 import { AssignDialog } from "@/components/app/assign-form";
 import { getWorkHoursPerDay } from "@/lib/settings";
-import { isOverdue } from "@/lib/order-utils";
+import { isOverdue, orderContact, telHref } from "@/lib/order-utils";
 import { plannedEnd, tbilisiTime, tbilisiToday } from "@/lib/schedule-utils";
 import { isStaff, requireUser } from "@/lib/session";
 
@@ -65,6 +65,7 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
   const [users, plannedToday, normHours, catalogue] = await Promise.all([staff ? listAssignableUsers() : Promise.resolve([]), staff ? plannedMinutesByUser(tbilisiToday()) : Promise.resolve({} as Record<string, number>), getWorkHoursPerDay(), staff ? listActiveServices() : Promise.resolve([])]);
   const executorOptions = users.filter((u) => u.role === "executor").map((u) => ({ id: u.id, name: u.name, image: u.image, specializations: u.specializations ?? [], hours: Math.round(((plannedToday[u.id] ?? 0) / 60) * 10) / 10 }));
   const overdue = isOverdue(order);
+  const contact = orderContact(order);
   const siteCoords = order.site?.lat && order.site?.lng ? { lat: Number(order.site.lat), lng: Number(order.site.lng) } : null;
   const address = order.address ?? order.site?.address ?? null;
   const requiredLeft = 0;
@@ -110,7 +111,7 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
               )}
             </div>
             <h1 className="font-heading text-[19px] font-bold leading-snug break-words tracking-[-0.01em] md:text-[24px]">{order.title}</h1>
-            <dl className="mt-3 grid gap-x-6 gap-y-2.5 text-[13px] sm:grid-cols-2 sm:text-sm xl:grid-cols-4">
+            <dl className="mt-3 grid gap-x-6 gap-y-2.5 text-[13px] sm:grid-cols-2 sm:text-sm xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1.3fr)_minmax(0,0.7fr)_minmax(0,1fr)]">
               <div className="flex items-start gap-2">
                 <Building2 className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
                 <div className="min-w-0">
@@ -222,12 +223,7 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
           </Card>
 
 
-          {financeVisible && <OrderServices orderId={order.id} items={order.items} catalogue={catalogue} readOnly={readOnly} />}
-
-          <Materials orderId={order.id} materials={order.materials} financeVisible={financeVisible} meId={me.id} amount={order.amount} readOnly={readOnly} />
-
-          <Attachments orderId={order.id} attachments={order.attachments} canDelete={staff && !readOnly} />
-          <Comments orderId={order.id} comments={order.comments} meId={me.id} />
+          {financeVisible && <OrderServices orderId={order.id} items={order.items} catalogue={catalogue} readOnly={readOnly} vatPercent={order.vatPercent} />}
 
           {financeVisible && (
             <Payments
@@ -242,6 +238,11 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
               disabled={readOnly}
             />
           )}
+
+          <Materials orderId={order.id} materials={order.materials} financeVisible={financeVisible} meId={me.id} amount={order.amount} readOnly={readOnly} />
+
+          <Attachments orderId={order.id} attachments={order.attachments} canDelete={staff && !readOnly} />
+          <Comments orderId={order.id} comments={order.comments} meId={me.id} />
 
         </div>
 
@@ -276,14 +277,25 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
               {order.client && (
                 <div className="flex items-start gap-2.5">
                   <Phone className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-                  <div>
-                    <div className="font-medium">{order.client.contactName ?? order.client.name}</div>
-                    {order.client.phone ? (
-                      <a href={`tel:${order.client.phone.replace(/\s+/g, "")}`} className="text-xs text-blue-700 hover:underline">
-                        {order.client.phone}
+                  <div className="min-w-0">
+                    <div className="font-medium">
+                      {contact.name}
+                      {contact.onSite && <span className="ml-1.5 text-[11px] font-normal text-muted-foreground">ობიექტზე</span>}
+                    </div>
+                    {contact.phone ? (
+                      <a href={telHref(contact.phone)!} className="text-xs text-blue-700 hover:underline">
+                        {contact.phone}
                       </a>
                     ) : (
                       <span className="text-xs text-muted-foreground">ტელეფონი არ არის</span>
+                    )}
+                    {contact.onSite && order.client.phone && order.client.phone !== contact.phone && (
+                      <div className="mt-0.5 text-[11px] text-muted-foreground">
+                        ოფისი{" "}
+                        <a href={telHref(order.client.phone)!} className="hover:underline">
+                          {order.client.phone}
+                        </a>
+                      </div>
                     )}
                   </div>
                 </div>

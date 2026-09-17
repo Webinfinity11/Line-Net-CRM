@@ -1,11 +1,11 @@
-import { CalendarClock, Camera, MapPin, Timer } from "lucide-react";
+import { CalendarClock, Camera, MapPin, Timer, User } from "lucide-react";
 import Link from "next/link";
 import { OverdueBadge, PriorityLabel, StatusBadge, SystemBadge } from "@/components/app/badges";
 import { MyVisitControls } from "@/components/app/my-visit-controls";
 import { PageHeader } from "@/components/app/page-header";
 import { formatDate, formatDuration, t } from "@/lib/i18n";
 import { listMyOrders, type MyOrderItem } from "@/lib/orders";
-import { isOverdue } from "@/lib/order-utils";
+import { isOverdue, orderContact, telHref } from "@/lib/order-utils";
 import { tbilisiDayBounds, tbilisiTime, tbilisiToday } from "@/lib/schedule-utils";
 import { requireUser } from "@/lib/session";
 import { cn } from "@/lib/utils";
@@ -23,7 +23,7 @@ function OrderCard({ o, meId, highlight }: { o: MyOrderItem; meId: string; highl
   const overdue = isOverdue(o);
   const requiredLeft = 0;
   const maps = mapsHref(o);
-  const phone = o.client?.phone?.replace(/\s+/g, "");
+  const contact = orderContact(o);
   const active = o.status === "assigned" || o.status === "in_progress";
   const place = [o.client?.name, o.address ?? o.site?.address ?? o.site?.name].filter(Boolean).join(" · ");
   return (
@@ -53,6 +53,12 @@ function OrderCard({ o, meId, highlight }: { o: MyOrderItem; meId: string; highl
           )}
         </div>
       )}
+      {contact.onSite && contact.name !== "—" && (
+        <div className="mt-1 flex items-center gap-1.5 text-[13px] text-muted-foreground">
+          <User className="size-4 shrink-0" />
+          <span className="truncate">{contact.name}</span>
+        </div>
+      )}
       <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-muted-foreground">
         {o.scheduledAt && (
           <span className="flex items-center gap-1 font-medium text-foreground">
@@ -74,7 +80,7 @@ function OrderCard({ o, meId, highlight }: { o: MyOrderItem; meId: string; highl
           orderId={o.id}
           requiredLeft={requiredLeft}
           needsPhoto={o.requiresPhoto}
-          phoneHref={phone ? `tel:${phone}` : null}
+          phoneHref={telHref(contact.phone)}
           mapsHref={maps}
         />
       )}
@@ -133,7 +139,7 @@ export default async function MyOrdersPage() {
       <Section title="ჩაბარებული, ელოდება მენეჯერის შემოწმებას" items={done} />
       <Section title="დახურული" items={closed} />
       {all.length > 0 && (
-        <p className="flex items-center gap-1 text-center text-xs text-muted-foreground">
+        <p className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
           <Timer className="size-3" /> „სამუშაო შესრულებულია“ აბარებს შეკვეთას მენეჯერს შესამოწმებლად.
         </p>
       )}

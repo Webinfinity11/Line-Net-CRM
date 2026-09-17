@@ -123,7 +123,15 @@ export function DashboardBoard({
               <UserPlus className="size-3.5" /> {toMtavruli(focus.kind === "urgent" ? "დანიშვნა" : "გახსნა")}
             </button>
           </div>
-        ) : null}
+        ) : (
+          // work is waiting but nothing is on fire: the bar still points somewhere instead of ending in white space
+          <Link
+            href={counts.unassigned > 0 ? "/schedule" : "/orders?status=done"}
+            className="inline-flex items-center gap-1.5 self-start rounded-full bg-[#f2f5fb] px-4 py-2 text-[12.5px] text-[#41556b] transition-colors hover:bg-[#e8eefb] sm:self-auto"
+          >
+            {counts.unassigned > 0 ? "დაგეგმე დღე" : "შეამოწმე ჩაბარებული"} <ArrowRight className="size-3.5" />
+          </Link>
+        )}
       </section>
 
       {/* zone 2 — the day */}
@@ -145,12 +153,54 @@ export function DashboardBoard({
             </div>
           ) : (
             <div className="min-w-0">
-              <div className="ml-[128px] flex justify-between border-b border-[#eef1f6] pb-1.5 text-[10px] text-muted-foreground">
+              {/* a 12-hour axis does not survive a phone; there the same day reads as a list */}
+              <ul className="space-y-2 sm:hidden">
+                {laneRows.map((lane) => {
+                  const mine = blocks.filter((b) => b.laneId === lane.id);
+                  if (mine.length === 0) return null;
+                  const hours = hoursOf.get(lane.id);
+                  return (
+                    <li key={lane.id} className="rounded-[12px] border border-[#eef1f6] p-2.5">
+                      <div className="mb-1.5 flex items-center gap-2">
+                        {lane.id === "unassigned" ? (
+                          <span className="grid size-7 place-items-center rounded-full bg-[#fff0ed] text-[#b13f32]">
+                            <Clock3 className="size-3.5 [stroke-width:1.8]" />
+                          </span>
+                        ) : (
+                          <UserAvatar name={lane.name} image={lane.image} size="md" />
+                        )}
+                        <span className="text-[13px] font-medium">{lane.name}</span>
+                        {hours !== undefined && (
+                          <span className={cn("tabular ml-auto text-[11px]", hours > normHours ? "text-[#b13f32]" : "text-muted-foreground")}>
+                            {hours}/{normHours} სთ
+                          </span>
+                        )}
+                      </div>
+                      <ul className="space-y-1">
+                        {mine.map((b) => (
+                          <li key={`m-${b.id}-${b.laneId}`}>
+                            <button
+                              type="button"
+                              onClick={() => setSelectedId(b.id)}
+                              className="flex w-full items-center gap-2 rounded-[8px] px-2 py-1.5 text-left text-[12.5px]"
+                              style={{ background: STATUS_TINT[b.status], borderLeft: `3px solid ${STATUS_HEX[b.status]}` }}
+                            >
+                              <span className="tabular shrink-0 font-medium">{b.timeLabel}</span>
+                              <span className="truncate">{b.title}</span>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </li>
+                  );
+                })}
+              </ul>
+              <div className="ml-[128px] hidden justify-between border-b border-[#eef1f6] pb-1.5 text-[10px] text-muted-foreground sm:flex">
                 {HOURS.map((h) => (
                   <span key={h}>{String(h).padStart(2, "0")}:00</span>
                 ))}
               </div>
-              <ul className="mt-1">
+              <ul className="mt-1 hidden sm:block">
                 {laneRows.map((lane) => {
                   const mine = blocks.filter((b) => b.laneId === lane.id);
                   const hours = hoursOf.get(lane.id);

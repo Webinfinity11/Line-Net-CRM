@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { balance, computePaymentStatus, marginAfterMaterials, materialsCost } from "@/lib/finance";
+import { balance, computePaymentStatus, marginAfterMaterials, materialsCost, vatBreakdown } from "@/lib/finance";
 
 describe("payments", () => {
   it("10 000 − 3 000 leaves 7 000 and status partial", () => {
@@ -43,5 +43,19 @@ describe("materials cost", () => {
   });
   it("margin after materials subtracts known cost only", () => {
     expect(marginAfterMaterials("1000", [{ quantity: "2", unitCost: "150.5" }])).toBe(699);
+  });
+});
+
+describe("VAT", () => {
+  const lines = [{ quantity: "2", unitPrice: "225.00" }];
+  it("18% on top of the net lines", () => {
+    expect(vatBreakdown(lines, "18")).toEqual({ net: 450, rate: 18, vat: 81, gross: 531 });
+  });
+  it("no rate leaves the net total alone", () => {
+    expect(vatBreakdown(lines, null)).toEqual({ net: 450, rate: 0, vat: 0, gross: 450 });
+    expect(vatBreakdown(lines, "0")).toEqual({ net: 450, rate: 0, vat: 0, gross: 450 });
+  });
+  it("rounds VAT to cents", () => {
+    expect(vatBreakdown([{ quantity: "3", unitPrice: "33.33" }], "18")).toEqual({ net: 99.99, rate: 18, vat: 18, gross: 117.99 });
   });
 });

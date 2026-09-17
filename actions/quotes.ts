@@ -181,6 +181,7 @@ export async function convertQuoteToOrder(id: number): Promise<ActionResult<{ or
         clientId: quote.clientId,
         siteId: quote.siteId,
         amount: quote.total,
+        vatPercent: quote.vatPercent,
         source: "manual",
         triaged: true,
         createdBy: me.id,

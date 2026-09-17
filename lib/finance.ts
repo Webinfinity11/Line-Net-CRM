@@ -53,3 +53,11 @@ export const PAYMENT_METHODS: Record<string, string> = {
 export function itemsTotal(items: { quantity: string; unitPrice: string }[]): number {
   return items.reduce((sum, i) => sum + Number(i.quantity) * Number(i.unitPrice), 0);
 }
+
+/** Net / VAT / gross for a set of billable lines. A rate of 0 means the company does not charge VAT on this order. */
+export function vatBreakdown(items: { quantity: string; unitPrice: string }[], vatPercent: string | number | null | undefined) {
+  const net = itemsTotal(items);
+  const rate = Number(vatPercent) || 0;
+  const vat = Math.round(((net * rate) / 100) * 100) / 100;
+  return { net, rate, vat, gross: Math.round((net + vat) * 100) / 100 };
+}

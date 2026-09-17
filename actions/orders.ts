@@ -22,6 +22,7 @@ import {
 } from "@/db/schema";
 import { notifyUsers, staffUserIds } from "@/lib/notify";
 import { addMonthsIso } from "@/lib/order-utils";
+import { recomputeOrderAmount } from "@/lib/order-items";
 import { recomputeOrderPayments } from "@/lib/payments";
 import { getSession, isStaff, type SessionUser } from "@/lib/session";
 import { deleteStoredFile, saveFile } from "@/lib/storage";
@@ -47,6 +48,7 @@ const orderInput = z.object({
   plannedMinutes: z.preprocess(emptyToNull, z.coerce.number().int().min(15).max(1440).nullable()),
   warrantyMonths: z.preprocess(emptyToNull, z.coerce.number().int().min(0).max(240).nullable()),
   amount: z.preprocess(emptyToNull, z.coerce.number().min(0).max(99999999).nullable()),
+  vatPercent: z.preprocess(emptyToNull, z.coerce.number().min(0).max(100).nullable()),
   requiresPhoto: z.preprocess(checkbox, z.boolean()).default(false),
   assignees: z.array(z.string()).default([]),
 });
@@ -144,6 +146,7 @@ export async function createOrder(fd: FormData): Promise<ActionResult<{ id: numb
         warrantyMonths: v.warrantyMonths,
         requiresPhoto: v.requiresPhoto,
         amount: v.amount === null ? null : v.amount.toFixed(2),
+        vatPercent: (v.vatPercent ?? 0).toFixed(2),
         status: v.assignees.length ? "assigned" : "new",
         createdBy: me.id,
       })
@@ -209,12 +212,15 @@ export async function updateOrder(id: number, fd: FormData): Promise<ActionResul
         warrantyUntil: v.warrantyMonths && existing.completedAt ? addMonthsIso(existing.completedAt, v.warrantyMonths) : v.warrantyMonths ? existing.warrantyUntil : null,
         requiresPhoto: v.requiresPhoto || existing.requiresPhoto,
         amount,
+        vatPercent: (v.vatPercent ?? Number(existing.vatPercent ?? 0)).toFixed(2),
         status,
         triaged: true,
         updatedAt: new Date(),
       })
       .where(eq(orders.id, id));
-    if (amount !== existing.amount) await recomputeOrderPayments(tx, id);
+    // A changed VAT rate moves the gross total, so the line-driven amount is redone first.
+    if ((v.vatPercent ?? Number(existing.vatPercent ?? 0)) !== Number(existing.vatPercent ?? 0)) await recomputeOrderAmount(tx, id);
+    else if (amount !== existing.amount) await recomputeOrderPayments(tx, id);
     await tx.insert(orderEvents).values({
       orderId: id,
       userId: me.id,
@@ -368,7 +374,7 @@ export async function completeOrder(id: number, note: string): Promise<ActionRes
         triaged: true,
       })
       .where(eq(orders.id, id));
-    await tx.insert(orderComments).values({ orderId: id, userId: s.user.id, body: `ჩაბარება: ${text.slice(0, 2000)}` });
+    // the note lives on the order and is shown with the handover; a copy in the comments would only repeat it
     await tx.insert(orderEvents).values({ orderId: id, userId: s.user.id, type: "status_changed", data: { from: existing.status, to: "done" } });
   });
   if (!staff) {

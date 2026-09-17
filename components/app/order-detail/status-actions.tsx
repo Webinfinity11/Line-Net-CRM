@@ -64,6 +64,24 @@ export function StatusActions({
   const primary = "h-12 w-full md:h-9 md:w-auto";
   const secondary = "h-11 flex-1 md:h-9 md:flex-none";
 
+  const hasActions =
+    canComplete ||
+    (staff && status === "done") ||
+    ((staff || isAssignee) && status === "done") ||
+    (role === "admin" && status === "closed") ||
+    (staff && status === "cancelled") ||
+    (staff && (status === "new" || status === "assigned" || status === "in_progress"));
+
+  // nothing left to do on this order: a card with one grey line would only look like an empty box
+  if (!hasActions) {
+    return (
+      <p className="flex items-center gap-2 px-1 text-[12.5px] text-muted-foreground" aria-live="polite">
+        <Lock className="size-3.5 shrink-0" />
+        {next}
+      </p>
+    );
+  }
+
   return (
     <div
       className="ln-card fixed inset-x-4 bottom-[76px] z-20 flex flex-wrap items-center gap-2 p-3 shadow-[0_-8px_28px_rgba(16,24,40,0.14)] md:static md:inset-auto md:p-4 md:shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)]"

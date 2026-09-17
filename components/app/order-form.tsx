@@ -26,7 +26,7 @@ export type UserOption = { id: string; name: string; role: string; image?: strin
 type Initial = Partial<
   Pick<
     Order,
-    "title" | "description" | "type" | "priority" | "clientId" | "siteId" | "address" | "dueDate" | "amount" | "systemType" | "scheduledAt" | "warrantyMonths" | "plannedMinutes" | "requiresPhoto"
+    "title" | "description" | "type" | "priority" | "clientId" | "siteId" | "address" | "dueDate" | "amount" | "vatPercent" | "systemType" | "scheduledAt" | "warrantyMonths" | "plannedMinutes" | "requiresPhoto"
   >
 > & {
   assigneeIds?: string[];
@@ -196,6 +196,9 @@ export function OrderForm({
           <Section title="ფინანსები და ჩაბარება" collapsible={compact} summary="თანხა, გარანტია, ფოტოს მოთხოვნა">
             <Field label={`${t.order.amount} (₾)`} htmlFor="amount" hint="სერვისების დამატებისას ჯამი თავისით ითვლება">
               <Input id="amount" name="amount" type="number" step="0.01" min="0" defaultValue={initial?.amount ?? ""} placeholder="0.00" />
+            </Field>
+            <Field label="დღგ (%)" htmlFor="vatPercent" hint="0, თუ დღგ არ ერიცხება">
+              <Input id="vatPercent" name="vatPercent" type="number" step="0.01" min="0" max="100" defaultValue={initial?.vatPercent ?? "0"} />
             </Field>
             <Field label="გარანტია (თვე)" htmlFor="warrantyMonths">
               <Input id="warrantyMonths" name="warrantyMonths" type="number" min="0" max="240" defaultValue={initial?.warrantyMonths ?? ""} placeholder="0" />
