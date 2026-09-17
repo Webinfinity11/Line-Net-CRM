@@ -9,8 +9,8 @@ export type SystemOption = { key: SystemType; name: string; color: string | null
 
 /** The catalogue as the admin ordered it; falls back to the built-in labels on a fresh database. */
 export const listSystems = cache(async (): Promise<SystemOption[]> => {
-  const rows = await db.select().from(systems).orderBy(asc(systems.sort), asc(systems.key));
-  if (rows.length > 0) return rows.map((r) => ({ key: r.key, name: r.name, color: r.color, sort: r.sort, active: r.active }));
+  const rows = await db.select().from(systems).orderBy(asc(systems.sort), asc(systems.slug));
+  if (rows.length > 0) return rows.map((r) => ({ key: r.slug, name: r.name, color: r.color, sort: r.sort, active: r.active }));
   return SYSTEM_ORDER.map((key, i) => ({ key, name: SYSTEM_LABELS[key], color: null, sort: (i + 1) * 10, active: true }));
 });
 
@@ -23,6 +23,6 @@ export const systemLabels = cache(async (): Promise<Record<string, string>> => {
 });
 
 export async function getSystem(key: SystemType) {
-  const [row] = await db.select().from(systems).where(eq(systems.key, key));
+  const [row] = await db.select().from(systems).where(eq(systems.slug, key));
   return row ?? null;
 }

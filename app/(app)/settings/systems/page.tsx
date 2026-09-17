@@ -1,10 +1,10 @@
 import { count, sql } from "drizzle-orm";
 import { Layers } from "lucide-react";
 import { db } from "@/db";
-import { orders } from "@/db/schema";
+import { orders, services } from "@/db/schema";
 import { PageHeader } from "@/components/app/page-header";
 import { SectionCard } from "@/components/app/section-card";
-import { SystemRow } from "@/components/app/system-rows";
+import { NewSystemDialog, SystemRow } from "@/components/app/system-rows";
 import { requireUser } from "@/lib/session";
 import { listSystems } from "@/lib/systems";
 
@@ -12,32 +12,37 @@ export const metadata = { title: "სისტემები" };
 
 export default async function SystemsPage() {
   await requireUser(["admin"]);
-  const [rows, usageRows] = await Promise.all([
+  const [rows, orderUse, serviceUse] = await Promise.all([
     listSystems(),
     db.select({ key: orders.systemType, n: count() }).from(orders).where(sql`${orders.systemType} is not null`).groupBy(orders.systemType),
+    db.select({ key: services.systemType, n: count() }).from(services).where(sql`${services.systemType} is not null`).groupBy(services.systemType),
   ]);
-  const usage = new Map(usageRows.map((r) => [r.key, r.n]));
+  const usage = new Map<string, number>();
+  for (const r of [...orderUse, ...serviceUse]) if (r.key) usage.set(r.key, (usage.get(r.key) ?? 0) + r.n);
+  const active = rows.filter((r) => r.active).length;
 
   return (
     <div className="space-y-4">
       <PageHeader
         kicker="პარამეტრები"
         title="სისტემები"
-        subtitle="ეს სია ჩნდება შეკვეთაზე, სერვისზე და ფილტრებში. სახელი და რიგითობა იცვლება, ზედმეტი იმალება."
+        subtitle="სამუშაო მიმართულებების სია. ჩნდება შეკვეთაზე, სერვისზე, ფილტრებსა და ანგარიშებში."
+        actions={<NewSystemDialog />}
       />
-      <SectionCard title="სამუშაო მიმართულებები" icon={Layers} aside={`${rows.filter((r) => r.active).length} აქტიური`}>
-        <div className="hidden gap-2 pb-2 text-[11px] text-muted-foreground sm:flex">
+
+      <SectionCard title="სამუშაო მიმართულებები" icon={Layers} aside={`${active} აქტიური · ${rows.length} სულ`}>
+        <div className="hidden items-center gap-2 pb-2 text-[11px] text-muted-foreground sm:flex">
+          <span className="w-5 shrink-0" />
           <span className="flex-1">დასახელება</span>
-          <span className="w-20">რიგი</span>
-          <span className="w-[104px]">გამოყენება</span>
-          <span className="w-[104px]" />
+          <span className="w-[96px] shrink-0">გამოყენება</span>
+          <span className="w-[214px] shrink-0" />
         </div>
-        {rows.map((s) => (
-          <SystemRow key={s.key} system={s} usage={usage.get(s.key) ?? 0} />
+        {rows.map((s, i) => (
+          <SystemRow key={s.key} row={{ slug: s.key, name: s.name, sort: s.sort, active: s.active, usage: usage.get(s.key) ?? 0 }} first={i === 0} last={i === rows.length - 1} />
         ))}
         <p className="mt-4 border-t border-[#eef1f6] pt-3 text-[11.5px] leading-relaxed text-muted-foreground">
-          დამალული სისტემა ახალ შეკვეთაზე აღარ შემოგთავაზებთ, მაგრამ ძველ შეკვეთებში ისევ ჩანს. სრულიად ახალი მიმართულების დამატება
-          ბაზის ცვლილებას საჭიროებს: მოგვწერეთ და დავამატებთ.
+          თანმიმდევრობა ისრებით იცვლება და იმავე რიგით ჩანს ყველა სიაში. დამალული სისტემა ახალ ჩანაწერში აღარ შემოგთავაზებთ, ძველში კი
+          რჩება. წაშლა მხოლოდ მაშინაა შესაძლებელი, როცა სისტემა არსად არ გამოიყენება.
         </p>
       </SectionCard>
     </div>

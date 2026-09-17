@@ -43,6 +43,13 @@
       "when": 1789643342078,
       "tag": "0005_systems_catalogue",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1789643343078,
+      "tag": "0006_systems_as_rows",
+      "breakpoints": true
     }
   ]
 }

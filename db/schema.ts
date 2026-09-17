@@ -122,7 +122,8 @@ export type OrderStatus = (typeof orderStatusEnum.enumValues)[number];
 export type OrderPriority = (typeof orderPriorityEnum.enumValues)[number];
 export type PaymentStatus = (typeof paymentStatusEnum.enumValues)[number];
 export type OrderSource = (typeof orderSourceEnum.enumValues)[number];
-export type SystemType = (typeof systemTypeEnum.enumValues)[number];
+/** A system is a row in `systems`; the slug is the key stored on orders and services. */
+export type SystemType = string;
 export type ScheduleFrequency = (typeof frequencyEnum.enumValues)[number];
 export type UserRole = "admin" | "manager" | "executor";
 
@@ -174,7 +175,7 @@ export const orders = pgTable(
     type: orderTypeEnum("type").notNull().default("service"),
     status: orderStatusEnum("status").notNull().default("new"),
     priority: orderPriorityEnum("priority").notNull().default("normal"),
-    systemType: systemTypeEnum("system_type"),
+    systemType: text("system_type"),
     clientId: integer("client_id").references(() => clients.id, { onDelete: "set null" }),
     siteId: integer("site_id").references(() => sites.id, { onDelete: "set null" }),
     address: text("address"),
@@ -224,14 +225,15 @@ export const orders = pgTable(
 export const systems = pgTable(
   "systems",
   {
-    key: systemTypeEnum("key").primaryKey(),
+    slug: text("slug").primaryKey(),
     name: text("name").notNull(),
     color: text("color"),
     sort: integer("sort").notNull().default(0),
     active: boolean("active").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [index("systems_sort_idx").on(t.sort)],
+  (t) => [index("systems_sort_idx2").on(t.sort)],
 );
 
 /**
@@ -244,7 +246,7 @@ export const services = pgTable(
   {
     id: serial("id").primaryKey(),
     name: text("name").notNull(),
-    systemType: systemTypeEnum("system_type"),
+    systemType: text("system_type"),
     unit: text("unit").notNull().default("ცალი"),
     price: numeric("price", { precision: 12, scale: 2 }).notNull().default("0"),
     description: text("description"),
@@ -296,7 +298,7 @@ export type ChecklistTemplateItem = { label: string; required?: boolean };
 
 export const checklistTemplates = pgTable("checklist_templates", {
   id: serial("id").primaryKey(),
-  systemType: systemTypeEnum("system_type").notNull(),
+  systemType: text("system_type").notNull(),
   name: text("name").notNull(),
   items: jsonb("items").$type<ChecklistTemplateItem[]>().notNull().default([]),
   isDefault: boolean("is_default").notNull().default(false),
@@ -374,7 +376,7 @@ export const siteEquipment = pgTable(
     siteId: integer("site_id")
       .notNull()
       .references(() => sites.id, { onDelete: "cascade" }),
-    systemType: systemTypeEnum("system_type"),
+    systemType: text("system_type"),
     name: text("name").notNull(),
     model: text("model"),
     serial: text("serial"),
@@ -396,7 +398,7 @@ export const serviceSchedules = pgTable(
       .notNull()
       .references(() => clients.id, { onDelete: "cascade" }),
     siteId: integer("site_id").references(() => sites.id, { onDelete: "set null" }),
-    systemType: systemTypeEnum("system_type").notNull(),
+    systemType: text("system_type").notNull(),
     title: text("title").notNull(),
     description: text("description"),
     frequency: frequencyEnum("frequency").notNull().default("monthly"),

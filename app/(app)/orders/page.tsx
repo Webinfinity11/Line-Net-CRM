@@ -60,7 +60,7 @@ export default async function OrdersPage({ searchParams }: PageProps<"/orders">)
           : "active",
     type: type && orderTypeEnum.enumValues.includes(type as OrderType) ? (type as OrderType) : undefined,
     priority: priority && orderPriorityEnum.enumValues.includes(priority as OrderPriority) ? (priority as OrderPriority) : undefined,
-    system: system && systemTypeEnum.enumValues.includes(system as SystemType) ? (system as SystemType) : undefined,
+    system: system || undefined,
     assignee: str(sp.assignee) || undefined,
     clientId: str(sp.client) ? Number(str(sp.client)) : undefined,
     overdue: str(sp.overdue) === "1",
