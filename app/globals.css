@@ -180,6 +180,27 @@
   --ln-alert-bg: #fff6f1;
   --ln-alert-line: #f4e2d7;
 }
+/* ---- motion system: one curve, one distance, staggered by zone ---- */
+@keyframes ln-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes ln-pop {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes ln-grow {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+.ln-enter { animation: ln-rise 0.34s cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+.ln-enter-1 { animation-delay: 0.05s; }
+.ln-enter-2 { animation-delay: 0.1s; }
+.ln-enter-3 { animation-delay: 0.16s; }
+.ln-enter-4 { animation-delay: 0.22s; }
+.ln-pop { animation: ln-pop 0.26s cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+.ln-bar { transform-origin: left center; animation: ln-grow 0.6s cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+
 @keyframes ln-panel-in {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
@@ -191,7 +212,13 @@
 .ln-stagger > *:nth-child(4) { animation-delay: 120ms; }
 .ln-stagger > *:nth-child(n + 5) { animation-delay: 150ms; }
 @media (prefers-reduced-motion: reduce) {
-  .ln-panel-in, .ln-stagger > * { animation: none; }
+  .ln-panel-in,
+  .ln-stagger > *,
+  .ln-enter,
+  .ln-pop,
+  .ln-bar {
+    animation: none;
+  }
   * { transition-duration: 0.01ms !important; }
 }
 .tabular { font-variant-numeric: tabular-nums; }
@@ -245,19 +272,46 @@ h1, h2, h3 {
 }
 .leaflet-container {
   font-family: var(--font-sans);
-  border-radius: 12px;
-  background: #e9eef5;
+  border-radius: 14px;
+  background: #eef1f6;
+}
+/* muted basemap so the data reads first; raw OSM colour is too loud for a dashboard */
+.leaflet-tile-pane {
+  filter: saturate(0.22) brightness(1.06) contrast(0.92);
+}
+.leaflet-control-zoom {
+  border: 0 !important;
+  border-radius: 12px !important;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(16, 24, 40, 0.14);
+}
+.leaflet-control-zoom a {
+  width: 30px !important;
+  height: 30px !important;
+  line-height: 30px !important;
+  color: #566b7d !important;
+  border-bottom-color: #eef1f6 !important;
+  font-size: 16px !important;
+}
+.leaflet-control-zoom a:hover {
+  background: #f8faff !important;
+  color: #17212b !important;
 }
 .ln-pin {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border-radius: 9999px 9999px 9999px 2px;
   transform: rotate(-45deg);
   border: 2px solid #fff;
-  box-shadow: 0 2px 6px rgba(16, 24, 40, 0.35);
+  box-shadow: 0 3px 8px rgba(16, 24, 40, 0.28);
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+.leaflet-marker-icon:hover .ln-pin {
+  transform: rotate(-45deg) scale(1.12);
+  box-shadow: 0 5px 14px rgba(16, 24, 40, 0.34);
 }
 .ln-pin > span {
   transform: rotate(45deg);

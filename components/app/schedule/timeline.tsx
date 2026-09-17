@@ -120,7 +120,7 @@ export function Timeline({
                     key={b.id}
                     href={`/orders/${b.id}`}
                     className={cn(
-                      "absolute overflow-hidden rounded-[3px] bg-[#eef2ff] p-2 text-[11px] leading-[1.45] text-foreground transition-[transform,box-shadow] duration-150 hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(38,57,104,0.12)] focus-visible:outline-2 focus-visible:outline-[#3457d5]",
+                      "ln-pop absolute overflow-hidden rounded-[3px] bg-[#eef2ff] p-2 text-[11px] leading-[1.45] text-foreground transition-[transform,box-shadow] duration-150 hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(38,57,104,0.12)] focus-visible:outline-2 focus-visible:outline-[#3457d5]",
                       clash ? "border border-[#f0c36a] bg-[#fff8ea]" : "border border-transparent",
                     )}
                     style={{

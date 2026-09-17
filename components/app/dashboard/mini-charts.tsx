@@ -19,10 +19,10 @@ export function Sparkline({ values, color = "#3457d5", width = 96, height = 26 }
   );
 }
 
-function Bar({ pct, color }: { pct: number; color: string }) {
+function Bar({ pct, color, delay = 0 }: { pct: number; color: string; delay?: number }) {
   return (
     <div className="h-[7px] overflow-hidden rounded-full bg-[#f1f4f9]">
-      <div className="h-full rounded-full transition-[width] duration-500 ease-out" style={{ width: `${Math.max(pct, 3)}%`, background: color }} />
+      <div className="ln-bar h-full rounded-full" style={{ width: `${Math.max(pct, 3)}%`, background: color, animationDelay: `${delay}ms` }} />
     </div>
   );
 }
@@ -33,7 +33,7 @@ export function SystemBars({ rows }: { rows: { system: SystemType | null; n: num
   const max = Math.max(...rows.map((r) => r.n));
   return (
     <ul className="space-y-3">
-      {rows.map((r) => (
+      {rows.map((r, i) => (
         <li key={r.system ?? "other"} className="flex items-center gap-3">
           <JobIcon system={r.system} className="size-8 rounded-[10px]" />
           <div className="min-w-0 flex-1">
@@ -41,7 +41,7 @@ export function SystemBars({ rows }: { rows: { system: SystemType | null; n: num
               <span className="truncate text-[12.5px]">{r.system ? SYSTEM_LABELS[r.system] : "სისტემის გარეშე"}</span>
               <span className="tabular shrink-0 text-[12.5px] font-semibold">{r.n}</span>
             </div>
-            <Bar pct={(r.n / max) * 100} color="#3457d5" />
+            <Bar pct={(r.n / max) * 100} color="#3457d5" delay={i * 70} />
           </div>
         </li>
       ))}

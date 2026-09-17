@@ -109,7 +109,7 @@ export function MapView({
         }
       });
       if (markers.length > 1) {
-        map.fitBounds(L.latLngBounds(markers.map((m) => [m.lat, m.lng] as [number, number])), { padding: [40, 40], maxZoom: 15 });
+        map.fitBounds(L.latLngBounds(markers.map((m) => [m.lat, m.lng] as [number, number])), { padding: [56, 56], maxZoom: 14 });
       } else if (markers.length === 1) {
         map.setView([markers[0].lat, markers[0].lng], Math.max(map.getZoom(), 15));
       }

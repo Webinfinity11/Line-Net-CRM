@@ -106,7 +106,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
 
   return (
     <div className="space-y-4">
-      <header className="flex flex-wrap items-end justify-between gap-4">
+      <header className="ln-enter flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0">
           <h1 className="font-heading text-[26px] font-semibold leading-[1.3] tracking-[-0.5px]">{toMtavruli(`გამარჯობა, ${firstName}!`)}</h1>
           <p className="mt-1 text-[13px] text-muted-foreground">{dateLine(tbilisiToday())}</p>
@@ -145,7 +145,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
       />
 
       {/* zone 3: how the work is trending */}
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,6fr)_minmax(0,3fr)_minmax(0,3fr)]">
+      <div className="ln-enter ln-enter-3 grid gap-4 xl:grid-cols-[minmax(0,6fr)_minmax(0,3fr)_minmax(0,3fr)]">
         <section className="ln-card min-w-0 p-6" aria-label="სამუშაოს ნაკადი">
           <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
             <h2 className="font-heading text-[15px] font-semibold">{toMtavruli("სამუშაოს ნაკადი")}</h2>
@@ -181,13 +181,13 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
               <span className="tabular font-semibold">{paidPct}%</span>
             </div>
             <div className="h-[6px] overflow-hidden rounded-full bg-[#f1f4f9]">
-              <div className="h-full rounded-full bg-[#25815a] transition-[width] duration-300" style={{ width: `${paidPct}%` }} />
+              <div className="ln-bar h-full rounded-full bg-[#25815a]" style={{ width: `${paidPct}%` }} />
             </div>
           </div>
         </section>
       </div>
 
-      <section className="ln-card p-6" aria-label="აქტიური ობიექტები რუკაზე">
+      <section className="ln-card ln-enter ln-enter-4 p-6" aria-label="აქტიური ობიექტები რუკაზე">
         <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
           <h2 className="flex items-center gap-2 font-heading text-[15px] font-semibold">
             <MapPinned className="size-4 text-muted-foreground [stroke-width:1.7]" /> {toMtavruli("აქტიური ობიექტები")}
@@ -206,20 +206,37 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
             ობიექტებს კოორდინატები არ აქვს. გახსენით კლიენტი → ობიექტი → „რუკაზე მონიშვნა“.
           </p>
         ) : (
-          <MapView
-            height={280}
-            showLabels={false}
-            markers={s.mapPoints.map((p, i) => ({
-              id: p.id,
-              lat: p.lat,
-              lng: p.lng,
-              code: String(i + 1),
-              color: STATUS_HEX[p.status],
-              label: p.siteName ?? p.clientName ?? p.number,
-              detail: `${p.number} · ${p.title}`,
-              href: `/orders/${p.id}`,
-            }))}
-          />
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,8fr)_minmax(0,4fr)]">
+            <MapView
+              height={340}
+              showLabels={false}
+              markers={s.mapPoints.map((p, i) => ({
+                id: p.id,
+                lat: p.lat,
+                lng: p.lng,
+                code: String(i + 1),
+                color: STATUS_HEX[p.status],
+                label: p.siteName ?? p.clientName ?? p.number,
+                detail: `${p.number} · ${p.title}`,
+                href: `/orders/${p.id}`,
+              }))}
+            />
+            <ol className="max-h-[340px] space-y-1 overflow-y-auto pr-1">
+              {s.mapPoints.map((p, i) => (
+                <li key={p.id}>
+                  <Link href={`/orders/${p.id}`} className="flex items-start gap-2.5 rounded-[12px] px-2 py-2 transition-colors hover:bg-[#f8faff]">
+                    <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full text-[10px] font-semibold text-white" style={{ background: STATUS_HEX[p.status] }}>
+                      {i + 1}
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block truncate text-[12.5px]">{p.siteName ?? p.clientName ?? p.number}</span>
+                      <span className="block truncate text-[11px] text-muted-foreground">{p.title}</span>
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ol>
+          </div>
         )}
       </section>
     </div>

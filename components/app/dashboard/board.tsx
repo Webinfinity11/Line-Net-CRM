@@ -95,7 +95,7 @@ export function DashboardBoard({
   return (
     <div className="space-y-4">
       {/* zone 1 — what needs a decision now */}
-      <section className="ln-card flex flex-wrap items-center justify-between gap-4 p-4" aria-label="მოქმედება სჭირდება">
+      <section className="ln-card ln-enter flex flex-wrap items-center justify-between gap-4 p-4" aria-label="მოქმედება სჭირდება">
         <div className="flex flex-wrap items-center gap-1">
           <span className="px-3 text-[11px] font-medium tracking-[0.04em] text-muted-foreground">{toMtavruli("მოქმედება სჭირდება")}</span>
           <Counter label="დაუნიშნავი" value={counts.unassigned} href="/schedule" alert />
@@ -127,7 +127,7 @@ export function DashboardBoard({
       </section>
 
       {/* zone 2 — the day */}
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,8fr)_minmax(0,4fr)]">
+      <div className="ln-enter ln-enter-2 grid gap-4 xl:grid-cols-[minmax(0,8fr)_minmax(0,4fr)]">
         <section className="ln-card min-w-0 p-6" aria-label="დღევანდელი განრიგი">
           <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
             <h2 className="font-heading text-[15px] font-semibold">{toMtavruli("დღევანდელი განრიგი")}</h2>
@@ -174,7 +174,7 @@ export function DashboardBoard({
                         </span>
                       </span>
                       <span className="relative h-9 min-w-0 flex-1 rounded-[10px] bg-[#f8fafd]">
-                        {mine.map((b) => {
+                        {mine.map((b, i) => {
                           const left = ((b.startMin - DAY_START) / SPAN) * 100;
                           const width = (b.minutes / SPAN) * 100;
                           return (
@@ -183,8 +183,9 @@ export function DashboardBoard({
                               type="button"
                               onClick={() => setSelectedId(b.id)}
                               title={`${b.timeLabel} · ${b.title}${b.client ? ` · ${b.client}` : ""}`}
-                              className="absolute top-1 flex h-7 items-center overflow-hidden rounded-[8px] bg-white px-2 text-left text-[11px] shadow-[0_1px_3px_rgba(16,24,40,0.12)] transition-transform duration-150 hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-[#3457d5]"
+                              className="ln-pop absolute top-1 flex h-7 items-center overflow-hidden rounded-[8px] bg-white px-2 text-left text-[11px] shadow-[0_1px_3px_rgba(16,24,40,0.12)] transition-[transform,box-shadow] duration-150 hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(16,24,40,0.16)] focus-visible:outline-2 focus-visible:outline-[#3457d5]"
                               style={{
+                                animationDelay: `${Math.min(i, 8) * 40 + 120}ms`,
                                 left: `${Math.max(0, Math.min(97, left))}%`,
                                 width: `${Math.max(6, Math.min(100 - Math.max(0, left), width))}%`,
                                 borderLeft: `3px solid ${STATUS_HEX[b.status]}`,
