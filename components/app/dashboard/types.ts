@@ -34,3 +34,16 @@ export type WorkloadRow = { id: string; name: string; image: string | null; hour
 export type MailPeek = { configured: boolean; count: number; connectHref: string };
 
 export type ClientOption = { id: number; name: string };
+
+/** One scheduled visit placed on the day strip (one row per assignee lane). */
+export type TodayBlock = {
+  id: number;
+  laneId: string;
+  title: string;
+  client: string | null;
+  timeLabel: string;
+  /** minutes from midnight, Tbilisi */
+  startMin: number;
+  minutes: number;
+  status: OrderStatus;
+};

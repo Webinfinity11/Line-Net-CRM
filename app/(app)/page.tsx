@@ -1,15 +1,14 @@
-import { CalendarDays, CircleCheck, ClipboardList, Layers, MapPinned, TrendingUp, TriangleAlert, UserPlus } from "lucide-react";
+import { Layers, MapPinned, Wallet } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { StatusDonut, WeeklyBars } from "@/components/app/dashboard-charts";
-import { ExecutorBars, SystemBars } from "@/components/app/dashboard/mini-charts";
+import { WeeklyBars } from "@/components/app/dashboard-charts";
 import { DashboardBoard } from "@/components/app/dashboard/board";
+import { SystemBars } from "@/components/app/dashboard/mini-charts";
 import { QuickCreate } from "@/components/app/dashboard/quick-create";
-import { AwaitingCard, StatCard, type Trend } from "@/components/app/dashboard/stat-card";
-import type { BoardOrder } from "@/components/app/dashboard/types";
+import type { BoardOrder, TodayBlock } from "@/components/app/dashboard/types";
 import { MapView } from "@/components/app/map-view";
 import { getMailSyncState } from "@/lib/graph-mail";
-import { STATUS_HEX, STATUS_LABELS, STATUS_ORDER, formatDate, t } from "@/lib/i18n";
+import { STATUS_HEX, STATUS_LABELS, formatDate, formatMoney, t } from "@/lib/i18n";
 import { toMtavruli } from "@/lib/mtavruli";
 import { isOverdue } from "@/lib/order-utils";
 import { getDashboardStats, listAssignableUsers, listClientsWithSites, type DateRange } from "@/lib/orders";
@@ -20,27 +19,26 @@ import { cn } from "@/lib/utils";
 
 export const metadata = { title: "დაფა" };
 
-const RANGES: { key: DateRange; label: string; period: string; prev: string }[] = [
-  { key: "today", label: t.common.today, period: "დღეს", prev: "გუშინდელთან" },
-  { key: "week", label: t.common.week, period: "ამ კვირაში", prev: "წინა კვირასთან" },
-  { key: "month", label: t.common.month, period: "ამ თვეში", prev: "წინა თვესთან" },
+const RANGES: { key: DateRange; label: string; period: string }[] = [
+  { key: "today", label: t.common.today, period: "დღეს" },
+  { key: "week", label: t.common.week, period: "ამ კვირაში" },
+  { key: "month", label: t.common.month, period: "ამ თვეში" },
 ];
 
 const DAY_NAMES = ["კვირა", "ორშაბათი", "სამშაბათი", "ოთხშაბათი", "ხუთშაბათი", "პარასკევი", "შაბათი"];
 const MONTHS = ["იანვარი", "თებერვალი", "მარტი", "აპრილი", "მაისი", "ივნისი", "ივლისი", "აგვისტო", "სექტემბერი", "ოქტომბერი", "ნოემბერი", "დეკემბერი"];
 
-const timeFmt = new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Tbilisi", hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
-const timeOf = (d: Date) => timeFmt.format(d);
+const hmFmt = new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Tbilisi", hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+const timeOf = (d: Date) => hmFmt.format(d);
+/** Minutes from midnight in Tbilisi, for placing a visit on the day strip. */
+function minutesOf(d: Date) {
+  const [h, m] = hmFmt.format(d).split(":").map(Number);
+  return h * 60 + m;
+}
 
 function dateLine(iso: string) {
   const d = new Date(`${iso}T00:00:00Z`);
   return `${DAY_NAMES[d.getUTCDay()]}, ${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]}`;
-}
-
-/** Only shown when a real previous-period figure exists. */
-function trendOf(cur: number, prev: number, label: string): Trend {
-  if (prev <= 0) return null;
-  return { pct: Math.round(((cur - prev) / prev) * 100), label };
 }
 
 const ACTIVE = new Set(["new", "assigned", "in_progress"]);
@@ -83,29 +81,38 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
     }))
     .sort((a, b) => rank(a) - rank(b));
 
-  const visits = s.today.slice(0, 5).map((o) => ({
-    id: o.id,
-    time: o.scheduledAt ? timeOf(o.scheduledAt) : "—",
-    client: o.client?.name ?? o.title,
-    executor: o.assignees.map((a) => a.user.name.split(" ")[0]).join(", ") || "დაუნიშნავი",
-    site: o.title,
-  }));
-
   const workload = executors.map((u) => ({ id: u.id, name: u.name, image: u.image, hours: u.hours }));
-  const donut = STATUS_ORDER.map((k) => ({ name: STATUS_LABELS[k], value: s.counts[k] ?? 0, color: STATUS_HEX[k] }));
-  const donutTotal = donut.reduce((a, b) => a + b.value, 0);
+  const lanes = executors.filter((u) => u.hours > 0 || s.today.some((o) => o.assignees.some((a) => a.userId === u.id))).map((u) => ({ id: u.id, name: u.name, image: u.image }));
+
+  const blocks: TodayBlock[] = s.today.flatMap((o) => {
+    if (!o.scheduledAt) return [];
+    const base = {
+      id: o.id,
+      title: o.title,
+      client: o.client?.name ?? null,
+      timeLabel: timeOf(o.scheduledAt),
+      startMin: minutesOf(o.scheduledAt),
+      minutes: o.plannedMinutes ?? 120,
+      status: o.status,
+    };
+    if (o.assignees.length === 0) return [{ ...base, laneId: "unassigned" }];
+    return o.assignees.map((a) => ({ ...base, laneId: a.userId }));
+  });
+  const completedToday = s.today.filter((o) => o.status === "done" || o.status === "closed").length;
+
+  const collected = s.money.paid + s.money.unpaid;
+  const paidPct = collected > 0 ? Math.round((s.money.paid / collected) * 100) : 0;
   const firstName = user.name.split(" ")[0];
 
   return (
     <div className="space-y-4">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0">
-          <h1 className="font-heading text-[28px] font-medium leading-[1.3] tracking-[-0.6px]">{toMtavruli(`გამარჯობა, ${firstName}!`)}</h1>
-          <p className="mt-1 text-[13px] text-muted-foreground">ასეთია სერვისის სურათი {rangeDef.period}.</p>
+          <h1 className="font-heading text-[26px] font-semibold leading-[1.3] tracking-[-0.5px]">{toMtavruli(`გამარჯობა, ${firstName}!`)}</h1>
+          <p className="mt-1 text-[13px] text-muted-foreground">{dateLine(tbilisiToday())}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <span className="hidden text-[12.5px] text-muted-foreground md:inline">{dateLine(tbilisiToday())}</span>
-          <div className="inline-flex rounded-full border border-border bg-white p-1" role="group" aria-label="პერიოდი">
+          <div className="inline-flex rounded-full border border-[#e6ebf2] bg-white p-1" role="group" aria-label="პერიოდი">
             {RANGES.map((r) => (
               <Link
                 key={r.key}
@@ -113,7 +120,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
                 aria-current={r.key === range ? "page" : undefined}
                 className={cn(
                   "rounded-full px-3 py-1.5 text-[11.5px] transition-colors duration-150",
-                  r.key === range ? "bg-[#3457d5] font-medium text-white" : "text-muted-foreground hover:bg-[#f3f6fb] hover:text-foreground",
+                  r.key === range ? "bg-[#3457d5] font-medium text-white" : "text-muted-foreground hover:bg-[#f1f4f9] hover:text-foreground",
                 )}
               >
                 {r.label}
@@ -124,100 +131,68 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
         </div>
       </header>
 
-      <div className="ln-stagger grid gap-4 xl:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <StatCard label="აქტიური შეკვეთები" value={s.activeTotal} caption="მიმდინარე ჯამი" href="/orders?status=active" icon={ClipboardList} tone={{ bg: "#edf2ff", fg: "#3457d5" }} filled />
-          <StatCard label="დღევანდელი ვიზიტები" value={s.todayTotal} caption="დაგეგმილია დღეს" href="/schedule" icon={CalendarDays} tone={{ bg: "#fff3df", fg: "#a96308" }} />
-          <StatCard label="ვადაგადაცილებული" value={s.overdueCount} caption="მიმდინარე ჯამი" href="/orders?overdue=1" icon={TriangleAlert} tone={{ bg: "#fff0ed", fg: "#b13f32" }} />
-          <StatCard
-            label="შესრულებული"
-            value={s.completed}
-            caption={rangeDef.period}
-            href="/orders?status=done"
-            icon={CircleCheck}
-            tone={{ bg: "#eaf6ef", fg: "#25815a" }}
-            trend={trendOf(s.completed, s.previous.completed, rangeDef.prev)}
-            spark={s.weekly.map((d) => d.completed)}
-          />
-        </div>
-
-        <section className="ln-card p-[22px]" aria-label="კვირის დინამიკა">
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-            <h3 className="font-heading text-[16px] font-semibold">{toMtavruli("კვირის დინამიკა")}</h3>
-            <span className="text-[11.5px] text-muted-foreground">ბოლო 7 დღე · შექმნილი და შესრულებული</span>
-          </div>
-          <WeeklyBars data={s.weekly} height={236} />
-        </section>
-      </div>
-
-      <div className="ln-stagger grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.35fr)]">
-        <AwaitingCard
-          value={s.unassignedCount}
-          unit="შეკვეთა"
-          sentence={["ელოდება", "და დროის განსაზღვრას."]}
-          highlight="შემსრულებლის დანიშვნას"
-          href="/orders?status=active"
-          icon={UserPlus}
-          tone={{ bg: "#edf2ff", fg: "#3457d5" }}
-        />
-        <AwaitingCard
-          value={s.awaitingClosureCount}
-          unit="შეკვეთა"
-          sentence={["შესრულებულია და", "დახურვამდე."]}
-          highlight="ელოდება შემოწმებას"
-          href="/orders?status=done"
-          icon={CircleCheck}
-          tone={{ bg: "#eaf6ef", fg: "#25815a" }}
-        />
-        <section className="ln-card p-[22px]" aria-label="შეკვეთები სტატუსებით">
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <h3 className="font-heading text-[16px] font-semibold">{toMtavruli("შეკვეთები სტატუსებით")}</h3>
-            <span className="text-[11.5px] text-muted-foreground">{rangeDef.period}</span>
-          </div>
-          {donutTotal === 0 ? <p className="py-10 text-center text-[12.5px] text-muted-foreground">ამ პერიოდში შეკვეთა არ არის</p> : <StatusDonut data={donut} total={donutTotal} />}
-        </section>
-      </div>
-
+      {/* zones 1 and 2: what needs a decision, and how today is laid out */}
       <DashboardBoard
         orders={board}
-        visits={visits}
-        visitsTotal={s.todayTotal}
+        blocks={blocks}
+        lanes={lanes}
         executors={executors}
         workload={workload}
         normHours={normHours}
         today={tbilisiToday()}
         mail={{ configured: mail.configured, count: s.inbox.length, connectHref: "/inbox" }}
-        money={{ paid: s.money.paid, unpaid: s.money.unpaid, periodLabel: rangeDef.period }}
+        counts={{ unassigned: s.unassignedCount, overdue: s.overdueCount, review: s.awaitingClosureCount, visits: s.todayTotal, completedToday }}
       />
 
-      <div className="ln-stagger grid gap-4 lg:grid-cols-2">
-        <section className="ln-card p-[22px]" aria-label="შეკვეთები სისტემების მიხედვით">
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-            <h3 className="flex items-center gap-2 font-heading text-[16px] font-semibold">
-              <Layers className="size-4 text-muted-foreground [stroke-width:1.7]" /> {toMtavruli("სისტემების მიხედვით")}
-            </h3>
+      {/* zone 3: how the work is trending */}
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,6fr)_minmax(0,3fr)_minmax(0,3fr)]">
+        <section className="ln-card min-w-0 p-6" aria-label="სამუშაოს ნაკადი">
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
+            <h2 className="font-heading text-[15px] font-semibold">{toMtavruli("სამუშაოს ნაკადი")}</h2>
+            <span className="text-[11.5px] text-muted-foreground">ბოლო 7 დღე</span>
+          </div>
+          <WeeklyBars data={s.weekly} height={200} />
+        </section>
+
+        <section className="ln-card min-w-0 p-6" aria-label="სისტემების მიხედვით">
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
+            <h2 className="flex items-center gap-2 font-heading text-[15px] font-semibold">
+              <Layers className="size-4 text-muted-foreground [stroke-width:1.7]" /> {toMtavruli("სისტემები")}
+            </h2>
             <span className="text-[11.5px] text-muted-foreground">{rangeDef.period}</span>
           </div>
           <SystemBars rows={s.bySystem} />
         </section>
 
-        <section className="ln-card p-[22px]" aria-label="შემსრულებლების შედეგი">
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-            <h3 className="flex items-center gap-2 font-heading text-[16px] font-semibold">
-              <TrendingUp className="size-4 text-muted-foreground [stroke-width:1.7]" /> {toMtavruli("ჩაბარებული სამუშაო")}
-            </h3>
-            <span className="text-[11.5px] text-muted-foreground">{rangeDef.period} · შემსრულებლის მიხედვით</span>
+        <section className="ln-card min-w-0 p-6" aria-label="თანხები">
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
+            <h2 className="flex items-center gap-2 font-heading text-[15px] font-semibold">
+              <Wallet className="size-4 text-muted-foreground [stroke-width:1.7]" /> {toMtavruli("თანხები")}
+            </h2>
+            <span className="text-[11.5px] text-muted-foreground">{rangeDef.period}</span>
           </div>
-          <ExecutorBars rows={executors.map((u) => ({ id: u.id, name: u.name, image: u.image, done: s.byExecutor[u.id] ?? 0 }))} />
+          <div className="text-[11px] text-muted-foreground">მიღებული</div>
+          <div className="tabular mt-1 font-heading text-[30px] font-semibold leading-none tracking-[-0.8px] text-[#25815a]">{formatMoney(s.money.paid)}</div>
+          <div className="mt-5 text-[11px] text-muted-foreground">გადაუხდელი ნაშთი · ყველა შეკვეთა</div>
+          <div className="tabular mt-1 font-heading text-[20px] font-semibold text-[#a84630]">{formatMoney(s.money.unpaid)}</div>
+          <div className="mt-5">
+            <div className="mb-1.5 flex items-center justify-between text-[11.5px]">
+              <span className="text-muted-foreground">გადახდის მაჩვენებელი</span>
+              <span className="tabular font-semibold">{paidPct}%</span>
+            </div>
+            <div className="h-[6px] overflow-hidden rounded-full bg-[#f1f4f9]">
+              <div className="h-full rounded-full bg-[#25815a] transition-[width] duration-300" style={{ width: `${paidPct}%` }} />
+            </div>
+          </div>
         </section>
       </div>
 
-      <section className="ln-card p-[22px]" aria-label="აქტიური ობიექტები რუკაზე">
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-          <h3 className="flex items-center gap-2 font-heading text-[16px] font-semibold">
-            <MapPinned className="size-4 text-muted-foreground [stroke-width:1.7]" /> {toMtavruli("აქტიური ობიექტები რუკაზე")}
-            <span className="text-[11.5px] font-normal text-muted-foreground">{s.mapPoints.length} ობიექტი</span>
-          </h3>
+      <section className="ln-card p-6" aria-label="აქტიური ობიექტები რუკაზე">
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="flex items-center gap-2 font-heading text-[15px] font-semibold">
+            <MapPinned className="size-4 text-muted-foreground [stroke-width:1.7]" /> {toMtavruli("აქტიური ობიექტები")}
+            <span className="text-[11.5px] font-normal text-muted-foreground">{s.mapPoints.length}</span>
+          </h2>
           <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
             {(["new", "assigned", "in_progress"] as const).map((k) => (
               <span key={k} className="flex items-center gap-1">
@@ -227,12 +202,12 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
           </div>
         </div>
         {s.mapPoints.length === 0 ? (
-          <p className="rounded-[14px] border border-dashed border-border px-4 py-8 text-center text-[12.5px] text-muted-foreground">
+          <p className="rounded-[14px] border border-dashed border-[#e6ebf2] px-4 py-8 text-center text-[12.5px] text-muted-foreground">
             ობიექტებს კოორდინატები არ აქვს. გახსენით კლიენტი → ობიექტი → „რუკაზე მონიშვნა“.
           </p>
         ) : (
           <MapView
-            height={300}
+            height={280}
             showLabels={false}
             markers={s.mapPoints.map((p, i) => ({
               id: p.id,

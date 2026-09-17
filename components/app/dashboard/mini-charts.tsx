@@ -1,6 +1,5 @@
 import type { SystemType } from "@/db/schema";
 import { SYSTEM_LABELS } from "@/lib/i18n";
-import { UserAvatar } from "@/components/app/user-avatar";
 import { JobIcon } from "./job-icon";
 
 /** Tiny inline trend line. Pure SVG: no library, no layout shift. */
@@ -43,29 +42,6 @@ export function SystemBars({ rows }: { rows: { system: SystemType | null; n: num
               <span className="tabular shrink-0 text-[12.5px] font-semibold">{r.n}</span>
             </div>
             <Bar pct={(r.n / max) * 100} color="#3457d5" />
-          </div>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-/** Completed work per executor in the selected period. */
-export function ExecutorBars({ rows }: { rows: { id: string; name: string; image: string | null; done: number }[] }) {
-  const visible = rows.filter((r) => r.done > 0);
-  if (visible.length === 0) return <p className="py-8 text-center text-[12.5px] text-muted-foreground">ამ პერიოდში ჩაბარებული სამუშაო არ არის</p>;
-  const max = Math.max(...visible.map((r) => r.done));
-  return (
-    <ul className="space-y-3">
-      {visible.map((r) => (
-        <li key={r.id} className="flex items-center gap-3">
-          <UserAvatar name={r.name} image={r.image} size="md" tone="color" />
-          <div className="min-w-0 flex-1">
-            <div className="mb-1 flex items-center justify-between gap-2">
-              <span className="truncate text-[12.5px]">{r.name}</span>
-              <span className="tabular shrink-0 text-[12.5px] font-semibold">{r.done}</span>
-            </div>
-            <Bar pct={(r.done / max) * 100} color="#25815a" />
           </div>
         </li>
       ))}

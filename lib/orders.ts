@@ -285,7 +285,7 @@ export async function getDashboardStats(range: DateRange = "week") {
   const notInbox = eq(orders.triaged, true);
 
   const today = tbilisiDayBounds(tbilisiToday());
-  const [byStatusRows, createdRow, completedRow, overdueList, loadRows, users, paidRow, unpaidRow, recent, inbox, todayList, weekly, prevRow, warranty, mapPoints, overdueCountRow, urgentUnassigned, awaitingClosure, reviewRow, board, plannedTodayRows, activeTotalRow, awaitingClosureRow, bySystemRows, byExecutorRows, unassignedRow, todayTotalRow] =
+  const [byStatusRows, createdRow, completedRow, overdueList, loadRows, users, paidRow, unpaidRow, recent, inbox, todayList, weekly, prevRow, warranty, mapPoints, overdueCountRow, urgentUnassigned, awaitingClosure, reviewRow, board, plannedTodayRows, activeTotalRow, awaitingClosureRow, bySystemRows, unassignedRow, todayTotalRow] =
     await Promise.all([
       db
         .select({ status: orders.status, n: count() })
@@ -403,13 +403,6 @@ export async function getDashboardStats(range: DateRange = "week") {
         .from(orders)
         .where(and(notInbox, rangeWhere))
         .groupBy(orders.systemType),
-      // completed work per executor in the selected range (chart)
-      db
-        .select({ userId: orderAssignees.userId, n: count() })
-        .from(orderAssignees)
-        .innerJoin(orders, eq(orders.id, orderAssignees.orderId))
-        .where(and(notInbox, inArray(orders.status, ["done", "closed"]), start ? gte(orders.completedAt, start) : undefined))
-        .groupBy(orderAssignees.userId),
       // active work with nobody assigned yet
       db
         .select({ n: count() })
@@ -459,7 +452,6 @@ export async function getDashboardStats(range: DateRange = "week") {
       .sort((a, b) => b.n - a.n)
       .slice(0, 6)
       .map((r) => ({ system: r.system, n: r.n })),
-    byExecutor: Object.fromEntries(byExecutorRows.map((r) => [r.userId, r.n])) as Record<string, number>,
     todayTotal: todayTotalRow[0]?.n ?? 0,
   };
 }

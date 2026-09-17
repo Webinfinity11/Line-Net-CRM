@@ -1,117 +1,235 @@
 "use client";
 
-import { ArrowRight, ArrowUpRight, CalendarDays, Mail, MailX, Siren, Users, Wallet } from "lucide-react";
+import { ArrowRight, CalendarDays, CheckCircle2, Clock3, Mail, MailX, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { UserAvatar } from "@/components/app/user-avatar";
-import { formatMoney } from "@/lib/i18n";
+import { STATUS_HEX } from "@/lib/i18n";
 import { toMtavruli } from "@/lib/mtavruli";
 import { cn } from "@/lib/utils";
 import { OrderDrawer } from "./order-drawer";
-import type { BoardOrder, Executor, MailPeek, Visit, WorkloadRow } from "./types";
+import type { BoardOrder, Executor, MailPeek, TodayBlock, WorkloadRow } from "./types";
 
 const ACTIVE = new Set(["new", "assigned", "in_progress"]);
-const card = "ln-card p-[22px]";
-const cardTitle = "flex items-center gap-2 font-heading text-[14px] font-semibold";
 
-/** Operational row of the dashboard: what needs attention, today's visits, team load, money. */
+/** Fixed working window for the day strip. */
+const DAY_START = 8 * 60;
+const DAY_END = 20 * 60;
+const SPAN = DAY_END - DAY_START;
+const HOURS = [8, 10, 12, 14, 16, 18, 20];
+
+function Counter({
+  label,
+  value,
+  href,
+  onClick,
+  alert,
+}: {
+  label: string;
+  value: number;
+  href?: string;
+  onClick?: () => void;
+  alert?: boolean;
+}) {
+  const body = (
+    <>
+      <span className={cn("tabular font-heading text-[22px] font-semibold leading-none", alert && value > 0 ? "text-[#b13f32]" : "text-foreground")}>{value}</span>
+      <span className="text-[11px] leading-tight text-muted-foreground">{label}</span>
+    </>
+  );
+  const cls =
+    "flex min-w-[104px] flex-col gap-1.5 rounded-[14px] px-4 py-3 text-left transition-colors duration-150 hover:bg-[#f1f4f9] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3457d5]";
+  if (onClick) {
+    return (
+      <button type="button" onClick={onClick} className={cls}>
+        {body}
+      </button>
+    );
+  }
+  return (
+    <Link href={href ?? "#"} className={cls}>
+      {body}
+    </Link>
+  );
+}
+
+/**
+ * The dashboard's interactive island: one action bar, one day strip, one day summary.
+ * Everything that can open an order shares a single drawer.
+ */
 export function DashboardBoard({
   orders,
-  visits,
-  visitsTotal,
+  blocks,
+  lanes,
   executors,
   workload,
   normHours,
   today,
   mail,
-  money,
+  counts,
 }: {
   orders: BoardOrder[];
-  visits: Visit[];
-  visitsTotal: number;
+  blocks: TodayBlock[];
+  lanes: { id: string; name: string; image: string | null }[];
   executors: Executor[];
   workload: WorkloadRow[];
   normHours: number;
   today: string;
   mail: MailPeek;
-  money: { paid: number; unpaid: number; periodLabel: string };
+  counts: { unassigned: number; overdue: number; review: number; visits: number; completedToday: number };
 }) {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const selected = useMemo(() => orders.find((o) => o.id === selectedId) ?? null, [orders, selectedId]);
   const urgent = useMemo(() => orders.filter((o) => o.priority === "urgent" && o.assignees.length === 0 && ACTIVE.has(o.status)), [orders]);
-  const byId = useMemo(() => new Map(orders.map((o) => [o.id, o])), [orders]);
-  const collected = money.paid + money.unpaid;
-  const paidPct = collected > 0 ? Math.round((money.paid / collected) * 100) : 0;
+  // one thing to act on: the urgent unassigned job, otherwise the oldest overdue one
+  const focus = useMemo(() => {
+    if (urgent.length > 0) return { order: urgent[0], kind: "urgent" as const, more: urgent.length - 1 };
+    const late = orders.filter((o) => o.overdue && ACTIVE.has(o.status));
+    if (late.length > 0) return { order: late[0], kind: "overdue" as const, more: late.length - 1 };
+    return null;
+  }, [orders, urgent]);
+  const hoursOf = useMemo(() => new Map(workload.map((w) => [w.id, w.hours])), [workload]);
+  const calm = counts.unassigned === 0 && counts.overdue === 0 && counts.review === 0 && urgent.length === 0;
+  const laneRows = [...(blocks.some((b) => b.laneId === "unassigned") ? [{ id: "unassigned", name: "დაუნიშნავი", image: null }] : []), ...lanes];
 
   return (
     <div className="space-y-4">
-      {urgent.length > 0 && (
-        <div className="ln-panel-in flex flex-wrap items-center justify-between gap-2 rounded-[16px] border border-[#f4e2d7] bg-[#fff6f1] px-4 py-3 text-[12.5px] text-[#a84630]" role="status">
-          <span className="flex min-w-0 items-center gap-2">
-            <Siren className="size-4 shrink-0 [stroke-width:1.7]" />
-            <span className="truncate">
-              სასწრაფო დაუნიშნავი · {urgent[0].title}
-              {urgent.length > 1 && <span className="ml-1 rounded bg-white/70 px-1.5 py-0.5 text-[11px]">+{urgent.length - 1}</span>}
-            </span>
-          </span>
-          <button
-            type="button"
-            onClick={() => setSelectedId(urgent[0].id)}
-            className="flex items-center gap-1 rounded-full bg-white px-3 py-1.5 text-[11.5px] font-medium text-[#98452f] transition-colors hover:bg-white/70 focus-visible:outline-2 focus-visible:outline-[#a84630]"
-          >
-            დანიშვნა <ArrowRight className="size-3.5" />
-          </button>
+      {/* zone 1 — what needs a decision now */}
+      <section className="ln-card flex flex-wrap items-center justify-between gap-4 p-4" aria-label="მოქმედება სჭირდება">
+        <div className="flex flex-wrap items-center gap-1">
+          <span className="px-3 text-[11px] font-medium tracking-[0.04em] text-muted-foreground">{toMtavruli("მოქმედება სჭირდება")}</span>
+          <Counter label="დაუნიშნავი" value={counts.unassigned} href="/schedule" alert />
+          <Counter label="ვადაგადაცილებული" value={counts.overdue} href="/orders?overdue=1" alert />
+          <Counter label="ჩასაბარებელი" value={counts.review} href="/orders?status=done" />
         </div>
-      )}
-
-      <div className="ln-stagger grid gap-4 lg:grid-cols-3">
-        <section className={cn(card, "min-w-0 text-[12.5px]")} aria-label="დღევანდელი ვიზიტები">
-          <h3 className={cardTitle}>
-            <CalendarDays className="size-4 text-muted-foreground [stroke-width:1.7]" /> {toMtavruli("დღევანდელი ვიზიტები")}
-          </h3>
-          <div className="mt-3">
-            {visits.length === 0 && <p className="py-3 text-muted-foreground">დღეს დაგეგმილი ვიზიტი არ არის</p>}
-            {visits.map((v) => {
-              const body = (
-                <>
-                  <span className="text-foreground">{v.client}</span>
-                  <small className="mt-[3px] block text-[11px] text-muted-foreground">
-                    {v.executor} · {v.site}
-                  </small>
-                </>
-              );
-              return (
-                <div key={v.id} className="grid grid-cols-[44px_1fr] gap-2 border-t border-border py-2.5 first:border-t-0 first:pt-0">
-                  <time className="font-medium text-[#3457d5]">{v.time}</time>
-                  {byId.has(v.id) ? (
-                    <button type="button" onClick={() => setSelectedId(v.id)} className="min-w-0 text-left transition-colors hover:text-[#3457d5] focus-visible:outline-2 focus-visible:outline-[#3457d5]">
-                      {body}
-                    </button>
-                  ) : (
-                    <Link href={`/orders/${v.id}`} className="min-w-0 text-left transition-colors hover:text-[#3457d5]">
-                      {body}
-                    </Link>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-          <p className="mt-3 flex items-center justify-between gap-2 border-t border-border pt-3 text-[11px] text-muted-foreground">
-            <span>
-              ნაჩვენებია {visits.length} / {visitsTotal} ვიზიტი
-            </span>
-            <Link href="/schedule" className="inline-flex items-center gap-1 text-[#3457d5] hover:underline">
-              განრიგი <ArrowRight className="size-3" />
-            </Link>
+        {calm ? (
+          <p className="flex items-center gap-2 rounded-full bg-[#eaf6ef] px-4 py-2 text-[12px] text-[#25815a]">
+            <CheckCircle2 className="size-4 [stroke-width:1.8]" /> ყველა შეკვეთა დანიშნულია
           </p>
-          <div className="mt-3 flex items-center justify-between gap-2 border-t border-border pt-3 text-[11.5px]">
+        ) : focus ? (
+          <div className="flex min-w-0 flex-1 items-center justify-end gap-3">
+            <span className="flex min-w-0 items-center gap-2 text-[12.5px]">
+              <span className="size-2 shrink-0 rounded-full bg-[#b13f32]" />
+              <span className="truncate">
+                <span className="text-[#b13f32]">{focus.kind === "urgent" ? "სასწრაფო:" : "ვადაგადაცილებული:"}</span> {focus.order.title}
+                {focus.more > 0 && <span className="ml-1 text-muted-foreground">+{focus.more}</span>}
+              </span>
+            </span>
+            <button
+              type="button"
+              onClick={() => setSelectedId(focus.order.id)}
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[#3457d5] px-4 py-2 font-heading text-[12px] font-semibold uppercase tracking-[0.04em] text-white transition-colors hover:bg-[#2846b7]"
+            >
+              <UserPlus className="size-3.5" /> {toMtavruli(focus.kind === "urgent" ? "დანიშვნა" : "გახსნა")}
+            </button>
+          </div>
+        ) : null}
+      </section>
+
+      {/* zone 2 — the day */}
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,8fr)_minmax(0,4fr)]">
+        <section className="ln-card min-w-0 p-6" aria-label="დღევანდელი განრიგი">
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
+            <h2 className="font-heading text-[15px] font-semibold">{toMtavruli("დღევანდელი განრიგი")}</h2>
+            <Link href="/schedule" className="inline-flex items-center gap-1 text-[11.5px] text-[#3457d5] hover:underline">
+              სრული განრიგი <ArrowRight className="size-3" />
+            </Link>
+          </div>
+
+          {laneRows.length === 0 || blocks.length === 0 ? (
+            <div className="rounded-[14px] border border-dashed border-[#e6ebf2] px-4 py-8 text-center">
+              <p className="text-[12.5px] text-muted-foreground">დღეს დაგეგმილი ვიზიტი არ არის.</p>
+              <Link href="/schedule" className="mt-2 inline-flex items-center gap-1 text-[12px] font-medium text-[#3457d5] hover:underline">
+                დაგეგმე დღე <ArrowRight className="size-3.5" />
+              </Link>
+            </div>
+          ) : (
+            <div className="min-w-0">
+              <div className="ml-[128px] flex justify-between border-b border-[#eef1f6] pb-1.5 text-[10px] text-muted-foreground">
+                {HOURS.map((h) => (
+                  <span key={h}>{String(h).padStart(2, "0")}:00</span>
+                ))}
+              </div>
+              <ul className="mt-1">
+                {laneRows.map((lane) => {
+                  const mine = blocks.filter((b) => b.laneId === lane.id);
+                  const hours = hoursOf.get(lane.id);
+                  return (
+                    <li key={lane.id} className="flex items-center gap-3 border-b border-[#f4f6fa] py-2 last:border-0">
+                      <span className="flex w-[116px] shrink-0 items-center gap-2">
+                        {lane.id === "unassigned" ? (
+                          <span className="grid size-7 place-items-center rounded-full bg-[#fff0ed] text-[#b13f32]">
+                            <Clock3 className="size-3.5 [stroke-width:1.8]" />
+                          </span>
+                        ) : (
+                          <UserAvatar name={lane.name} image={lane.image} size="md" />
+                        )}
+                        <span className="min-w-0">
+                          <span className="block truncate text-[12px]">{lane.name.split(" ")[0]}</span>
+                          {hours !== undefined && (
+                            <span className={cn("tabular block text-[10px]", hours > normHours ? "text-[#b13f32]" : "text-muted-foreground")}>
+                              {hours}/{normHours} სთ
+                            </span>
+                          )}
+                        </span>
+                      </span>
+                      <span className="relative h-9 min-w-0 flex-1 rounded-[10px] bg-[#f8fafd]">
+                        {mine.map((b) => {
+                          const left = ((b.startMin - DAY_START) / SPAN) * 100;
+                          const width = (b.minutes / SPAN) * 100;
+                          return (
+                            <button
+                              key={`${b.id}-${b.laneId}`}
+                              type="button"
+                              onClick={() => setSelectedId(b.id)}
+                              title={`${b.timeLabel} · ${b.title}${b.client ? ` · ${b.client}` : ""}`}
+                              className="absolute top-1 flex h-7 items-center overflow-hidden rounded-[8px] bg-white px-2 text-left text-[11px] shadow-[0_1px_3px_rgba(16,24,40,0.12)] transition-transform duration-150 hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-[#3457d5]"
+                              style={{
+                                left: `${Math.max(0, Math.min(97, left))}%`,
+                                width: `${Math.max(6, Math.min(100 - Math.max(0, left), width))}%`,
+                                borderLeft: `3px solid ${STATUS_HEX[b.status]}`,
+                              }}
+                            >
+                              <span className="truncate">
+                                <span className="tabular text-muted-foreground">{b.timeLabel}</span> {b.title}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
+        </section>
+
+        <section className="ln-card min-w-0 p-6" aria-label="დღევანდელი შედეგი">
+          <h2 className="mb-5 font-heading text-[15px] font-semibold">{toMtavruli("დღევანდელი დღე")}</h2>
+          <dl className="space-y-4">
+            {[
+              { icon: CalendarDays, label: "დაგეგმილი ვიზიტი", value: counts.visits },
+              { icon: CheckCircle2, label: "ჩაბარებული სამუშაო", value: counts.completedToday },
+              { icon: UserPlus, label: "ელოდება დანიშვნას", value: counts.unassigned },
+            ].map((row) => (
+              <div key={row.label} className="flex items-center gap-3">
+                <span className="grid size-9 shrink-0 place-items-center rounded-[12px] bg-[#f1f4f9] text-[#566b7d]">
+                  <row.icon className="size-[18px] [stroke-width:1.7]" />
+                </span>
+                <dt className="min-w-0 flex-1 text-[12.5px] text-muted-foreground">{row.label}</dt>
+                <dd className="tabular font-heading text-[20px] font-semibold leading-none">{row.value}</dd>
+              </div>
+            ))}
+          </dl>
+          <div className="mt-5 flex items-center justify-between gap-2 border-t border-[#eef1f6] pt-4 text-[12px]">
             {mail.configured ? (
               <>
-                <span className="flex items-center gap-1.5">
-                  <Mail className="size-4 text-muted-foreground [stroke-width:1.7]" /> შემოსულები
+                <span className="flex items-center gap-1.5 text-muted-foreground">
+                  <Mail className="size-4 [stroke-width:1.7]" /> შემოსული წერილები
                 </span>
-                <Link href="/inbox" className="inline-flex items-center gap-1 text-[11px] text-[#3457d5] hover:underline">
-                  {mail.count} წერილი <ArrowUpRight className="size-3" />
+                <Link href="/inbox" className="tabular font-medium text-[#3457d5] hover:underline">
+                  {mail.count}
                 </Link>
               </>
             ) : (
@@ -119,64 +237,11 @@ export function DashboardBoard({
                 <span className="flex items-center gap-1.5 text-muted-foreground">
                   <MailX className="size-4 [stroke-width:1.7]" /> ფოსტა არ არის დაკავშირებული
                 </span>
-                <Link href={mail.connectHref} className="inline-flex items-center gap-1 text-[11px] text-[#3457d5] hover:underline">
-                  დაკავშირება <ArrowUpRight className="size-3" />
+                <Link href={mail.connectHref} className="font-medium text-[#3457d5] hover:underline">
+                  დაკავშირება
                 </Link>
               </>
             )}
-          </div>
-        </section>
-
-        <section className={cn(card, "min-w-0")} aria-label="გუნდის დატვირთვა">
-          <h3 className={cardTitle}>
-            <Users className="size-4 text-muted-foreground [stroke-width:1.7]" /> {toMtavruli("გუნდის დატვირთვა")}
-          </h3>
-          <div className="mt-3">
-            {workload.length === 0 && <p className="py-2 text-[12.5px] text-muted-foreground">შემსრულებლები არ არიან დამატებული</p>}
-            {workload.map((w) => {
-              const pct = normHours > 0 ? Math.min(100, Math.round((w.hours / normHours) * 100)) : 0;
-              const over = w.hours > normHours;
-              const fill = over ? "#c75e50" : pct > 75 ? "#bd9c56" : "#3457d5";
-              return (
-                <div key={w.id} className="mb-3.5 last:mb-0">
-                  <div className="mb-1.5 flex items-center justify-between gap-2">
-                    <span className="flex items-center gap-2 text-[12.5px]">
-                      <UserAvatar name={w.name} image={w.image} size="sm" /> {w.name}
-                    </span>
-                    <span className={cn("tabular text-[11.5px] text-muted-foreground", over && "font-medium text-[#c75e50]")}>
-                      {w.hours} / {normHours} სთ
-                    </span>
-                  </div>
-                  <div className="h-[6px] overflow-hidden rounded-full bg-[#eef1f6]" role="img" aria-label={`${w.name}, დაგეგმილია ${w.hours} საათი ${normHours} საათიდან`}>
-                    <i className="block h-full rounded-full transition-[width] duration-300 ease-out" style={{ width: `${pct}%`, background: fill }} />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          <p className="mt-3 border-t border-border pt-3 text-[11px] text-muted-foreground">დაგეგმილი დრო · დღეს</p>
-        </section>
-
-        <section className={cn(card, "min-w-0")} aria-label="თანხები">
-          <h3 className={cardTitle}>
-            <Wallet className="size-4 text-muted-foreground [stroke-width:1.7]" /> {toMtavruli("თანხები")}
-          </h3>
-          <div className="mt-4">
-            <div className="text-[11px] text-muted-foreground">მიღებული · {money.periodLabel}</div>
-            <div className="tabular mt-1 font-heading text-[28px] font-medium leading-none tracking-[-0.8px] text-[#25815a]">{formatMoney(money.paid)}</div>
-          </div>
-          <div className="mt-4 rounded-[14px] bg-[#fff8f6] p-3">
-            <div className="text-[11px] text-muted-foreground">გადაუხდელი ნაშთი · ყველა შეკვეთა</div>
-            <div className="tabular mt-1 font-heading text-[19px] font-medium text-[#a84630]">{formatMoney(money.unpaid)}</div>
-          </div>
-          <div className="mt-4">
-            <div className="mb-1.5 flex items-center justify-between text-[11.5px]">
-              <span className="text-muted-foreground">გადახდის მაჩვენებელი</span>
-              <span className="tabular font-medium">{paidPct}%</span>
-            </div>
-            <div className="h-[6px] overflow-hidden rounded-full bg-[#eef1f6]">
-              <div className="h-full rounded-full bg-[#25815a] transition-[width] duration-300" style={{ width: `${paidPct}%` }} />
-            </div>
           </div>
         </section>
       </div>
