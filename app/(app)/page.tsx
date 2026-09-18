@@ -1,12 +1,16 @@
-import { Layers, MapPinned, Wallet } from "lucide-react";
+import { Layers, MapPinned } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { WeeklyBars } from "@/components/app/dashboard-charts";
+import { AgingCard, ConversionCard, CrewCard, RevenueTrendCard } from "@/components/app/dashboard/analytics";
 import { DashboardBoard } from "@/components/app/dashboard/board";
+import { DashboardHero } from "@/components/app/dashboard/hero";
 import { SystemBars } from "@/components/app/dashboard/mini-charts";
 import { QuickCreate } from "@/components/app/dashboard/quick-create";
 import type { BoardOrder, TodayBlock } from "@/components/app/dashboard/types";
 import { MapView } from "@/components/app/map-switch";
+import { Reveal } from "@/components/app/motion";
+import { getDashboardAnalytics, recentCash } from "@/lib/analytics";
 import { getMailSyncState } from "@/lib/graph-mail";
 import { STATUS_HEX, STATUS_LABELS, formatDate, formatMoney, t } from "@/lib/i18n";
 import { toMtavruli } from "@/lib/mtavruli";
@@ -50,7 +54,15 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
   const rangeDef = RANGES.find((r) => r.key === sp.range) ?? RANGES[1];
   const range = rangeDef.key;
 
-  const [s, mail, users, clientRows, normHours] = await Promise.all([getDashboardStats(range), getMailSyncState(), listAssignableUsers(), listClientsWithSites(), getWorkHoursPerDay()]);
+  const normHours = await getWorkHoursPerDay();
+  const [s, mail, users, clientRows, analytics, cash] = await Promise.all([
+    getDashboardStats(range),
+    getMailSyncState(),
+    listAssignableUsers(),
+    listClientsWithSites(),
+    getDashboardAnalytics(normHours),
+    recentCash(14),
+  ]);
 
   const executors = users
     .filter((u) => u.role === "executor")
@@ -100,36 +112,35 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
   });
   const completedToday = s.today.filter((o) => o.status === "done" || o.status === "closed").length;
 
-  const collected = s.money.paid + s.money.unpaid;
-  const paidPct = collected > 0 ? Math.round((s.money.paid / collected) * 100) : 0;
   const firstName = user.name.split(" ")[0];
 
   return (
     <div className="space-y-4">
-      <header className="ln-enter flex flex-wrap items-end justify-between gap-4">
-        <div className="min-w-0">
-          <h1 className="font-heading text-[26px] font-semibold leading-[1.3] tracking-[-0.5px]">{toMtavruli(`გამარჯობა, ${firstName}!`)}</h1>
-          <p className="mt-1 text-[13px] text-muted-foreground">{dateLine(tbilisiToday())}</p>
+      <DashboardHero
+        greeting={`გამარჯობა, ${firstName}!`}
+        dateLine={dateLine(tbilisiToday())}
+        revenue={analytics.trend.thisMonth}
+        changePct={analytics.trend.changePct}
+        lastMonth={analytics.trend.lastMonth}
+        cash={cash}
+      >
+        <div className="inline-flex rounded-full bg-white/10 p-1" role="group" aria-label="პერიოდი">
+          {RANGES.map((r) => (
+            <Link
+              key={r.key}
+              href={`/?range=${r.key}`}
+              aria-current={r.key === range ? "page" : undefined}
+              className={cn(
+                "rounded-full px-3.5 py-1.5 font-heading text-[11.5px] font-bold tracking-[-0.005em] transition-colors duration-150",
+                r.key === range ? "bg-white text-[#16293a]" : "text-white/70 hover:bg-white/10 hover:text-white",
+              )}
+            >
+              {toMtavruli(r.label)}
+            </Link>
+          ))}
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="inline-flex rounded-full border border-[#e6ebf2] bg-white p-1" role="group" aria-label="პერიოდი">
-            {RANGES.map((r) => (
-              <Link
-                key={r.key}
-                href={`/?range=${r.key}`}
-                aria-current={r.key === range ? "page" : undefined}
-                className={cn(
-                  "rounded-full px-3.5 py-1.5 font-heading text-[11.5px] font-bold tracking-[-0.005em] transition-colors duration-150",
-                  r.key === range ? "bg-[#3457d5] text-white" : "text-muted-foreground hover:bg-[#f1f4f9] hover:text-foreground",
-                )}
-              >
-                {toMtavruli(r.label)}
-              </Link>
-            ))}
-          </div>
-          <QuickCreate clients={clients} />
-        </div>
-      </header>
+        <QuickCreate clients={clients} />
+      </DashboardHero>
 
       {/* zones 1 and 2: what needs a decision, and how today is laid out */}
       <DashboardBoard
@@ -145,16 +156,16 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
       />
 
       {/* zone 3: how the work is trending */}
-      <div className="ln-enter ln-enter-3 grid gap-4 xl:grid-cols-[minmax(0,6fr)_minmax(0,3fr)_minmax(0,3fr)]">
-        <section className="ln-card min-w-0 p-6" aria-label="სამუშაოს ნაკადი">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,6fr)_minmax(0,3fr)_minmax(0,3fr)]">
+        <Reveal as="section" className="ln-card ln-lift min-w-0 p-6" ariaLabel="სამუშაოს ნაკადი">
           <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
             <h2 className="font-heading text-[15px] font-semibold">{toMtavruli("სამუშაოს ნაკადი")}</h2>
             <span className="text-[11.5px] text-muted-foreground">ბოლო 7 დღე</span>
           </div>
           <WeeklyBars data={s.weekly} height={200} />
-        </section>
+        </Reveal>
 
-        <section className="ln-card min-w-0 p-6" aria-label="სისტემების მიხედვით">
+        <Reveal as="section" className="ln-card ln-lift min-w-0 p-6" delay={80} ariaLabel="სისტემების მიხედვით">
           <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
             <h2 className="flex items-center gap-2 font-heading text-[15px] font-semibold">
               <Layers className="size-4 text-muted-foreground [stroke-width:1.7]" /> {toMtavruli("სისტემები")}
@@ -162,32 +173,19 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
             <span className="text-[11.5px] text-muted-foreground">{rangeDef.period}</span>
           </div>
           <SystemBars rows={s.bySystem} />
-        </section>
+        </Reveal>
 
-        <section className="ln-card min-w-0 p-6" aria-label="თანხები">
-          <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
-            <h2 className="flex items-center gap-2 font-heading text-[15px] font-semibold">
-              <Wallet className="size-4 text-muted-foreground [stroke-width:1.7]" /> {toMtavruli("თანხები")}
-            </h2>
-            <span className="text-[11.5px] text-muted-foreground">{rangeDef.period}</span>
-          </div>
-          <div className="text-[11px] text-muted-foreground">მიღებული</div>
-          <div className="tabular mt-1 font-heading text-[30px] font-semibold leading-none tracking-[-0.8px] text-[#25815a]">{formatMoney(s.money.paid)}</div>
-          <div className="mt-5 text-[11px] text-muted-foreground">გადაუხდელი ნაშთი · ყველა შეკვეთა</div>
-          <div className="tabular mt-1 font-heading text-[20px] font-semibold text-[#a84630]">{formatMoney(s.money.unpaid)}</div>
-          <div className="mt-5">
-            <div className="mb-1.5 flex items-center justify-between text-[11.5px]">
-              <span className="text-muted-foreground">გადახდის მაჩვენებელი</span>
-              <span className="tabular font-semibold">{paidPct}%</span>
-            </div>
-            <div className="h-[6px] overflow-hidden rounded-full bg-[#f1f4f9]">
-              <div className="ln-bar h-full rounded-full bg-[#25815a]" style={{ width: `${paidPct}%` }} />
-            </div>
-          </div>
-        </section>
+        <AgingCard aging={analytics.aging} />
       </div>
 
-      <section className="ln-card ln-enter ln-enter-4 p-6" aria-label="აქტიური ობიექტები რუკაზე">
+      {/* zone 4: where the business is heading */}
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,6fr)_minmax(0,3fr)_minmax(0,3fr)]">
+        <RevenueTrendCard trend={analytics.trend} />
+        <CrewCard crew={analytics.crew} normHours={normHours} />
+        <ConversionCard c={analytics.conversion} />
+      </div>
+
+      <Reveal as="section" className="ln-card ln-lift p-6" ariaLabel="აქტიური ობიექტები რუკაზე">
         <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
           <h2 className="flex items-center gap-2 font-heading text-[15px] font-semibold">
             <MapPinned className="size-4 text-muted-foreground [stroke-width:1.7]" /> {toMtavruli("აქტიური ობიექტები")}
@@ -238,7 +236,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
             </ol>
           </div>
         )}
-      </section>
+      </Reveal>
     </div>
   );
 }

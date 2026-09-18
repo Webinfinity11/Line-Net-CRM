@@ -350,3 +350,59 @@ h1, h2, h3 {
 .leaflet-control-attribution {
   font-size: 9px;
 }
+
+/* --- dashboard hero -------------------------------------------------------
+   A dark band with two slowly drifting blobs behind it. Only `transform` and
+   `opacity` animate, so the scroll stays smooth on a phone. */
+.ln-hero {
+  background: linear-gradient(135deg, #16293a 0%, #1d3552 55%, #24406a 100%);
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 18px 40px rgba(22, 41, 58, 0.18);
+}
+.ln-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(52px);
+  opacity: 0.55;
+  pointer-events: none;
+  will-change: transform;
+}
+.ln-blob-a {
+  inset: -40% auto auto -10%;
+  width: 380px;
+  height: 380px;
+  background: radial-gradient(circle, #3457d5 0%, rgba(52, 87, 213, 0) 70%);
+  animation: ln-drift-a 18s ease-in-out infinite;
+}
+.ln-blob-b {
+  inset: auto -8% -50% auto;
+  width: 320px;
+  height: 320px;
+  background: radial-gradient(circle, #2f9e6b 0%, rgba(47, 158, 107, 0) 70%);
+  animation: ln-drift-b 22s ease-in-out infinite;
+}
+@keyframes ln-drift-a {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(70px, 40px, 0) scale(1.12); }
+}
+@keyframes ln-drift-b {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(-60px, -36px, 0) scale(1.08); }
+}
+
+/* Cards that respond to the pointer. Kept to transform and shadow. */
+.ln-lift {
+  transition: transform 0.22s cubic-bezier(0.16, 0.84, 0.44, 1), box-shadow 0.22s cubic-bezier(0.16, 0.84, 0.44, 1);
+}
+@media (hover: hover) {
+  .ln-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 2px 4px rgba(16, 24, 40, 0.05), 0 18px 38px rgba(16, 24, 40, 0.1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ln-blob-a,
+  .ln-blob-b { animation: none; }
+  .ln-lift { transition: none; }
+  .ln-lift:hover { transform: none; }
+}
