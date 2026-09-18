@@ -123,16 +123,28 @@ export async function pollMailbox(): Promise<PollResult> {
   });
 }
 
+/**
+ * Which settings are still empty. Names only — a value must never leave the server,
+ * but an admin needs to know what to fill in rather than reading "not connected".
+ */
+function missingSettings() {
+  const need = (name: string) => !process.env[name];
+  const connect = ["OUTLOOK_CLIENT_ID", "OUTLOOK_CLIENT_SECRET", "MAIL_TOKEN_ENCRYPTION_KEY", "BETTER_AUTH_URL"].filter(need);
+  const mailbox = ["GRAPH_TENANT_ID", "GRAPH_CLIENT_ID", "GRAPH_CLIENT_SECRET", "GRAPH_MAILBOX"].filter(need);
+  return { connect, mailbox };
+}
+
 export async function getMailSyncState() {
   const canConnect = Boolean(outlookConfig());
+  const missing = missingSettings();
   const automatic = process.env.INTERNAL_CRON !== "0" && process.env.VERCEL !== "1";
   // Explicit projection: credentials must never reach a client component.
   const [connection] = await db.select({ mailbox: outlookConnection.mailbox }).from(outlookConnection).where(eq(outlookConnection.id, "shared"));
   const mailbox = connection?.mailbox ?? graphConfig()?.mailbox;
-  if (!mailbox) return { configured: false as const, canConnect, automatic };
+  if (!mailbox) return { configured: false as const, canConnect, automatic, missing };
   const [state] = await db.select().from(mailSync).where(eq(mailSync.mailbox, mailbox));
   return {
-    configured: true as const, canConnect, automatic, mode: connection ? "outlook" as const : "application" as const,
+    configured: true as const, canConnect, automatic, missing, mode: connection ? "outlook" as const : "application" as const,
     mailbox, lastRunAt: state?.lastRunAt ?? null, lastError: state?.lastError ?? null,
   };
 }

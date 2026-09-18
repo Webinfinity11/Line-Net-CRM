@@ -24,6 +24,7 @@ Spec: `docs/02-mvp-spec.md` (MVP) + `docs/04-phase-1.5-spec.md` (agreed addition
 - Order statuses: new → assigned → in_progress → done → closed, plus cancelled. Assigning executors to a `new` order sets `assigned`; removing all sets `new`.
 - Executors see only orders assigned to them, cannot see amounts, can only move assigned→in_progress→done (and done→in_progress), comment, upload files.
 - Orders created from email have `source='email'`, `triaged=false` and appear in `/inbox` until a manager saves them via the edit form (sets `triaged=true`) or cancels them.
+- Cron endpoints (`/api/cron/schedules` daily, `/api/cron/poll-mail` every 10 min, both listed in `vercel.json`) accept `CRON_SECRET` or `INBOUND_EMAIL_SECRET` through `lib/cron-auth.ts`. Vercel's scheduler only ever sends `CRON_SECRET`, so checking one of them silently 401s the run.
 - Inbound mail: `POST /api/inbound-email` (Bearer `INBOUND_EMAIL_SECRET`) or Graph polling `GET /api/cron/poll-mail`; both call `lib/inbound-email.ts` which dedupes on `email_message_id`.
 - Attachments are stored on disk under `UPLOAD_DIR` and served through `/api/files/[id]` after an auth check.
 - Maintenance schedules (`service_schedules`) generate orders via `lib/schedules.ts` (idempotent per schedule + due date); triggered by `instrumentation.ts` daily, `/api/cron/schedules`, or the "გენერაცია ახლა" button.

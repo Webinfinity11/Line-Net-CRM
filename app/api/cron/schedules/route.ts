@@ -1,17 +1,9 @@
-import { timingSafeEqual } from "node:crypto";
+import { cronAuthorized } from "@/lib/cron-auth";
 import { generateDueOrders } from "@/lib/schedules";
 
-/** Cron: GET/POST /api/cron/schedules with Authorization: Bearer <INBOUND_EMAIL_SECRET>. Run daily. */
-function authorized(req: Request) {
-  const secret = process.env.INBOUND_EMAIL_SECRET;
-  if (!secret) return false;
-  const given = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? new URL(req.url).searchParams.get("secret") ?? "";
-  if (given.length !== secret.length) return false;
-  return timingSafeEqual(Buffer.from(given), Buffer.from(secret));
-}
-
+/** Cron: GET/POST /api/cron/schedules with Authorization: Bearer <CRON_SECRET | INBOUND_EMAIL_SECRET>. Run daily. */
 async function handle(req: Request) {
-  if (!authorized(req)) return Response.json({ error: "unauthorized" }, { status: 401 });
+  if (!cronAuthorized(req)) return Response.json({ error: "unauthorized" }, { status: 401 });
   const res = await generateDueOrders(null);
   return Response.json({ ok: true, ...res });
 }

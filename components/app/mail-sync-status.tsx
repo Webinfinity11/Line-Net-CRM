@@ -31,7 +31,19 @@ export function MailSyncStatus({ state, canManage }: { state: MailSyncState; can
           </div>
           <div className="w-full sm:w-auto">{canManage && connectButton}</div>
         </div>
-        {!state.canConnect && <p className="mt-3 text-[11.5px] text-[#96610b]">კავშირი ჯერ მოსამზადებელია — Microsoft-ის აპლიკაციის პარამეტრები არ არის გამართული.</p>}
+        {!state.canConnect && canManage && (
+          <div className="mt-3 rounded-[12px] border border-[#f0d9a8] bg-[#fff4df] p-3 text-[11.5px] text-[#96610b]">
+            <p className="font-medium">კავშირი ჯერ მოსამზადებელია — Azure-ის აპლიკაცია არ არის გამართული.</p>
+            {state.missing.connect.length > 0 && (
+              <p className="mt-1.5">
+                შესავსებია:{" "}
+                <span className="font-mono">{state.missing.connect.join(", ")}</span>
+              </p>
+            )}
+            <p className="mt-1.5 opacity-80">ინსტრუქცია: docs/06-outlook-personal-setup.md (პირადი Outlook) ან docs/03-microsoft-365-setup.md (კომპანიის ყუთი).</p>
+          </div>
+        )}
+        {!state.canConnect && !canManage && <p className="mt-3 text-[11.5px] text-[#96610b]">კავშირი ჯერ მოსამზადებელია — მიმართეთ ადმინისტრატორს.</p>}
         {!canManage && <p className="mt-3 text-[11.5px] text-muted-foreground">დაკავშირებისთვის მიმართეთ CRM-ის ადმინისტრატორს.</p>}
       </div>
     );
