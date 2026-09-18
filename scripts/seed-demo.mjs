@@ -101,9 +101,9 @@ async function seed() {
       const client = pick(clients);
       const system = pick(client.systems);
       const title = pick(TITLES[system] ?? TITLES.cctv);
-      const created = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - back, int(1, back === 0 ? Math.max(1, now.getUTCDate() - 1) : 28), int(8, 17), pick([0, 15, 30])));
+      const created = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - back, int(1, back === 0 ? Math.max(1, now.getUTCDate() - 1) : 28), int(4, 13), pick([0, 15, 30])));
       const scheduled = new Date(created.getTime() + int(0, 5) * 864e5);
-      scheduled.setUTCHours(int(8, 16), pick([0, 30]), 0, 0);
+      scheduled.setUTCHours(int(4, 13), pick([0, 30]), 0, 0); // 08:00–17:00 in Tbilisi
       const done = back === 0 && Math.random() < 0.35 ? null : new Date(scheduled.getTime() + int(1, 6) * 36e5);
       const status = done ? (Math.random() < 0.85 ? "closed" : "done") : pick(["new", "assigned", "in_progress"]);
 
