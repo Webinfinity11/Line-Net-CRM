@@ -38,7 +38,7 @@ export function DashboardHero({
       <span aria-hidden className="ln-blob ln-blob-b" />
 
       <div className="relative flex flex-wrap items-start justify-between gap-x-6 gap-y-5">
-        <div className="min-w-0">
+        <div className="w-full min-w-0 sm:w-auto">
           <h1 className="font-heading text-[26px] font-semibold leading-[1.25] tracking-[-0.5px] text-white sm:text-[30px]">{toMtavruli(greeting)}</h1>
           <p className="mt-1 text-[13px] text-white/60">{dateLine}</p>
 
@@ -63,8 +63,8 @@ export function DashboardHero({
           </p>
         </div>
 
-        <div className="flex min-w-0 flex-1 flex-col items-stretch gap-4 sm:max-w-[420px]">
-          <div className="flex flex-wrap items-center justify-end gap-2">{children}</div>
+        <div className="flex w-full min-w-0 flex-col items-stretch gap-4 sm:w-auto sm:flex-1 sm:max-w-[420px]">
+          <div className="flex flex-wrap items-center gap-2 sm:justify-end">{children}</div>
           <div className="rounded-[16px] bg-white/[0.06] p-3 backdrop-blur-sm">
             <div className="mb-1 flex items-center justify-between text-[11px] text-white/55">
               <span>ბოლო 14 დღე</span>
