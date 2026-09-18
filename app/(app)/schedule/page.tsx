@@ -152,7 +152,7 @@ export default async function SchedulePage({ searchParams }: PageProps<"/schedul
             <Button variant={day === today ? "default" : "outline"} size="sm" className="h-10 md:h-8" render={<Link href="/schedule" />}>
               დღეს
             </Button>
-            <DateJump value={day} hrefFor={(d) => `/schedule?date=${d}`} label="სხვა თარიღი" />
+            <DateJump value={day} basePath="/schedule" label="სხვა თარიღი" />
             <Button variant="outline" size="icon-sm" className="h-10 w-10 md:h-8 md:w-8" render={<Link href={`/schedule?date=${shift(day, 1)}`} aria-label="შემდეგი დღე" />}>
               <ChevronRight className="size-4" />
             </Button>
