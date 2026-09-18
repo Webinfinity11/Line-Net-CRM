@@ -65,7 +65,7 @@ export default async function ServicesPage({ searchParams }: PageProps<"/setting
                     {!s.active && <Chip tone="warn">გამორთულია</Chip>}
                   </>
                 }
-                right={<span className="tabular font-heading text-[15px] font-semibold">{formatMoney(s.price)}</span>}
+                right={<span className="tabular font-heading text-[15px]">{formatMoney(s.price)}</span>}
                 actions={
                   // icons only: 27 rows of three labelled buttons turn the phone list into a wall
                   <>

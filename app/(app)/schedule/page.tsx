@@ -185,11 +185,11 @@ export default async function SchedulePage({ searchParams }: PageProps<"/schedul
       </div>
 
       <div className="mb-4 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border border-[#e6ebf2] bg-white px-4 py-2.5 text-xs" role="status">
-        <span className={cn(unassignedToday.length ? "font-medium text-[#a73b2d]" : "text-muted-foreground")}>დაუნიშნავი დღეს {unassignedToday.length}</span>
+        <span className={cn(unassignedToday.length ? "font-medium text-[#b13f32]" : "text-muted-foreground")}>დაუნიშნავი დღეს {unassignedToday.length}</span>
         <span className="text-[#c9d3e3]">·</span>
         <span className="text-muted-foreground">დაუგეგმავი აქტიური {unscheduled.length}</span>
         <span className="text-[#c9d3e3]">·</span>
-        <span className={cn(overlapCount ? "font-medium text-[#a73b2d]" : "text-muted-foreground")}>გადაფარვა {overlapCount}</span>
+        <span className={cn(overlapCount ? "font-medium text-[#b13f32]" : "text-muted-foreground")}>გადაფარვა {overlapCount}</span>
       </div>
 
       <div className="ln-stagger grid gap-[18px] lg:grid-cols-[minmax(260px,3fr)_minmax(0,7fr)]">
@@ -251,7 +251,7 @@ export default async function SchedulePage({ searchParams }: PageProps<"/schedul
                     {o.number} · {o.client?.name ?? "—"}
                   </span>
                 </span>
-                <span className="font-medium text-[#a73b2d] tabular">{formatDate(o.dueDate)}</span>
+                <span className="font-medium text-[#b13f32] tabular">{formatDate(o.dueDate)}</span>
               </Link>
             ))}
           </CardContent>

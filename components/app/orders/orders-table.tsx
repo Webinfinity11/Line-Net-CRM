@@ -162,7 +162,7 @@ export function OrdersTable({
           </ul>
           <div className="hidden overflow-x-auto sm:block">
             <table className="w-full text-[13px]">
-              <thead className="bg-[#fbfcfe]">
+              <thead className="bg-[#f8faff]">
                 <tr>
                   <th className="hidden w-10 px-3 py-3 sm:table-cell sm:px-4">
                     <Checkbox checked={allSelected} onCheckedChange={toggleAll} aria-label="ყველას მონიშვნა" />

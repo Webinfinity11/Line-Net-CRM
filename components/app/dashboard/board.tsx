@@ -127,7 +127,7 @@ export function DashboardBoard({
           // work is waiting but nothing is on fire: the bar still points somewhere instead of ending in white space
           <Link
             href={counts.unassigned > 0 ? "/schedule" : "/orders?status=done"}
-            className="inline-flex items-center gap-1.5 self-start rounded-full bg-[#f2f5fb] px-4 py-2 text-[12.5px] text-[#41556b] transition-colors hover:bg-[#e8eefb] sm:self-auto"
+            className="inline-flex items-center gap-1.5 self-start rounded-full bg-[#eef2ff] px-4 py-2 text-[12.5px] text-[#4a5e73] transition-colors hover:bg-[#e2e9ff] sm:self-auto"
           >
             {counts.unassigned > 0 ? "დაგეგმე დღე" : "შეამოწმე ჩაბარებული"} <ArrowRight className="size-3.5" />
           </Link>
@@ -138,7 +138,7 @@ export function DashboardBoard({
       <div className="ln-enter ln-enter-2 grid items-start gap-4 xl:grid-cols-[minmax(0,8fr)_minmax(0,4fr)]">
         <section className="ln-card min-w-0 p-6" aria-label="დღევანდელი განრიგი">
           <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
-            <h2 className="font-heading text-[15px] font-semibold">{toMtavruli("დღევანდელი განრიგი")}</h2>
+            <h2 className="font-heading text-[15px]">{toMtavruli("დღევანდელი განრიგი")}</h2>
             <Link href="/schedule" className="inline-flex items-center gap-1 text-[11.5px] text-[#3457d5] hover:underline">
               სრული განრიგი <ArrowRight className="size-3" />
             </Link>
@@ -223,7 +223,7 @@ export function DashboardBoard({
                           )}
                         </span>
                       </span>
-                      <span className="relative h-9 min-w-0 flex-1 rounded-[10px] bg-[#f8fafd]">
+                      <span className="relative h-9 min-w-0 flex-1 rounded-[10px] bg-[#f8faff]">
                         {mine.map((b) => {
                           const left = ((b.startMin - DAY_START) / SPAN) * 100;
                           const width = (b.minutes / SPAN) * 100;
@@ -257,7 +257,7 @@ export function DashboardBoard({
         </section>
 
         <section className="ln-card min-w-0 p-6" aria-label="დღევანდელი შედეგი">
-          <h2 className="mb-5 font-heading text-[15px] font-semibold">{toMtavruli("დღევანდელი დღე")}</h2>
+          <h2 className="mb-5 font-heading text-[15px]">{toMtavruli("დღევანდელი დღე")}</h2>
           <dl className="space-y-4">
             {[
               { icon: CalendarDays, label: "დაგეგმილი ვიზიტი", value: counts.visits },
@@ -265,7 +265,7 @@ export function DashboardBoard({
               { icon: UserPlus, label: "ელოდება დანიშვნას", value: counts.unassigned },
             ].map((row) => (
               <div key={row.label} className="flex items-center gap-3">
-                <span className="grid size-9 shrink-0 place-items-center rounded-[12px] bg-[#f1f4f9] text-[#566b7d]">
+                <span className="grid size-9 shrink-0 place-items-center rounded-[12px] bg-[#f1f4f9] text-[#617084]">
                   <row.icon className="size-[18px] [stroke-width:1.7]" />
                 </span>
                 <dt className="min-w-0 flex-1 text-[12.5px] text-muted-foreground">{row.label}</dt>

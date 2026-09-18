@@ -177,7 +177,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
       <div className="grid gap-4 xl:grid-cols-[minmax(0,6fr)_minmax(0,3fr)_minmax(0,3fr)]">
         <Reveal as="section" className="ln-card ln-lift min-w-0 p-6" ariaLabel="სამუშაოს ნაკადი" view="flow">
           <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
-            <h2 className="font-heading text-[15px] font-semibold">{toMtavruli("სამუშაოს ნაკადი")}</h2>
+            <h2 className="font-heading text-[15px]">{toMtavruli("სამუშაოს ნაკადი")}</h2>
             <span className="text-[11.5px] text-muted-foreground">ბოლო 7 დღე</span>
           </div>
           <WeeklyBars data={s.weekly} height={200} />
@@ -185,7 +185,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
 
         <Reveal as="section" className="ln-card ln-lift min-w-0 p-6" delay={80} ariaLabel="სისტემების მიხედვით" view="systems">
           <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
-            <h2 className="flex items-center gap-2 font-heading text-[15px] font-semibold">
+            <h2 className="flex items-center gap-2 font-heading text-[15px]">
               <Layers className="size-4 text-muted-foreground [stroke-width:1.7]" /> {toMtavruli("სისტემები")}
             </h2>
             <span className="text-[11.5px] text-muted-foreground">{periodLabel}</span>
@@ -205,7 +205,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
 
       <Reveal as="section" className="ln-card ln-lift p-6" ariaLabel="აქტიური ობიექტები რუკაზე" view="map">
         <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
-          <h2 className="flex items-center gap-2 font-heading text-[15px] font-semibold">
+          <h2 className="flex items-center gap-2 font-heading text-[15px]">
             <MapPinned className="size-4 text-muted-foreground [stroke-width:1.7]" /> {toMtavruli("აქტიური ობიექტები")}
             <span className="text-[11.5px] font-normal text-muted-foreground">{s.mapPoints.length}</span>
           </h2>

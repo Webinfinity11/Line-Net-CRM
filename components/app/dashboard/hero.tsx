@@ -39,7 +39,7 @@ export function DashboardHero({
 
       <div className="relative flex flex-wrap items-start justify-between gap-x-6 gap-y-5">
         <div className="w-full min-w-0 sm:w-auto">
-          <h1 className="font-heading text-[26px] font-semibold leading-[1.25] tracking-[-0.5px] text-white sm:text-[30px]">{toMtavruli(greeting)}</h1>
+          <h1 className="font-heading text-[26px] leading-[1.25] tracking-[-0.5px] text-white sm:text-[30px]">{toMtavruli(greeting)}</h1>
           <p className="mt-1 text-[13px] text-white/60">{dateLine}</p>
 
           <div className="mt-5 flex flex-wrap items-end gap-3">

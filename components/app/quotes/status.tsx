@@ -11,7 +11,7 @@ export const QUOTE_STATUS_LABELS: Record<QuoteStatus, string> = {
 /** Muted chips in the same family as order statuses: colour marks state, nothing else. */
 const CHIP: Record<QuoteStatus, string> = {
   draft: "bg-[#eef1f5] text-[#65717f]",
-  sent: "bg-[#eef2fb] text-[#3d5a8a]",
+  sent: "bg-[#f8faff] text-[#3d5a8a]",
   accepted: "bg-[#eaf4ee] text-[#35735a]",
   declined: "bg-[#faeeee] text-[#96504e]",
 };

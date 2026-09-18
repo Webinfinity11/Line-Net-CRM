@@ -14,7 +14,7 @@ const STYLES: google.maps.MapTypeStyle[] = [
   { featureType: "administrative", elementType: "geometry", stylers: [{ color: "#dfe4ec" }] },
   { featureType: "poi", stylers: [{ visibility: "off" }] },
   { featureType: "road", elementType: "geometry", stylers: [{ color: "#ffffff" }] },
-  { featureType: "road.arterial", elementType: "geometry", stylers: [{ color: "#fbfcfe" }] },
+  { featureType: "road.arterial", elementType: "geometry", stylers: [{ color: "#f8faff" }] },
   { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#eef1f6" }] },
   { featureType: "transit", stylers: [{ visibility: "off" }] },
   { featureType: "water", elementType: "geometry", stylers: [{ color: "#dbe6f2" }] },

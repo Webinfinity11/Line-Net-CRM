@@ -166,7 +166,7 @@ export function Sidebar(props: { user: SessionUser; inboxCount: number; unseenCo
         <div className="flex size-9 shrink-0 items-center justify-center rounded-[12px] bg-[#3457d5] font-heading text-xs font-bold text-white shadow-[0_6px_16px_rgba(52,87,213,0.28)]">LN</div>
         {open && (
           <div className="min-w-0 leading-tight">
-            <div className="truncate font-heading text-[15px] font-semibold text-white">{t.appName}</div>
+            <div className="truncate font-heading text-[15px] text-white">{t.appName}</div>
             <div className="truncate text-[11px] text-[#8296a8]">სერვისის მართვა</div>
           </div>
         )}

@@ -94,7 +94,7 @@ export default async function ClientPage({ params }: PageProps<"/clients/[id]">)
               {mapMarkers.length > 0 && <MapView markers={mapMarkers} height={240} showLabels={false} />}
               <ul className="space-y-2.5">
                 {client.sites.map((s) => (
-                  <li key={s.id} className="rounded-[14px] bg-[#f8fafd] p-4">
+                  <li key={s.id} className="rounded-[14px] bg-[#f8faff] p-4">
                     <div className="flex items-start gap-2.5">
                       <MapPin className="mt-0.5 size-4 shrink-0 text-muted-foreground [stroke-width:1.7]" />
                       <div className="min-w-0 flex-1">

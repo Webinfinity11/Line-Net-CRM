@@ -88,7 +88,7 @@ export function OrderFilters({
         ))}
       </NativeSelect>
       <label className="flex h-9 cursor-pointer items-center gap-1.5 rounded-lg border px-2.5 text-sm">
-        <input type="checkbox" name="overdue" value="1" defaultChecked={values.overdue === "1"} onChange={submit} className="accent-rose-600" />
+        <input type="checkbox" name="overdue" value="1" defaultChecked={values.overdue === "1"} onChange={submit} className="accent-[#b13f32]" />
         {t.order.overdue}
       </label>
       <Button type="submit" size="sm" variant="secondary">

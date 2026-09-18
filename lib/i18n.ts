@@ -15,7 +15,7 @@ export const ACTIVE_STATUSES: OrderStatus[] = ["new", "assigned", "in_progress"]
 export const KANBAN_STATUSES: OrderStatus[] = ["new", "assigned", "in_progress", "done", "closed"];
 
 export const STATUS_COLORS: Record<OrderStatus, string> = {
-  new: "bg-[#eef2fb] text-[#3d5a8a] dark:bg-blue-900/40 dark:text-blue-200",
+  new: "bg-[#f8faff] text-[#3d5a8a] dark:bg-blue-900/40 dark:text-blue-200",
   assigned: "bg-[#f1eefa] text-[#6a5a92] dark:bg-violet-900/40 dark:text-violet-200",
   in_progress: "bg-[#fdf3e3] text-[#8a6a2f] dark:bg-amber-900/40 dark:text-amber-200",
   done: "bg-[#eaf4ee] text-[#35735a] dark:bg-emerald-900/40 dark:text-emerald-200",
@@ -25,7 +25,7 @@ export const STATUS_COLORS: Record<OrderStatus, string> = {
 
 /** Soft fills for job cards on calendars and day strips (paired with STATUS_HEX for the accent). */
 export const STATUS_TINT: Record<OrderStatus, string> = {
-  new: "#edf2ff",
+  new: "#eef2ff",
   assigned: "#f0ecfc",
   in_progress: "#fff4df",
   done: "#eaf6ef",
@@ -93,7 +93,7 @@ export const SYSTEM_ORDER: SystemType[] = ["fire", "electrical", "network", "cct
  * Colour in a row is reserved for status (what to do) and problems (overdue, unpaid).
  */
 export const SYSTEM_COLORS: Record<SystemType, string> = Object.fromEntries(
-  systemTypeEnum.enumValues.map((k) => [k, "bg-[#f1f4f9] text-[#5b6b7c] dark:bg-neutral-800 dark:text-neutral-300"]),
+  systemTypeEnum.enumValues.map((k) => [k, "bg-[#f1f4f9] text-[#617084] dark:bg-neutral-800 dark:text-neutral-300"]),
 ) as Record<SystemType, string>;
 
 

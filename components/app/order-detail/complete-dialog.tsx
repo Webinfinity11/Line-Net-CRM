@@ -94,7 +94,7 @@ export function CompleteDialog({
           <div
             className={cn(
               "rounded-lg border p-2.5 text-xs",
-              photoName ? "border-[#bfe0cd] bg-[#f1f8f4] text-[#1f6b4b]" : "border-amber-300 bg-amber-50 text-amber-900",
+              photoName ? "border-[#bfe0cd] bg-[#eaf6ef] text-[#25815a]" : "border-[#f0d9a8] bg-[#fff4df] text-[#96610b]",
             )}
             role="alert"
           >
@@ -128,7 +128,7 @@ export function CompleteDialog({
           </div>
         )}
         {requiredLeft > 0 && (
-          <div className="rounded-lg border border-amber-300 bg-amber-50 p-2.5 text-xs text-amber-900" role="alert">
+          <div className="rounded-lg border border-[#f0d9a8] bg-[#fff4df] p-2.5 text-xs text-[#96610b]" role="alert">
             შესასრულებელი პუნქტები დარჩა: {requiredLeft}
           </div>
         )}

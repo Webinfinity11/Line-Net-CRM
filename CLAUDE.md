@@ -53,6 +53,7 @@ Spec: `docs/02-mvp-spec.md` (MVP) + `docs/04-phase-1.5-spec.md` (agreed addition
 - The deployment is public: `app/robots.ts` disallows every crawler and `next.config.ts` sends `X-Robots-Tag: noindex, nofollow`.
 
 ## Colour and type discipline
+- The palette is written out at the top of `app/globals.css`: one value per role, four text levels, four surfaces. Before adding a colour, check whether one of those already means what you need — near-duplicates are what make a screen look assembled by several hands. Tailwind's own palettes (amber-*, rose-*, emerald-*) are not used in app code.
 - One accent (#3457d5) for primary actions and active state. Status chips use the muted family in `STATUS_COLORS`. Red (#b13f32) only for problems (overdue, unpaid, urgent). Green (#25815a) only for money received or success. Everything else is neutral grey.
 - Systems, order types and avatars in dense lists are neutral: a row must not carry more than two colours beyond its status chip. `SYSTEM_COLORS` is deliberately one neutral value for every system.
 - Headings and buttons: FiraGO Bold (700), tight tracking, Georgian Mtavruli via `toMtavruli` (Button, CardTitle, DialogTitle, SheetTitle and dialog/menu triggers apply it automatically). Names, body text, table headers, form labels and aria/title attributes stay Mkhedruli.

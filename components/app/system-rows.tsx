@@ -77,7 +77,7 @@ export function SystemRow({ row, first, last }: { row: SystemAdminRow; first: bo
             aria-label="ზემოთ"
             disabled={first || pending}
             onClick={() => run(() => moveSystem(row.slug, "up"))}
-            className="grid size-8 place-items-center rounded-lg border border-[#e6ebf2] text-[#8b97a8] transition-colors hover:bg-[#f1f4f9] hover:text-foreground disabled:opacity-30 sm:size-5 sm:rounded sm:border-0"
+            className="grid size-8 place-items-center rounded-lg border border-[#e6ebf2] text-[#8b98a9] transition-colors hover:bg-[#f1f4f9] hover:text-foreground disabled:opacity-30 sm:size-5 sm:rounded sm:border-0"
           >
             <ChevronUp className="size-4 sm:size-3.5" />
           </button>
@@ -86,7 +86,7 @@ export function SystemRow({ row, first, last }: { row: SystemAdminRow; first: bo
             aria-label="ქვემოთ"
             disabled={last || pending}
             onClick={() => run(() => moveSystem(row.slug, "down"))}
-            className="grid size-8 place-items-center rounded-lg border border-[#e6ebf2] text-[#8b97a8] transition-colors hover:bg-[#f1f4f9] hover:text-foreground disabled:opacity-30 sm:size-5 sm:rounded sm:border-0"
+            className="grid size-8 place-items-center rounded-lg border border-[#e6ebf2] text-[#8b98a9] transition-colors hover:bg-[#f1f4f9] hover:text-foreground disabled:opacity-30 sm:size-5 sm:rounded sm:border-0"
           >
             <ChevronDown className="size-4 sm:size-3.5" />
           </button>

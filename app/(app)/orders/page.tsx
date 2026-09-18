@@ -136,14 +136,14 @@ export default async function OrdersPage({ searchParams }: PageProps<"/orders">)
             <div className="flex rounded-lg border border-[#e6ebf2] bg-white p-0.5">
               <Link
                 href={hrefWith({ view: null })}
-                className={cn("rounded-md p-1.5", view === "list" ? "bg-[#3457d5] text-white" : "text-muted-foreground hover:bg-[#f3f6fb]")}
+                className={cn("rounded-md p-1.5", view === "list" ? "bg-[#3457d5] text-white" : "text-muted-foreground hover:bg-[#f8faff]")}
                 title="სია"
               >
                 <List className="size-4" />
               </Link>
               <Link
                 href={hrefWith({ view: "kanban" })}
-                className={cn("rounded-md p-1.5", view === "kanban" ? "bg-[#3457d5] text-white" : "text-muted-foreground hover:bg-[#f3f6fb]")}
+                className={cn("rounded-md p-1.5", view === "kanban" ? "bg-[#3457d5] text-white" : "text-muted-foreground hover:bg-[#f8faff]")}
                 title="Kanban"
               >
                 <LayoutGrid className="size-4" />

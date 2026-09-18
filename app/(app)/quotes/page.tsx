@@ -16,11 +16,13 @@ import { cn } from "@/lib/utils";
 
 export const metadata = { title: "შეთავაზებები" };
 
+// the same weight as the order status cards, or two screens of the same product
+// look as though one of them forgot to colour its headers
 const STATUSES: { key: QuoteStatus; tint: string }[] = [
-  { key: "draft", tint: "#eef1f5" },
-  { key: "sent", tint: "#eef2fb" },
-  { key: "accepted", tint: "#eaf4ee" },
-  { key: "declined", tint: "#faeeee" },
+  { key: "draft", tint: "#e7ebf2" },
+  { key: "sent", tint: "#dbe7ff" },
+  { key: "accepted", tint: "#d8f0e3" },
+  { key: "declined", tint: "#f8d9d4" },
 ];
 
 export default async function QuotesPage({ searchParams }: PageProps<"/quotes">) {
@@ -124,7 +126,7 @@ export default async function QuotesPage({ searchParams }: PageProps<"/quotes">)
                   }
                   right={
                     <>
-                      <span className="tabular font-heading text-[15px] font-semibold">{formatMoney(total)}</span>
+                      <span className="tabular font-heading text-[15px]">{formatMoney(total)}</span>
                       {vatRate > 0 ? <div className="text-[11px] text-muted-foreground">დღგ-ით</div> : null}
                     </>
                   }

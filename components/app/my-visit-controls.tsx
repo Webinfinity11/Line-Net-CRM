@@ -7,7 +7,7 @@ import { CompleteDialog } from "./order-detail/complete-dialog";
 
 function IconAction({ href, label, icon: Icon, external }: { href: string | null; label: string; icon: typeof Phone; external?: boolean }) {
   const cls = cn(
-    "inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border border-[#dbe1ec] bg-white px-3 text-[12px] font-medium text-[#566b7d] transition-colors hover:bg-[#f8faff] hover:text-[#17212b]",
+    "inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border border-[#dbe1ec] bg-white px-3 text-[12px] font-medium text-[#617084] transition-colors hover:bg-[#f8faff] hover:text-[#17212b]",
     !href && "pointer-events-none opacity-40",
   );
   if (href && href.startsWith("/")) {

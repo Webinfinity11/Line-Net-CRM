@@ -105,12 +105,12 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
               {overdue && <OverdueBadge />}
               {!order.triaged && <span className="rounded-md bg-blue-600 px-2 py-0.5 text-xs font-medium text-white">შემოსული წერილი</span>}
               {order.requiresPhoto && (
-                <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-0.5 text-xs text-amber-800 ring-1 ring-amber-200">
+                <span className="inline-flex items-center gap-1 rounded-md bg-[#fff4df] px-2 py-0.5 text-xs text-[#96610b] ring-1 ring-[#f0d9a8]">
                   <Camera className="size-3" /> ფოტო სავალდებულოა
                 </span>
               )}
             </div>
-            <h1 className="font-heading text-[19px] font-bold leading-snug break-words tracking-[-0.01em] md:text-[24px]">{order.title}</h1>
+            <h1 className="font-heading text-[20px] leading-snug break-words tracking-[-0.3px] md:text-[24px]">{order.title}</h1>
             <dl className="mt-3 grid gap-x-6 gap-y-2.5 text-[13px] sm:grid-cols-2 sm:text-sm xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1.3fr)_minmax(0,0.7fr)_minmax(0,1fr)]">
               <div className="flex items-start gap-2">
                 <Building2 className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
@@ -210,7 +210,7 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
               {order.description ? <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed">{order.description}</pre> : <p className="text-sm text-muted-foreground">აღწერა არ არის</p>}
               {order.completionNote && (
                 <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm dark:bg-emerald-950/20">
-                  <div className="mb-0.5 text-xs font-medium text-emerald-800">შესრულებული სამუშაო (ჩაბარებისას)</div>
+                  <div className="mb-0.5 text-xs font-medium text-[#25815a]">შესრულებული სამუშაო (ჩაბარებისას)</div>
                   <pre className="whitespace-pre-wrap font-sans">{order.completionNote}</pre>
                 </div>
               )}
@@ -340,7 +340,7 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
           </Card>
 
           {me.role === "admin" && (
-            <Card className="ring-rose-200">
+            <Card className="ring-1 ring-[#f0c9c3]">
               <CardHeader className="pb-1">
                 <CardTitle className="text-[#b13f32]">საშიში მოქმედებები</CardTitle>
               </CardHeader>

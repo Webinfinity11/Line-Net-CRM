@@ -102,7 +102,7 @@ export default async function MyOrdersPage() {
   const Section = ({ title, items, highlight }: { title: string; items: MyOrderItem[]; highlight?: boolean }) =>
     items.length === 0 ? null : (
       <section className="space-y-2">
-        <h2 className="flex items-center gap-2 text-[13px] font-semibold text-[#5b6b7c]">
+        <h2 className="flex items-center gap-2 text-[13px] font-semibold text-[#617084]">
           {title} · {items.length}
         </h2>
         {items.map((o) => (

@@ -89,6 +89,21 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/*
+ * The palette. One value per role — when two shades exist for the same job the
+ * interface reads as if it were assembled by different hands, which is exactly
+ * what this list prevents. Components still write the hex directly; this is the
+ * reference they are checked against.
+ *
+ *   text      #17212b titles · #4a5e73 strong · #617084 secondary · #8b98a9 faint
+ *   surface   #f4f6fa page · #ffffff card · #f1f4f9 panel · #f8faff hover/tint
+ *   line      #e6ebf2 border · #eef1f6 hairline · #dbe1ec input
+ *   accent    #3457d5 (hover #2846b7) on #eef2ff, pressed #e2e9ff
+ *   danger    #b13f32 on #faeeee / #fff0ed
+ *   success   #25815a (hover #1f6e4d) on #eaf6ef
+ *   warn      #96610b on #fff4df, border #f0d9a8
+ *   status    each state keeps its own tint+ink pair in lib/i18n.ts
+ */
 :root {
   --background: #f4f6fa;
   --foreground: #17212b;
@@ -299,7 +314,7 @@ h1, h2, h3 {
   width: 30px !important;
   height: 30px !important;
   line-height: 30px !important;
-  color: #566b7d !important;
+  color: #617084 !important;
   border-bottom-color: #eef1f6 !important;
   font-size: 16px !important;
 }

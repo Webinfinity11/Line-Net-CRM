@@ -44,7 +44,7 @@ export default async function NotificationsPage() {
       ) : (
         groups.map((g, gi) => (
           <section key={g.key} className={cn("space-y-2", gi === 0 ? "ln-enter" : "ln-enter ln-enter-2")} aria-label={g.label}>
-            <h2 className="px-1 font-heading text-[12px] font-semibold text-muted-foreground">
+            <h2 className="px-1 font-heading text-[13px] text-muted-foreground">
               {toMtavruli(g.label)} · {g.rows.length}
             </h2>
             <ul className="space-y-1.5">
@@ -52,7 +52,7 @@ export default async function NotificationsPage() {
                 const Icon = ICONS[n.type] ?? Bell;
                 const inner = (
                   <>
-                    <span className={cn("grid size-9 shrink-0 place-items-center rounded-full", n.readAt ? "bg-[#f1f4f9] text-[#566b7d]" : "bg-[#edf2ff] text-[#3457d5]")}>
+                    <span className={cn("grid size-9 shrink-0 place-items-center rounded-full", n.readAt ? "bg-[#f1f4f9] text-[#617084]" : "bg-[#eef2ff] text-[#3457d5]")}>
                       <Icon className="size-4 [stroke-width:1.7]" />
                     </span>
                     <span className="min-w-0 flex-1">
@@ -60,7 +60,7 @@ export default async function NotificationsPage() {
                         <span className="text-[13px] font-medium">{n.title}</span>
                         <span className="tabular shrink-0 text-[11px] text-muted-foreground">{formatDate(n.createdAt, true)}</span>
                       </span>
-                      {n.body && <span className="mt-0.5 block text-[12.5px] text-[#566b7d]">{n.body}</span>}
+                      {n.body && <span className="mt-0.5 block text-[12.5px] text-[#617084]">{n.body}</span>}
                       {n.order && (
                         <span className="mt-1 block text-[11px] text-[#3457d5]">
                           {n.order.number} · {n.order.title}

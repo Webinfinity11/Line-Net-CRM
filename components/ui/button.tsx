@@ -10,14 +10,14 @@ const buttonVariants = cva(
       variant: {
         default: "bg-primary text-primary-foreground shadow-[0_3px_8px_rgba(52,87,213,0.16)] hover:-translate-y-px hover:bg-[#2846b7] hover:shadow-[0_5px_12px_rgba(52,87,213,0.2)] active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 dark:hover:bg-blue-500",
         outline:
-          "border-[#dbe1ec] bg-white text-[#566b7d] hover:border-[#c9d3e3] hover:bg-[#f8faff] hover:text-[#17212b] aria-expanded:bg-[#f8faff] dark:border-input dark:bg-input/30 dark:text-foreground dark:hover:bg-input/50",
+          "border-[#dbe1ec] bg-white text-[#617084] hover:border-[#c9d3e3] hover:bg-[#f8faff] hover:text-[#17212b] aria-expanded:bg-[#f8faff] dark:border-input dark:bg-input/30 dark:text-foreground dark:hover:bg-input/50",
         secondary:
           "bg-[#eef2ff] text-[#3457d5] hover:bg-[#e2e9ff] aria-expanded:bg-[#e2e9ff] dark:bg-blue-950/40 dark:text-blue-200 dark:hover:bg-blue-950/60",
         ghost:
           "text-slate-600 hover:bg-slate-100 hover:text-slate-900 aria-expanded:bg-slate-100 aria-expanded:text-slate-900 dark:text-foreground dark:hover:bg-muted/50",
         destructive:
           "bg-rose-50 text-[#b13f32] hover:bg-rose-100 focus-visible:border-rose-300 focus-visible:ring-rose-200 dark:bg-rose-950/40 dark:text-rose-200 dark:hover:bg-rose-950/60",
-        success: "bg-emerald-600 text-white shadow-sm hover:bg-emerald-700",
+        success: "bg-[#25815a] text-white shadow-sm hover:bg-[#1f6e4d]",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {

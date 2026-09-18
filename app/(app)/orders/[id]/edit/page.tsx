@@ -80,7 +80,7 @@ export default async function EditOrderPage({ params }: PageProps<"/orders/[id]/
 
       <div className="grid gap-4 xl:grid-cols-[minmax(260px,3fr)_minmax(0,9fr)]">
         <aside className="ln-card h-fit p-5 xl:sticky xl:top-[84px]" aria-label="შემოსული წერილი">
-          <h2 className="mb-3 flex items-center gap-2 font-heading text-[14px] font-semibold">
+          <h2 className="mb-3 flex items-center gap-2 font-heading text-[15px]">
             <Mail className="size-4 text-muted-foreground [stroke-width:1.7]" /> {toMtavruli("შემოსული წერილი")}
           </h2>
           <dl className="space-y-2 text-[12.5px]">

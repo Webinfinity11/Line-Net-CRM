@@ -43,7 +43,7 @@ export function TypeBadge({ type, className }: { type: OrderType; className?: st
     <span
       className={cn(
         base,
-        "bg-[#f1f4f9] text-[#5b6b7c] dark:bg-neutral-800 dark:text-neutral-300",
+        "bg-[#f1f4f9] text-[#617084] dark:bg-neutral-800 dark:text-neutral-300",
         className,
       )}
     >

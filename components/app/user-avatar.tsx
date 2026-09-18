@@ -40,7 +40,7 @@ export function UserAvatar({
       className={cn(
         "inline-flex shrink-0 items-center justify-center rounded-full font-semibold",
         dims,
-        tone === "color" ? cn("text-white", colorFor(name)) : "bg-[#edf1f8] text-[#5e718b]",
+        tone === "color" ? cn("text-white", colorFor(name)) : "bg-[#f1f4f9] text-[#617084]",
         className,
       )}
     >

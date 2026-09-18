@@ -25,7 +25,7 @@ export function MailSyncStatus({ state, canManage }: { state: MailSyncState; can
       <div className="ln-card ln-enter p-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-2xl space-y-1.5">
-            <h2 className="flex items-center gap-2 font-heading text-[15px] font-semibold"><Mail className="size-4 text-[#3457d5] [stroke-width:1.7]" /> {toMtavruli('Outlook ფოსტა')}</h2>
+            <h2 className="flex items-center gap-2 font-heading text-[15px]"><Mail className="size-4 text-[#3457d5] [stroke-width:1.7]" /> {toMtavruli('Outlook ფოსტა')}</h2>
             <p className="text-[12.5px] text-muted-foreground">შეგიძლიათ გამოიყენოთ უფასო Outlook.com ან Hotmail ფოსტა — Microsoft 365-ის ფასიანი გამოწერა საჭირო არ არის.</p>
             <p className="text-[11.5px] text-muted-foreground">პირველად დაკავშირების შემდეგ მიღებული წერილები შეიქმნება დაუმუშავებელ შეკვეთებად და ხელმისაწვდომი იქნება CRM-ის ადმინისტრატორებისა და მენეჯერებისთვის.</p>
           </div>

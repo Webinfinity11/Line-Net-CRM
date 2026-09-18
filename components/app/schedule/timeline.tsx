@@ -118,11 +118,11 @@ export function Timeline({
             <div key={lane.key} className={cn("min-w-0 px-1", lane.unassigned && "rounded-md border border-dashed border-[#e0b4a8] bg-[#fff8f5] px-2 py-1")}>
               <div className="flex items-center gap-2">
                 {lane.unassigned ? (
-                  <span className="inline-grid size-6 place-items-center rounded-full bg-[#fff1ed] text-[10px] font-semibold text-[#a73b2d]">!</span>
+                  <span className="inline-grid size-6 place-items-center rounded-full bg-[#fff1ed] text-[10px] font-semibold text-[#b13f32]">!</span>
                 ) : (
                   <UserAvatar name={lane.name} image={lane.image} size="sm" />
                 )}
-                <span className={cn("truncate text-[13px] font-medium", lane.unassigned && "text-[#a73b2d]")}>{lane.name}</span>
+                <span className={cn("truncate text-[13px] font-medium", lane.unassigned && "text-[#b13f32]")}>{lane.name}</span>
                 {lane.load && (
                   <span className="ml-auto shrink-0 text-[11px] text-muted-foreground tabular">
                     {lane.load.hours} / {normHours} სთ
@@ -190,11 +190,11 @@ export function Timeline({
                     }}
                     title={`${b.number} · ${b.title}`}
                   >
-                    <div className="tabular font-medium text-[#41556b]">
+                    <div className="tabular font-medium text-[#4a5e73]">
                       {formatMinutes(b.startMin)}–{formatMinutes(b.endMin)}
                     </div>
                     <div className="line-clamp-2 font-medium">{b.title}</div>
-                    {b.client && <div className="truncate text-[#5b6b7c]">{b.client}</div>}
+                    {b.client && <div className="truncate text-[#617084]">{b.client}</div>}
                     {clash && (
                       <div className="mt-0.5 flex items-center gap-1 text-[10px] font-medium text-[#96610b]">
                         <AlertTriangle className="size-3" /> ემთხვევა: {b.clashWith.join(", ")}

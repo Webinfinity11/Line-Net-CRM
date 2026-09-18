@@ -16,7 +16,7 @@ export const tableCls = {
   wrap: "ln-card overflow-hidden",
   scroll: "overflow-x-auto",
   table: "w-full text-[13px]",
-  head: "bg-[#fbfcfe]",
+  head: "bg-[#f8faff]",
   th: "px-4 py-3 text-left text-[11px] font-medium text-muted-foreground",
   thRight: "px-4 py-3 text-right text-[11px] font-medium text-muted-foreground",
   row: "border-t border-[#eef1f6] transition-colors hover:bg-[#f8faff]",
@@ -47,7 +47,7 @@ export function SectionCard({
   return (
     <section className={cn("ln-card min-w-0 p-6", className)} aria-label={title}>
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="flex items-center gap-2 font-heading text-[15px] font-semibold">
+        <h2 className="flex items-center gap-2 font-heading text-[15px]">
           {Icon && <Icon className="size-4 text-muted-foreground [stroke-width:1.7]" />}
           {toMtavruli(title)}
           {aside ? <span className="text-[11.5px] font-normal text-muted-foreground">{aside}</span> : null}
@@ -121,9 +121,9 @@ export function Chip({ children, tone = "neutral" }: { children: ReactNode; tone
     <span
       className={cn(
         "inline-flex items-center gap-1 rounded-[6px] px-1.5 py-[3px] text-[11px] font-medium",
-        tone === "accent" && "bg-[#edf2ff] text-[#3457d5]",
+        tone === "accent" && "bg-[#eef2ff] text-[#3457d5]",
         tone === "warn" && "bg-[#fff4df] text-[#96610b]",
-        tone === "neutral" && "bg-[#f1f4f9] text-[#566b7d]",
+        tone === "neutral" && "bg-[#f1f4f9] text-[#617084]",
       )}
     >
       {children}

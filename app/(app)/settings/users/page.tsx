@@ -18,7 +18,7 @@ export const metadata = { title: "მომხმარებლები" };
 const ROLE_TONE: Record<string, string> = {
   admin: "bg-[#fdeeee] text-[#a33f3f]",
   manager: "bg-[#f0ecfc] text-[#7251ad]",
-  executor: "bg-[#f1f4f9] text-[#566b7d]",
+  executor: "bg-[#f1f4f9] text-[#617084]",
 };
 
 export default async function UsersPage() {

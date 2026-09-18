@@ -15,7 +15,7 @@ const monthLabel = (m: string) => MONTHS_SHORT[Number(m.slice(5, 7)) - 1] ?? m;
 function CardHead({ icon: Icon, title, aside }: { icon: typeof TrendingUp; title: string; aside?: React.ReactNode }) {
   return (
     <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
-      <h2 className="flex items-center gap-2 font-heading text-[15px] font-semibold">
+      <h2 className="flex items-center gap-2 font-heading text-[15px]">
         <Icon className="size-4 text-muted-foreground [stroke-width:1.7]" /> {toMtavruli(title)}
       </h2>
       {aside ? <span className="text-[11.5px] text-muted-foreground">{aside}</span> : null}

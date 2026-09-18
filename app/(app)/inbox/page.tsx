@@ -55,7 +55,7 @@ export default async function InboxPage({ searchParams }: PageProps<"/inbox">) {
         <ul className="ln-enter ln-enter-2 space-y-2">
           {items.map((o) => (
             <li key={o.id} className="ln-card flex flex-wrap items-start gap-4 p-4">
-              <span className="grid size-10 shrink-0 place-items-center rounded-full bg-[#edf2ff] text-[#3457d5]">
+              <span className="grid size-10 shrink-0 place-items-center rounded-full bg-[#eef2ff] text-[#3457d5]">
                 <Mail className="size-[18px] [stroke-width:1.7]" />
               </span>
               <div className="min-w-0 flex-1">
@@ -71,7 +71,7 @@ export default async function InboxPage({ searchParams }: PageProps<"/inbox">) {
                     </span>
                   ) : null}
                 </div>
-                {o.description && <p className="mt-2 line-clamp-2 text-[12.5px] text-[#566b7d]">{o.description}</p>}
+                {o.description && <p className="mt-2 line-clamp-2 text-[12.5px] text-[#617084]">{o.description}</p>}
               </div>
               <div className="flex w-full shrink-0 flex-wrap gap-2 sm:w-auto">
                 <Button render={<Link href={`/orders/${o.id}/edit`} />} size="sm" className="h-11 flex-1 sm:h-8 sm:flex-none">

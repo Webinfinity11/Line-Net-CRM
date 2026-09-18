@@ -214,7 +214,7 @@ export function OrderForm({
       <div className="min-w-0 space-y-4 lg:sticky lg:top-[84px]">
         <Card>
           <CardContent className="pt-6">
-            <h3 className="font-heading text-[14px] font-semibold">{toMtavruli(t.order.assignees)}</h3>
+            <h3 className="font-heading text-[15px]">{toMtavruli(t.order.assignees)}</h3>
             <p className="mb-3 mt-1 text-[11.5px] text-muted-foreground">
               {system ? "შესაბამისი სპეციალიზაციის ხალხი ზემოთაა." : "სისტემის არჩევისას შესაბამისი ხალხი ზემოთ დადგება."}
             </p>

@@ -77,7 +77,7 @@ export function Topbar({
 
       <DropdownMenu>
         <DropdownMenuTrigger
-          render={<button className="flex items-center gap-2 rounded-lg py-1 pl-1 pr-2 transition-colors hover:bg-[#f3f6fb] dark:hover:bg-neutral-800" />}
+          render={<button className="flex items-center gap-2 rounded-lg py-1 pl-1 pr-2 transition-colors hover:bg-[#f8faff] dark:hover:bg-neutral-800" />}
         >
           <UserAvatar name={user.name} image={user.image} size="md" />
           <div className="hidden text-left leading-tight md:block">
