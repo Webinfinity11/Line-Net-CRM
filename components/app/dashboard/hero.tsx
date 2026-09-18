@@ -7,9 +7,9 @@ import { toMtavruli } from "@/lib/mtavruli";
 import { cn } from "@/lib/utils";
 
 /**
- * The first thing on the dashboard: this month's money, how it compares with last
- * month, and the shape of the last two weeks. The drifting glow behind it is two
- * blurred blobs moved with `transform`, so it costs the compositor and nothing else.
+ * The head of the dashboard. It belongs to the same family as every other card —
+ * white on the page grey — because a dark slab here read as a piece of a different
+ * product. The month's money is still the headline, with the last two weeks beside it.
  */
 export function DashboardHero({
   greeting,
@@ -33,45 +33,39 @@ export function DashboardHero({
   const Icon = changePct === null || flat ? Minus : up ? ArrowUpRight : ArrowDownRight;
 
   return (
-    <section className="ln-hero relative isolate overflow-hidden rounded-[24px] px-6 py-6 sm:px-8 sm:py-7" aria-label="თვის შედეგი">
-      <span aria-hidden className="ln-blob ln-blob-a" />
-      <span aria-hidden className="ln-blob ln-blob-b" />
+    <section className="ln-card p-5 sm:p-6" aria-label="თვის შედეგი">
+      <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4">
+        <div className="min-w-0">
+          <h1 className="font-heading text-[24px] leading-[1.25] tracking-[-0.4px] sm:text-[26px]">{toMtavruli(greeting)}</h1>
+          <p className="mt-1 text-[13px] text-muted-foreground">{dateLine}</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">{children}</div>
+      </div>
 
-      <div className="relative flex flex-wrap items-start justify-between gap-x-6 gap-y-5">
-        <div className="w-full min-w-0 sm:w-auto">
-          <h1 className="font-heading text-[26px] leading-[1.25] tracking-[-0.5px] text-white sm:text-[30px]">{toMtavruli(greeting)}</h1>
-          <p className="mt-1 text-[13px] text-white/60">{dateLine}</p>
-
-          <div className="mt-5 flex flex-wrap items-end gap-3">
-            <CountUp
-              value={revenue}
-              format={formatMoney}
-              className="font-heading text-[38px] font-bold leading-none tracking-[-1.2px] text-white sm:text-[46px]"
-            />
+      <div className="mt-5 flex flex-wrap items-end justify-between gap-x-8 gap-y-4 border-t border-[#eef1f6] pt-5">
+        <div className="min-w-0">
+          <div className="text-[11.5px] text-muted-foreground">ამ თვეში მიღებული</div>
+          <div className="mt-1.5 flex flex-wrap items-center gap-2.5">
+            <CountUp value={revenue} format={formatMoney} className="font-heading text-[32px] font-bold leading-none tracking-[-0.9px] sm:text-[38px]" />
             <span
               className={cn(
-                "mb-1 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[12px] font-medium",
-                changePct === null || flat ? "bg-white/10 text-white/70" : up ? "bg-[#2f9e6b]/20 text-[#7fe3b4]" : "bg-[#d9614f]/20 text-[#ffb3a5]",
+                "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[12px] font-medium",
+                changePct === null || flat ? "bg-[#f1f4f9] text-muted-foreground" : up ? "bg-[#eaf6ef] text-[#25815a]" : "bg-[#faeeee] text-[#b13f32]",
               )}
             >
               <Icon className="size-3.5" />
               {changePct === null ? "პირველი თვე" : flat ? "უცვლელი" : `${up ? "+" : ""}${changePct}%`}
             </span>
           </div>
-          <p className="mt-2 text-[12px] text-white/50">
-            ამ თვეში მიღებული · გასულ თვეს იმავე დღისთვის {formatMoney(lastMonth)}
-          </p>
+          <p className="mt-2 text-[12px] text-muted-foreground">გასულ თვეს იმავე დღისთვის {formatMoney(lastMonth)}</p>
         </div>
 
-        <div className="flex w-full min-w-0 flex-col items-stretch gap-4 sm:w-auto sm:flex-1 sm:max-w-[420px]">
-          <div className="flex flex-wrap items-center gap-2 sm:justify-end">{children}</div>
-          <div className="rounded-[16px] bg-white/[0.06] p-3 backdrop-blur-sm">
-            <div className="mb-1 flex items-center justify-between text-[11px] text-white/55">
-              <span>ბოლო 14 დღე</span>
-              <span className="tabular">{formatMoney(cash.reduce((s, c) => s + c.amount, 0))}</span>
-            </div>
-            <DrawnArea points={cash.map((c) => c.amount)} height={64} stroke="#8fb4ff" fill="#8fb4ff" />
+        <div className="min-w-0 flex-1 sm:max-w-[380px]">
+          <div className="mb-1 flex items-center justify-between text-[11.5px] text-muted-foreground">
+            <span>ბოლო 14 დღე</span>
+            <span className="tabular">{formatMoney(cash.reduce((s, c) => s + c.amount, 0))}</span>
           </div>
+          <DrawnArea points={cash.map((c) => c.amount)} height={56} stroke="#3457d5" fill="#3457d5" />
         </div>
       </div>
     </section>

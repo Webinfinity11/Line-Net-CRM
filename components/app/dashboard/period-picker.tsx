@@ -22,7 +22,7 @@ export function PeriodPicker({ from, to, active }: { from?: string; to?: string;
           <Button
             variant="outline"
             size="sm"
-            className={cn("h-9 border-white/20 bg-white/10 text-white hover:bg-white/20", active && "border-white bg-white text-[#16293a] hover:bg-white")}
+            className={cn("h-9", active && "border-[#a5b5ed] bg-[#eef2ff] text-[#3457d5]")}
           />
         }
       >

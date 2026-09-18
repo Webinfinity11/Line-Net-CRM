@@ -140,7 +140,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
         lastMonth={analytics.trend.lastMonth}
         cash={cash}
       >
-        <div className="inline-flex rounded-full bg-white/10 p-1" role="group" aria-label="პერიოდი">
+        <div className="inline-flex rounded-full border border-[#e6ebf2] bg-white p-1" role="group" aria-label="პერიოდი">
           {RANGES.map((r) => (
             <Link
               key={r.key}
@@ -148,7 +148,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
               aria-current={!custom && r.key === range ? "page" : undefined}
               className={cn(
                 "rounded-full px-3.5 py-1.5 font-heading text-[11.5px] font-bold tracking-[-0.005em] transition-colors duration-150",
-                !custom && r.key === range ? "bg-white text-[#16293a]" : "text-white/70 hover:bg-white/10 hover:text-white",
+                !custom && r.key === range ? "bg-[#3457d5] text-white" : "text-muted-foreground hover:bg-[#f1f4f9] hover:text-foreground",
               )}
             >
               {toMtavruli(r.label)}
