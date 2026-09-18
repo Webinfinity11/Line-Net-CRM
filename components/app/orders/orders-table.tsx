@@ -167,13 +167,13 @@ export function OrdersTable({
                   <th className="hidden w-10 px-3 py-3 sm:table-cell sm:px-4">
                     <Checkbox checked={allSelected} onCheckedChange={toggleAll} aria-label="ყველას მონიშვნა" />
                   </th>
-                  <th className={cn(th, "hidden sm:table-cell")}>{t.order.number}</th>
+                  <th data-col="number" className={cn(th, "hidden sm:table-cell")}>{t.order.number}</th>
                   <th className={th}>{t.order.title}</th>
-                  <th className={cn(th, "hidden lg:table-cell")}>{t.order.system}</th>
-                  <th className={cn(th, "hidden md:table-cell")}>{t.order.assignees}</th>
-                  <th className={cn(th, "hidden md:table-cell")}>{t.order.dueDate}</th>
+                  <th data-col="system" className={cn(th, "hidden lg:table-cell")}>{t.order.system}</th>
+                  <th data-col="crew" className={cn(th, "hidden md:table-cell")}>{t.order.assignees}</th>
+                  <th data-col="due" className={cn(th, "hidden md:table-cell")}>{t.order.dueDate}</th>
                   <th className={th}>{t.order.status}</th>
-                  <th className={cn(th, "hidden text-right lg:table-cell")}>{t.order.amount}</th>
+                  <th data-col="amount" className={cn(th, "hidden text-right lg:table-cell")}>{t.order.amount}</th>
                   <th className="w-10 px-2 py-3" />
                 </tr>
               </thead>
@@ -185,7 +185,7 @@ export function OrdersTable({
                       <td className="hidden px-3 py-[14px] sm:table-cell sm:px-4">
                         <Checkbox checked={selected.has(o.id)} onCheckedChange={() => toggle(o.id)} aria-label={`${o.number} მონიშვნა`} />
                       </td>
-                      <td className={cn(td, "hidden whitespace-nowrap font-mono text-[11px] text-muted-foreground sm:table-cell")}>{o.number}</td>
+                      <td data-col="number" className={cn(td, "hidden whitespace-nowrap font-mono text-[11px] text-muted-foreground sm:table-cell")}>{o.number}</td>
                       <td className={cn(td, "max-w-[160px] sm:max-w-[260px]")}>
                         <Link href={`/orders/${o.id}`} className="block">
                           <span className="flex items-center gap-1.5">
@@ -202,12 +202,12 @@ export function OrdersTable({
                           </span>
                         </Link>
                       </td>
-                      <td className={cn(td, "hidden max-w-[150px] lg:table-cell")}>
+                      <td data-col="system" className={cn(td, "hidden max-w-[150px] lg:table-cell")}>
                         <span className="block truncate">
                           <SystemBadge system={o.systemType} />
                         </span>
                       </td>
-                      <td className={cn(td, "hidden whitespace-nowrap md:table-cell")}>
+                      <td data-col="crew" className={cn(td, "hidden whitespace-nowrap md:table-cell")}>
                         {lead ? (
                           <span className="flex items-center gap-1.5">
                             <UserAvatar name={lead.name} image={lead.image} size="sm" />
@@ -231,14 +231,14 @@ export function OrdersTable({
                           />
                         )}
                       </td>
-                      <td className={cn(td, "hidden whitespace-nowrap md:table-cell", o.overdue && "font-semibold text-[#b13f32]")} title={o.overdue ? t.order.overdue : undefined}>
+                      <td data-col="due" className={cn(td, "hidden whitespace-nowrap md:table-cell", o.overdue && "font-semibold text-[#b13f32]")} title={o.overdue ? t.order.overdue : undefined}>
                         {o.dueLabel ?? "—"}
                         {o.overdue && <span className="sr-only"> {t.order.overdue}</span>}
                       </td>
                       <td className={cn(td, "whitespace-nowrap")}>
                         <StatusBadge status={o.status} />
                       </td>
-                      <td className={cn(td, "hidden whitespace-nowrap text-right lg:table-cell")}>
+                      <td data-col="amount" className={cn(td, "hidden whitespace-nowrap text-right lg:table-cell")}>
                         <span className="tabular block">{formatMoney(o.amount)}</span>
                         {o.amount && <PaymentBadge status={o.paymentStatus} className="mt-0.5 px-1.5 py-0 text-[10px]" />}
                       </td>

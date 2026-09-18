@@ -10,6 +10,7 @@ import { QuickCreate } from "@/components/app/dashboard/quick-create";
 import type { BoardOrder, TodayBlock } from "@/components/app/dashboard/types";
 import { MapView } from "@/components/app/map-switch";
 import { Reveal } from "@/components/app/motion";
+import { ViewPrefs } from "@/components/app/view-prefs";
 import { getDashboardAnalytics, recentCash } from "@/lib/analytics";
 import { getMailSyncState } from "@/lib/graph-mail";
 import { STATUS_HEX, STATUS_LABELS, formatDate, formatMoney, t } from "@/lib/i18n";
@@ -46,6 +47,17 @@ function dateLine(iso: string) {
 }
 
 const ACTIVE = new Set(["new", "assigned", "in_progress"]);
+
+/** The blocks anyone can switch off for themselves, in the order they appear. */
+const DASHBOARD_BLOCKS = [
+  { key: "flow", label: "სამუშაოს ნაკადი", hint: "ბოლო 7 დღე" },
+  { key: "systems", label: "სისტემები" },
+  { key: "aging", label: "გადაუხდელები" },
+  { key: "trend", label: "შემოსავლის ტრენდი" },
+  { key: "crew", label: "ტექნიკოსები" },
+  { key: "quotes", label: "შეთავაზებები" },
+  { key: "map", label: "რუკა" },
+];
 
 export default async function DashboardPage({ searchParams }: PageProps<"/">) {
   const user = await requireUser();
@@ -140,6 +152,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
           ))}
         </div>
         <QuickCreate clients={clients} />
+        <ViewPrefs storageKey="ln.dashboard.v1" items={DASHBOARD_BLOCKS} />
       </DashboardHero>
 
       {/* zones 1 and 2: what needs a decision, and how today is laid out */}
@@ -157,7 +170,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
 
       {/* zone 3: how the work is trending */}
       <div className="grid gap-4 xl:grid-cols-[minmax(0,6fr)_minmax(0,3fr)_minmax(0,3fr)]">
-        <Reveal as="section" className="ln-card ln-lift min-w-0 p-6" ariaLabel="სამუშაოს ნაკადი">
+        <Reveal as="section" className="ln-card ln-lift min-w-0 p-6" ariaLabel="სამუშაოს ნაკადი" view="flow">
           <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
             <h2 className="font-heading text-[15px] font-semibold">{toMtavruli("სამუშაოს ნაკადი")}</h2>
             <span className="text-[11.5px] text-muted-foreground">ბოლო 7 დღე</span>
@@ -165,7 +178,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
           <WeeklyBars data={s.weekly} height={200} />
         </Reveal>
 
-        <Reveal as="section" className="ln-card ln-lift min-w-0 p-6" delay={80} ariaLabel="სისტემების მიხედვით">
+        <Reveal as="section" className="ln-card ln-lift min-w-0 p-6" delay={80} ariaLabel="სისტემების მიხედვით" view="systems">
           <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
             <h2 className="flex items-center gap-2 font-heading text-[15px] font-semibold">
               <Layers className="size-4 text-muted-foreground [stroke-width:1.7]" /> {toMtavruli("სისტემები")}
@@ -185,7 +198,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
         <ConversionCard c={analytics.conversion} />
       </div>
 
-      <Reveal as="section" className="ln-card ln-lift p-6" ariaLabel="აქტიური ობიექტები რუკაზე">
+      <Reveal as="section" className="ln-card ln-lift p-6" ariaLabel="აქტიური ობიექტები რუკაზე" view="map">
         <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
           <h2 className="flex items-center gap-2 font-heading text-[15px] font-semibold">
             <MapPinned className="size-4 text-muted-foreground [stroke-width:1.7]" /> {toMtavruli("აქტიური ობიექტები")}

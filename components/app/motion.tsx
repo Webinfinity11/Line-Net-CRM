@@ -46,13 +46,14 @@ function useRevealed<T extends Element>(threshold = 0.05, rootMargin = "0px") {
  * Reveals its children when they scroll into view, and renders them plainly when
  * they are already on screen.
  */
-export function Reveal({ children, delay = 0, className, ariaLabel, as: Tag = "div" }: { children: ReactNode; delay?: number; className?: string; ariaLabel?: string; as?: "div" | "section" | "li" }) {
+export function Reveal({ children, delay = 0, className, ariaLabel, view, as: Tag = "div" }: { children: ReactNode; delay?: number; className?: string; ariaLabel?: string; view?: string; as?: "div" | "section" | "li" }) {
   const { ref, shown } = useRevealed();
 
   return (
     <Tag
       ref={ref as never}
       aria-label={ariaLabel}
+      data-view={view}
       data-shown={shown ? "true" : "false"}
       style={{ transitionDelay: shown ? `${delay}ms` : undefined }}
       className={cn(

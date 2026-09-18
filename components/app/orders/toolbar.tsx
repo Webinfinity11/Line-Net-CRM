@@ -3,8 +3,18 @@
 import { Download, Search, SlidersHorizontal } from "lucide-react";
 import { useRef, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
+import { ViewPrefs } from "@/components/app/view-prefs";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { t } from "@/lib/i18n";
+
+/** Columns anyone can switch off; the title and status always stay. */
+const ORDER_COLUMNS = [
+  { key: "number", label: "ნომერი" },
+  { key: "system", label: "სისტემა" },
+  { key: "crew", label: "შემსრულებლები" },
+  { key: "due", label: "ვადა" },
+  { key: "amount", label: "თანხა" },
+];
 
 const SORTS: { key: string; label: string }[] = [
   { key: "created", label: "შექმნის თარიღი" },
@@ -69,6 +79,7 @@ export function OrdersToolbar({
               </NativeSelectOption>
             ))}
           </NativeSelect>
+          <ViewPrefs storageKey="ln.orders.columns.v1" items={ORDER_COLUMNS} label="სვეტები" attr="data-col" />
           <Button render={<a href={excelHref} />} variant="outline" size="sm" className="h-10 sm:h-8" title="ყველა შეკვეთა Excel-ად">
             <Download className="size-3.5" /> Excel
           </Button>

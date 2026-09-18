@@ -194,7 +194,9 @@
   to { opacity: 1; transform: none; }
 }
 @keyframes ln-pop {
-  from { opacity: 0; transform: scale(0.96); }
+  /* never starts fully transparent: a delayed entrance must not hide content from
+     print, screenshots or a slow first paint */
+  from { opacity: 0.35; transform: scale(0.96); }
   to { opacity: 1; transform: none; }
 }
 @keyframes ln-grow {

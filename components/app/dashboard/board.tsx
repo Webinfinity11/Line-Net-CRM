@@ -224,7 +224,7 @@ export function DashboardBoard({
                         </span>
                       </span>
                       <span className="relative h-9 min-w-0 flex-1 rounded-[10px] bg-[#f8fafd]">
-                        {mine.map((b, i) => {
+                        {mine.map((b) => {
                           const left = ((b.startMin - DAY_START) / SPAN) * 100;
                           const width = (b.minutes / SPAN) * 100;
                           return (
@@ -235,7 +235,6 @@ export function DashboardBoard({
                               title={`${b.timeLabel} · ${b.title}${b.client ? ` · ${b.client}` : ""}`}
                               className="ln-pop absolute top-1 flex h-7 items-center gap-1.5 overflow-hidden rounded-[8px] px-2 text-left text-[11px] transition-[transform,box-shadow] duration-150 hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(16,24,40,0.16)] focus-visible:outline-2 focus-visible:outline-[#3457d5]"
                               style={{
-                                animationDelay: `${Math.min(i, 8) * 40 + 120}ms`,
                                 left: `${Math.max(0, Math.min(97, left))}%`,
                                 width: `${Math.max(6, Math.min(100 - Math.max(0, left), width))}%`,
                                 background: STATUS_TINT[b.status],

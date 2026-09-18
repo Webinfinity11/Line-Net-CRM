@@ -31,7 +31,7 @@ export function RevenueTrendCard({ trend }: { trend: RevenueTrend }) {
   const total = points.reduce((s, v) => s + v, 0);
 
   return (
-    <Reveal as="section" className="ln-card ln-lift min-w-0 p-6" delay={0} ariaLabel="შემოსავლის ტრენდი">
+    <Reveal as="section" className="ln-card ln-lift min-w-0 p-6" delay={0} ariaLabel="შემოსავლის ტრენდი" view="trend">
       <CardHead icon={TrendingUp} title="შემოსავლის ტრენდი" aside="12 თვე" />
       <div className="flex flex-wrap items-end gap-x-6 gap-y-2">
         <div>
@@ -54,7 +54,7 @@ export function AgingCard({ aging }: { aging: Aging }) {
   const total = Math.max(1, aging.total);
 
   return (
-    <Reveal as="section" className="ln-card ln-lift min-w-0 p-6" delay={80} ariaLabel="გადაუხდელები">
+    <Reveal as="section" className="ln-card ln-lift min-w-0 p-6" delay={80} ariaLabel="გადაუხდელები" view="aging">
       <CardHead icon={Wallet} title="გადაუხდელები" aside="ყველა შეკვეთა" />
       <CountUp value={aging.total} format={formatMoney} className="font-heading text-[26px] font-semibold leading-none tracking-[-0.6px]" />
       <p className="mt-1.5 text-[11.5px] text-muted-foreground">
@@ -111,7 +111,7 @@ export function AgingCard({ aging }: { aging: Aging }) {
 export function CrewCard({ crew, normHours }: { crew: CrewRow[]; normHours: number }) {
   const top = crew.slice(0, 5);
   return (
-    <Reveal as="section" className="ln-card ln-lift min-w-0 p-6" delay={160} ariaLabel="ტექნიკოსების შედეგი">
+    <Reveal as="section" className="ln-card ln-lift min-w-0 p-6" delay={160} ariaLabel="ტექნიკოსების შედეგი" view="crew">
       <CardHead icon={HardHat} title="ტექნიკოსები" aside="ამ თვეში" />
       {top.length === 0 ? (
         <p className="rounded-[12px] border border-dashed border-[#e6ebf2] px-4 py-6 text-center text-[12.5px] text-muted-foreground">ამ თვეში დანიშნული სამუშაო ჯერ არ არის.</p>
@@ -147,7 +147,7 @@ export function ConversionCard({ c }: { c: Conversion }) {
   const circumference = 2 * Math.PI * 42;
 
   return (
-    <Reveal as="section" className="ln-card ln-lift min-w-0 p-6" delay={240} ariaLabel="შეთავაზებების კონვერსია">
+    <Reveal as="section" className="ln-card ln-lift min-w-0 p-6" delay={240} ariaLabel="შეთავაზებების კონვერსია" view="quotes">
       <CardHead icon={FileCheck2} title="შეთავაზებები" aside="3 თვე" />
       <div className="flex flex-wrap items-center gap-x-5 gap-y-4">
         <div className="relative size-[96px] shrink-0">
