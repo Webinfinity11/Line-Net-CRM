@@ -1,6 +1,7 @@
 import { and, asc, eq, gte, inArray, isNull, lt, notInArray } from "drizzle-orm";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
+import { DateJump } from "@/components/app/date-jump";
 import { PageHeader } from "@/components/app/page-header";
 import { Queue, type QueueItem } from "@/components/app/schedule/queue";
 import { Timeline, type TimelineBlock, type TimelineLane } from "@/components/app/schedule/timeline";
@@ -151,6 +152,7 @@ export default async function SchedulePage({ searchParams }: PageProps<"/schedul
             <Button variant={day === today ? "default" : "outline"} size="sm" className="h-10 md:h-8" render={<Link href="/schedule" />}>
               დღეს
             </Button>
+            <DateJump value={day} hrefFor={(d) => `/schedule?date=${d}`} label="სხვა თარიღი" />
             <Button variant="outline" size="icon-sm" className="h-10 w-10 md:h-8 md:w-8" render={<Link href={`/schedule?date=${shift(day, 1)}`} aria-label="შემდეგი დღე" />}>
               <ChevronRight className="size-4" />
             </Button>

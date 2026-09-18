@@ -6,6 +6,7 @@ import { AgingCard, ConversionCard, CrewCard, RevenueTrendCard } from "@/compone
 import { DashboardBoard } from "@/components/app/dashboard/board";
 import { DashboardHero } from "@/components/app/dashboard/hero";
 import { SystemBars } from "@/components/app/dashboard/mini-charts";
+import { PeriodPicker } from "@/components/app/dashboard/period-picker";
 import { QuickCreate } from "@/components/app/dashboard/quick-create";
 import type { BoardOrder, TodayBlock } from "@/components/app/dashboard/types";
 import { MapView } from "@/components/app/map-switch";
@@ -63,12 +64,15 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
   const user = await requireUser();
   if (!isStaff(user.role)) redirect("/my");
   const sp = await searchParams;
+  const isDay = (v: unknown): v is string => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v);
+  const custom = isDay(sp.from) && isDay(sp.to) && sp.from <= sp.to ? { from: sp.from, to: sp.to } : undefined;
   const rangeDef = RANGES.find((r) => r.key === sp.range) ?? RANGES[1];
   const range = rangeDef.key;
+  const periodLabel = custom ? `${formatDate(custom.from)} – ${formatDate(custom.to)}` : rangeDef.period;
 
   const normHours = await getWorkHoursPerDay();
   const [s, mail, users, clientRows, analytics, cash] = await Promise.all([
-    getDashboardStats(range),
+    getDashboardStats(range, custom),
     getMailSyncState(),
     listAssignableUsers(),
     listClientsWithSites(),
@@ -141,16 +145,17 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
             <Link
               key={r.key}
               href={`/?range=${r.key}`}
-              aria-current={r.key === range ? "page" : undefined}
+              aria-current={!custom && r.key === range ? "page" : undefined}
               className={cn(
                 "rounded-full px-3.5 py-1.5 font-heading text-[11.5px] font-bold tracking-[-0.005em] transition-colors duration-150",
-                r.key === range ? "bg-white text-[#16293a]" : "text-white/70 hover:bg-white/10 hover:text-white",
+                !custom && r.key === range ? "bg-white text-[#16293a]" : "text-white/70 hover:bg-white/10 hover:text-white",
               )}
             >
               {toMtavruli(r.label)}
             </Link>
           ))}
         </div>
+        <PeriodPicker from={custom?.from} to={custom?.to} active={Boolean(custom)} />
         <QuickCreate clients={clients} />
         <ViewPrefs storageKey="ln.dashboard.v1" items={DASHBOARD_BLOCKS} />
       </DashboardHero>
@@ -183,7 +188,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
             <h2 className="flex items-center gap-2 font-heading text-[15px] font-semibold">
               <Layers className="size-4 text-muted-foreground [stroke-width:1.7]" /> {toMtavruli("სისტემები")}
             </h2>
-            <span className="text-[11.5px] text-muted-foreground">{rangeDef.period}</span>
+            <span className="text-[11.5px] text-muted-foreground">{periodLabel}</span>
           </div>
           <SystemBars rows={s.bySystem} />
         </Reveal>

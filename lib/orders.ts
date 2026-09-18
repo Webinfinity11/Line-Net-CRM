@@ -280,10 +280,26 @@ function previousRange(range: DateRange): { start: Date; end: Date } | null {
   return { start: prevStart, end: start };
 }
 
-export async function getDashboardStats(range: DateRange = "week") {
-  const start = rangeStart(range);
-  const prev = previousRange(range);
-  const rangeWhere = start ? gte(orders.createdAt, start) : undefined;
+/** An explicit from/to picked by hand, inclusive of both days, in Tbilisi time. */
+export type CustomPeriod = { from: string; to: string };
+
+export function periodBounds(p: CustomPeriod): { start: Date; end: Date } {
+  const { start } = tbilisiDayBounds(p.from);
+  const { end } = tbilisiDayBounds(p.to);
+  return { start, end };
+}
+
+export async function getDashboardStats(range: DateRange = "week", custom?: CustomPeriod) {
+  const bounds = custom ? periodBounds(custom) : null;
+  const start = bounds ? bounds.start : rangeStart(range);
+  const end = bounds ? bounds.end : null;
+  const prev = bounds
+    ? (() => {
+        const span = bounds.end.getTime() - bounds.start.getTime();
+        return { start: new Date(bounds.start.getTime() - span), end: bounds.start };
+      })()
+    : previousRange(range);
+  const rangeWhere = start ? (end ? and(gte(orders.createdAt, start), lt(orders.createdAt, end)) : gte(orders.createdAt, start)) : undefined;
   const notInbox = eq(orders.triaged, true);
 
   const today = tbilisiDayBounds(tbilisiToday());
