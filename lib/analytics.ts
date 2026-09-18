@@ -41,7 +41,14 @@ async function revenueTrend(): Promise<RevenueTrend> {
   const { months } = await reportMonthly(12);
   const rows = months.map((m) => ({ month: m.month, revenue: m.revenue, booked: m.booked }));
   const thisMonth = rows.at(-1)?.revenue ?? 0;
-  const lastMonth = rows.at(-2)?.revenue ?? 0;
+
+  // compare the same stretch of days, or a month that is three days old always looks like a collapse
+  const day = new Date().getUTCDate();
+  const sameSpan = await db
+    .select({ amount: sql<string>`coalesce(sum(${orderPayments.amount}), 0)` })
+    .from(orderPayments)
+    .where(and(gte(orderPayments.paidAt, monthStart(1)), sql`${orderPayments.paidAt} < ${monthStart()}`, sql`date_part('day', ${orderPayments.paidAt} at time zone 'Asia/Tbilisi') <= ${day}`));
+  const lastMonth = num(sameSpan[0]?.amount);
   return {
     months: rows,
     thisMonth,

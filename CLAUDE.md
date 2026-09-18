@@ -7,6 +7,7 @@ Spec: `docs/02-mvp-spec.md` (MVP) + `docs/04-phase-1.5-spec.md` (agreed addition
 
 ## Commands
 - `npm run dev` (http://localhost:3000), `npm run typecheck`, `npm run build`
+- `npm run db:demo` fills a year of demo history (clients marked `[demo]`); `npm run db:demo -- clear` removes exactly those rows before handover.
 - Schema changes: edit `db/schema.ts`, then `npx drizzle-kit generate --name <slug>` and `npm run db:migrate` (versioned SQL in `db/migrations`). `db:push` is only for throwaway local databases; `npm run db:seed` creates demo users (admin1234 / meneger1234 / user1234), checklist templates and demo orders; safe to re-run
 - Env lives in `.env.local` (see `.env.example`)
 
@@ -43,6 +44,8 @@ Spec: `docs/02-mvp-spec.md` (MVP) + `docs/04-phase-1.5-spec.md` (agreed addition
 - Tests: `npm test` (vitest, pure logic in `tests/`).
 
 ## UI rendering rules
+- Motion must never be the reason something cannot be read. `Reveal`, `CountUp`, `DrawnArea` and `GrowBar` in `components/app/motion.tsx` start from the finished state and only rewind once the script confirms the element is below the fold; `ln-pop` never animates from full transparency. Everything yields to `prefers-reduced-motion`.
+- Per-person view preferences (`components/app/view-prefs.tsx`) hide blocks by `data-view` / `data-col` through a small stylesheet, so the screens stay server-rendered.
 - The Tailwind scale is px-based (`--spacing: 4px`, px text sizes, px breakpoints in `app/globals.css`). Some embedded browser panels force a large root/minimum font size; px keeps spacing stable. Do not reintroduce rem-based tokens.
 - `formatDate` / `formatMoney` in `lib/i18n.ts` are deterministic (manual formatting, Tbilisi timezone). Never use `toLocaleString`/`Intl` currency formatting in components: Node and browsers produce different output and React reports hydration mismatches.
 - Maps: `components/app/map-view.tsx` uses OpenStreetMap raster tiles (free, keyless), numbered `divIcon` pins with popups, `fadeAnimation: false` and a ResizeObserver-driven `invalidateSize`. CARTO tiles need an API key now; do not switch back. Optional Google Maps engine behind `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`.

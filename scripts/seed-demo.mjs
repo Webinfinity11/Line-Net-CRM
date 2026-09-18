@@ -28,6 +28,20 @@ const CLIENTS = [
   { name: 'შპს "სკოლა ნიუტონი"', code: "404812337", contact: "გიორგი ხუციშვილი", phone: "574 25 90 61", sites: [["სასწავლო კორპუსი", "დიღმის მასივი, IV კვარტალი, თბილისი", "ანა მეტრეველი", "574 25 90 62"]], systems: ["fire", "access", "network"] },
 ];
 
+/** Real Tbilisi coordinates, so the demo map is not empty. */
+const COORDS = {
+  "ჭავჭავაძის გამზირი 49, თბილისი": [41.7093, 44.7546],
+  "ყაზბეგის გამზირი 24, თბილისი": [41.7223, 44.7602],
+  "ხიზანიშვილის ქუჩა 8, თბილისი": [41.7965, 44.8073],
+  "ცინცაძის ქუჩა 16, თბილისი": [41.7112, 44.7815],
+  "პეკინის გამზირი 5, თბილისი": [41.7248, 44.758],
+  "კოსტავას ქუჩა 71, თბილისი": [41.7203, 44.7768],
+  "ქახეთის გზატკეცილი 12 კმ, თბილისი": [41.7, 44.95],
+  "ორხევის ქუჩა 3, თბილისი": [41.652, 44.862],
+  "ლესელიძის ქუჩა 20, თბილისი": [41.692, 44.807],
+  "დიღმის მასივი, IV კვარტალი, თბილისი": [41.783, 44.746],
+};
+
 const TITLES = {
   cctv: ["კამერების მონტაჟი", "ჩამწერის შეცვლა და კონფიგურაცია", "სისტემის დიაგნოსტიკა", "დისტანციური წვდომის აღდგენა", "კამერების გადანაწილება"],
   fire: ["სახანძრო სისტემის ყოველთვიური შემოწმება", "დეტექტორების შეცვლა", "სახანძრო პანელის პროგრამირება", "სიგნალიზაციის გაფართოება", "ცრუ განგაშის მიზეზის დადგენა"],
@@ -69,7 +83,8 @@ async function seed() {
     const clientId = rows[0].id;
     const sites = [];
     for (const [name, address, contact, phone] of c.sites) {
-      const { rows: sr } = await q(`insert into sites (client_id, name, address, contact_name, contact_phone) values ($1,$2,$3,$4,$5) returning id`, [clientId, name, address, contact, phone]);
+      const [lat, lng] = COORDS[address] ?? [null, null];
+      const { rows: sr } = await q(`insert into sites (client_id, name, address, contact_name, contact_phone, lat, lng) values ($1,$2,$3,$4,$5,$6,$7) returning id`, [clientId, name, address, contact, phone, lat, lng]);
       sites.push(sr[0].id);
     }
     clients.push({ id: clientId, sites, systems: c.systems });

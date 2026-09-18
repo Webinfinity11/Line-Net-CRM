@@ -59,7 +59,7 @@ export function DashboardHero({
             </span>
           </div>
           <p className="mt-2 text-[12px] text-white/50">
-            ამ თვეში მიღებული · გასულ თვეს {formatMoney(lastMonth)}
+            ამ თვეში მიღებული · გასულ თვეს იმავე დღისთვის {formatMoney(lastMonth)}
           </p>
         </div>
 
