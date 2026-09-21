@@ -26,7 +26,7 @@ export default async function WorkSheetPage({ params }: PageProps<"/orders/[id]/
   return (
     <main className="mx-auto max-w-[210mm] bg-white p-8 text-neutral-900 print:p-0">
       <div className="mb-4 flex items-center justify-between print:hidden">
-        <span className="text-sm text-muted-foreground">ბეჭდვისას აირჩიეთ „Save as PDF“</span>
+        <span className="text-sm text-muted-foreground">ბეჭდვის ფანჯარაში აირჩიეთ PDF-ად შენახვა</span>
         <PrintButton />
       </div>
 
@@ -53,7 +53,7 @@ export default async function WorkSheetPage({ params }: PageProps<"/orders/[id]/
           <Row label="შემსრულებლები" value={order.assignees.map((a) => a.user.name + (a.user.phone ? ` (${a.user.phone})` : "")).join(", ") || null} />
           <Row label="სტატუსი" value={STATUS_LABELS[order.status]} />
           {(order.arrivedAt || order.finishedAt) && (
-            <Row label="ობიექტზე დრო" value={`${order.arrivedAt ? formatDate(order.arrivedAt, true) : "—"} → ${order.finishedAt ? formatDate(order.finishedAt, true) : "—"}`} />
+            <Row label="ობიექტზე ყოფნის დრო" value={`${order.arrivedAt ? formatDate(order.arrivedAt, true) : "—"} → ${order.finishedAt ? formatDate(order.finishedAt, true) : "—"}`} />
           )}
           {staff && order.amount ? <Row label="თანხა" value={`${formatMoney(order.amount)} · ${PAYMENT_LABELS[order.paymentStatus]}`} /> : null}
         </tbody>

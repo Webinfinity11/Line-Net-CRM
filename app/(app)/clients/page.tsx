@@ -87,7 +87,7 @@ export default async function ClientsPage({ searchParams }: PageProps<"/clients"
       {rows.length === 0 ? (
         <EmptyState
           icon={Building2}
-          message={q ? "ამ ძებნაზე კლიენტი ვერ მოიძებნა." : "კლიენტები ჯერ არ არის. დაამატეთ პირველი კომპანია, მერე მის ობიექტებს დაამატებთ."}
+          message={q ? "კლიენტი ვერ მოიძებნა." : "კლიენტები ჯერ არ არის. დაამატეთ პირველი კლიენტი, შემდეგ — მისი ობიექტები."}
           className="ln-card border-transparent py-16"
         />
       ) : (

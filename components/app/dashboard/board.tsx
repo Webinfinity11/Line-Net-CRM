@@ -129,7 +129,7 @@ export function DashboardBoard({
             href={counts.unassigned > 0 ? "/schedule" : "/orders?status=done"}
             className="inline-flex items-center gap-1.5 self-start rounded-full bg-[#eef2ff] px-4 py-2 text-[12.5px] text-[#4a5e73] transition-colors hover:bg-[#e2e9ff] sm:self-auto"
           >
-            {counts.unassigned > 0 ? "დაგეგმე დღე" : "შეამოწმე ჩაბარებული"} <ArrowRight className="size-3.5" />
+            {counts.unassigned > 0 ? "დაგეგმეთ დღე" : "შეამოწმეთ ჩაბარებული"} <ArrowRight className="size-3.5" />
           </Link>
         )}
       </section>
@@ -148,7 +148,7 @@ export function DashboardBoard({
             <div className="rounded-[14px] border border-dashed border-[#e6ebf2] px-4 py-6 text-center">
               <p className="text-[12.5px] text-muted-foreground">დღეს დაგეგმილი ვიზიტი არ არის.</p>
               <Link href="/schedule" className="mt-2 inline-flex max-md:min-h-[44px] items-center gap-1 text-[12px] font-medium text-[#3457d5] hover:underline">
-                დაგეგმე დღე <ArrowRight className="size-3.5" />
+                დაგეგმეთ დღე <ArrowRight className="size-3.5" />
               </Link>
             </div>
           ) : (
@@ -277,7 +277,7 @@ export function DashboardBoard({
             {mail.configured ? (
               <>
                 <span className="flex items-center gap-1.5 text-muted-foreground">
-                  <Mail className="size-4 [stroke-width:1.7]" /> შემოსული წერილები
+                  <Mail className="size-4 [stroke-width:1.7]" /> ბოლო შემოსულები
                 </span>
                 <Link href="/inbox" className="tabular font-medium text-[#3457d5] hover:underline">
                   {mail.count}

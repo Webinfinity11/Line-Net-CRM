@@ -79,7 +79,7 @@ export function AssigneesEditor({
             {t.common.cancel}
           </Button>
           <Button onClick={save} disabled={pending}>
-            {pending ? "ინახება..." : t.common.save}
+            {pending ? "ინახება…" : t.common.save}
           </Button>
         </div>
       </DialogContent>

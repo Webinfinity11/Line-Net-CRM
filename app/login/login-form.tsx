@@ -56,7 +56,7 @@ export function LoginForm({ next, microsoft }: { next: string; microsoft: boolea
             />
           </div>
           <Button type="submit" className="w-full" size="lg" disabled={pending}>
-            {pending ? "შესვლა..." : "შესვლა"}
+            {pending ? "შესვლა…" : "შესვლა"}
           </Button>
         </form>
 

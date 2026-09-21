@@ -117,7 +117,7 @@ export function OrderForm({
               </NativeSelect>
             </Field>
             <Field className="sm:col-span-2" label={t.order.description} htmlFor="description">
-              <Textarea id="description" name="description" rows={4} defaultValue={initial?.description ?? ""} placeholder="რა უნდა გაკეთდეს, დეტალები, კონტაქტი ობიექტზე..." />
+              <Textarea id="description" name="description" rows={4} defaultValue={initial?.description ?? ""} placeholder="რა უნდა გაკეთდეს, დეტალები, კონტაქტი ობიექტზე…" />
             </Field>
           </Section>
 
@@ -232,7 +232,7 @@ export function OrderForm({
 
         <div className="ln-card sticky bottom-[76px] z-20 flex gap-2 p-3 shadow-[0_-8px_28px_rgba(16,24,40,0.12)] lg:static lg:bg-transparent lg:p-0 lg:shadow-none">
           <Button type="submit" className="h-12 flex-1 lg:h-10" disabled={pending}>
-            {pending ? "ინახება..." : submitLabel}
+            {pending ? "ინახება…" : submitLabel}
           </Button>
           <Button type="button" variant="outline" className="h-12 lg:h-10" onClick={() => router.push(cancelHref)}>
             {t.common.cancel}

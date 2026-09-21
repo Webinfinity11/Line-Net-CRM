@@ -35,7 +35,7 @@ export function RevenueTrendCard({ trend }: { trend: RevenueTrend }) {
       <CardHead icon={TrendingUp} title="შემოსავლის ტრენდი" aside="12 თვე" />
       <div className="flex flex-wrap items-end gap-x-6 gap-y-2">
         <div>
-          <div className="text-[11px] text-muted-foreground">წლის ჯამი</div>
+          <div className="text-[11px] text-muted-foreground">ბოლო 12 თვის ჯამი</div>
           <CountUp value={total} format={formatMoney} className="font-heading text-[26px] font-semibold leading-none tracking-[-0.6px]" />
         </div>
         <div>
@@ -63,7 +63,7 @@ export function AgingCard({ aging }: { aging: Aging }) {
             აქედან 30 დღეზე ძველი <span className="font-medium text-[#b13f32]">{formatMoney(aging.overdue)}</span>
           </>
         ) : (
-          "ყველა დავალიანება 30 დღეზე ახალია"
+          "30 დღეზე ძველი დავალიანება არ არის"
         )}
       </p>
 

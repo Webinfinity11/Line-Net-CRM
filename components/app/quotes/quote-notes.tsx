@@ -92,7 +92,7 @@ export function QuoteNotes({ quote, readOnly }: { quote: QuoteBase; readOnly?: b
             <Textarea id="qn-terms" name="terms" rows={2} maxLength={2000} defaultValue={quote.terms ?? ""} placeholder="გადახდის პირობა, შესრულების ვადა, გარანტია" className="text-[16px] sm:text-[13px]" />
           </div>
           <Button type="submit" variant="outline" size="sm" className="h-11 sm:h-9" disabled={pending}>
-            {pending ? "ინახება..." : "შენახვა"}
+            {pending ? "ინახება…" : "შენახვა"}
           </Button>
         </form>
       </CardContent>

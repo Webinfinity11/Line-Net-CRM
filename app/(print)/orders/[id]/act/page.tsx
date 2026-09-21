@@ -28,7 +28,7 @@ export default async function ActPage({ params }: PageProps<"/orders/[id]/act">)
   return (
     <main className="mx-auto max-w-[210mm] bg-white p-8 text-neutral-900 print:p-0">
       <div className="mb-4 flex items-center justify-between print:hidden">
-        <span className="text-sm text-neutral-500">ბეჭდვისას აირჩიეთ „Save as PDF“</span>
+        <span className="text-sm text-neutral-500">ბეჭდვის ფანჯარაში აირჩიეთ PDF-ად შენახვა</span>
         <PrintButton />
       </div>
 
@@ -144,7 +144,7 @@ export default async function ActPage({ params }: PageProps<"/orders/[id]/act">)
       )}
 
       <p className="mb-6 text-[12px] leading-relaxed">
-        სამუშაო შესრულებულია სრულად და ხარისხიანად. დამკვეთს პრეტენზია არ აქვს. აქტი შედგენილია ორ ეგზემპლარად, თითო თითოეული
+        სამუშაო შესრულებულია სრულად და ხარისხიანად. დამკვეთს პრეტენზია არ აქვს. აქტი შედგენილია ორ ეგზემპლარად, თითოეული
         მხარისთვის, ორივეს თანაბარი იურიდიული ძალა აქვს.
       </p>
 

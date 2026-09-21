@@ -62,7 +62,7 @@ export function ConfirmButton({
             {t.common.cancel}
           </Button>
           <Button variant={variant === "destructive" ? "destructive" : "default"} onClick={run} disabled={pending}>
-            {pending ? "..." : confirmLabel}
+            {pending ? "…" : confirmLabel}
           </Button>
         </div>
       </DialogContent>

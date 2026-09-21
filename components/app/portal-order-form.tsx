@@ -91,7 +91,7 @@ export function PortalOrderForm({ sites }: { sites: SiteOption[] }) {
             <Input id="p-address" name="address" value={address} onChange={(e) => setAddress(e.target.value)} required={!siteId} maxLength={300} placeholder="ქუჩა, ნომერი, სართული" />
           </Field>
           <Field className="sm:col-span-2" label="დეტალები" htmlFor="p-desc">
-            <Textarea id="p-desc" name="description" rows={4} maxLength={5000} placeholder="რა მოხდა, როდის გიწყობთ ვიზიტი, ვის დავურეკოთ ადგილზე" />
+            <Textarea id="p-desc" name="description" rows={4} maxLength={5000} placeholder="რა მოხდა, როდის გაწყობთ ვიზიტი, ვის დავურეკოთ ადგილზე" />
           </Field>
           <label className="flex items-center gap-2.5 rounded-[12px] bg-[#f8faff] px-3 py-2.5 text-[13px] sm:col-span-2">
             <input name="urgent" type="checkbox" className="size-4 accent-[#3457d5]" />
@@ -99,7 +99,7 @@ export function PortalOrderForm({ sites }: { sites: SiteOption[] }) {
           </label>
           <div className="flex flex-wrap gap-2 sm:col-span-2">
             <Button type="submit" className="h-12 flex-1 sm:h-10 sm:flex-none" disabled={pending}>
-              <Send className="size-4" /> {pending ? "იგზავნება..." : "გაგზავნა"}
+              <Send className="size-4" /> {pending ? "იგზავნება…" : "გაგზავნა"}
             </Button>
             <Button type="button" variant="outline" className="h-12 sm:h-10" onClick={() => router.push("/portal")}>
               {t.common.cancel}

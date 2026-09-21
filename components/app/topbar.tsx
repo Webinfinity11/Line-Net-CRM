@@ -66,7 +66,7 @@ export function Topbar({
           <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <input
             name="q"
-            placeholder="ძებნა: შეკვეთა, კლიენტი, მისამართი..."
+            placeholder="ძებნა: შეკვეთა, კლიენტი, მისამართი…"
             className="h-10 w-full rounded-full border border-transparent bg-white pl-10 pr-4 text-sm shadow-[0_1px_2px_rgba(16,24,40,0.04)] outline-none transition focus:border-[#a5b5ed] focus:shadow-[0_2px_8px_rgba(52,87,213,0.1)] focus:ring-2 focus:ring-[#3457d5]/15 dark:bg-neutral-800"
           />
         </form>

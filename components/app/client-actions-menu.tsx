@@ -63,7 +63,7 @@ export function ClientActionsMenu({ name, editTitle, editAction, children, secon
           {children}
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="outline" className="h-11" disabled={pending} onClick={() => setDialog(null)}>გაუქმება</Button>
-            <Button type="submit" className="h-11" disabled={pending}>{pending ? "ინახება..." : "შენახვა"}</Button>
+            <Button type="submit" className="h-11" disabled={pending}>{pending ? "ინახება…" : "შენახვა"}</Button>
           </div>
         </form> : <div className="flex justify-end gap-2">
           <Button variant="outline" className="h-11" disabled={pending} onClick={() => setDialog(null)}>გაუქმება</Button>

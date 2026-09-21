@@ -51,7 +51,7 @@ export function StatusActions({
     status === "new"
       ? "შემდეგი ნაბიჯი: შემსრულებლის დანიშვნა"
       : status === "assigned"
-        ? "შემდეგი ნაბიჯი: შემსრულებელი მიდის ობიექტზე („მივედი“) და ასრულებს სამუშაოს"
+        ? "შემდეგი ნაბიჯი: შემსრულებელი იწყებს ვიზიტს („დაწყება“) და ასრულებს სამუშაოს"
         : status === "in_progress"
           ? "შემდეგი ნაბიჯი: სამუშაოს ჩაბარება მოკლე აღწერით"
           : status === "done"
@@ -96,7 +96,7 @@ export function StatusActions({
       )}
       {(staff || isAssignee) && status === "done" && (
         <Button size="default" variant="outline" className={secondary} disabled={pending} onClick={() => run("in_progress")}>
-          <RotateCcw className="size-4" /> დაბრუნება მიმდინარეში
+          <RotateCcw className="size-4" /> მიმდინარე სტატუსზე დაბრუნება
         </Button>
       )}
       {role === "admin" && status === "closed" && (

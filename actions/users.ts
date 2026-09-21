@@ -19,7 +19,7 @@ const companyId = z.preprocess((v) => (v === "" || v === undefined ? null : v), 
 const createInput = z.object({
   name: z.string().trim().min(2, "სახელი ძალიან მოკლეა").max(120),
   email: z.string().trim().email("ელფოსტა არასწორია"),
-  password: z.string().min(6, "პაროლი მინიმუმ 6 სიმბოლო"),
+  password: z.string().min(6, "პაროლი მინიმუმ 6 სიმბოლოს უნდა შეიცავდეს"),
   role: roleEnum,
   phone: z.string().max(60).optional().or(z.literal("")),
   specializations: specs,
@@ -30,7 +30,7 @@ const updateInput = z.object({
   name: z.string().trim().min(2, "სახელი ძალიან მოკლეა").max(120),
   role: roleEnum,
   phone: z.string().max(60).optional().or(z.literal("")),
-  password: z.string().min(6, "პაროლი მინიმუმ 6 სიმბოლო").optional().or(z.literal("")),
+  password: z.string().min(6, "პაროლი მინიმუმ 6 სიმბოლოს უნდა შეიცავდეს").optional().or(z.literal("")),
   specializations: specs,
   clientId: companyId,
 });

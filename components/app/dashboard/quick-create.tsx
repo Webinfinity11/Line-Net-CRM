@@ -120,7 +120,7 @@ export function QuickCreate({ clients }: { clients: ClientOption[] }) {
           )}
           <div className="flex flex-wrap items-center gap-3 pt-1">
             <Button type="submit" disabled={pending}>
-              <Check className="size-4" /> {pending ? "ინახება..." : "შეკვეთის შექმნა"}
+              <Check className="size-4" /> {pending ? "ინახება…" : "შეკვეთის შექმნა"}
             </Button>
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               {t.common.cancel}

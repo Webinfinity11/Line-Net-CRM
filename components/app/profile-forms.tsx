@@ -30,7 +30,7 @@ export function ProfileForms({ name, phone }: { name: string; phone: string }) {
 
   function changePassword(e: React.FormEvent) {
     e.preventDefault();
-    if (pw.next.length < 6) return toast.error("ახალი პაროლი მინიმუმ 6 სიმბოლო");
+    if (pw.next.length < 6) return toast.error("ახალი პაროლი მინიმუმ 6 სიმბოლოს უნდა შეიცავდეს");
     if (pw.next !== pw.confirm) return toast.error("პაროლები არ ემთხვევა");
     start(async () => {
       const res = await authClient.changePassword({ currentPassword: pw.current, newPassword: pw.next, revokeOtherSessions: true });

@@ -19,7 +19,7 @@ export default async function QuotePdfPage({ params }: PageProps<"/quotes/[id]/p
   return (
     <main className="mx-auto max-w-[210mm] bg-white p-8 text-neutral-900 print:p-0">
       <div className="mb-4 flex items-center justify-between print:hidden">
-        <span className="text-sm text-neutral-500">ბეჭდვისას აირჩიეთ „Save as PDF“</span>
+        <span className="text-sm text-neutral-500">ბეჭდვის ფანჯარაში აირჩიეთ PDF-ად შენახვა</span>
         <PrintButton />
       </div>
 
@@ -54,7 +54,7 @@ export default async function QuotePdfPage({ params }: PageProps<"/quotes/[id]/p
             </td>
           </tr>
           <tr>
-            <td className="w-40 border px-2 py-1 text-xs text-neutral-500">სისტემა</td>
+            <td className="w-40 border px-2 py-1 text-xs text-neutral-500">კატეგორია</td>
             <td className="border px-2 py-1 text-sm">{quote.systemType ? (labels[quote.systemType] ?? quote.systemType) : "—"}</td>
           </tr>
           <tr>

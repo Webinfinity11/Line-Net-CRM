@@ -55,7 +55,7 @@ export function MailSyncStatus({ state, canManage }: { state: MailSyncState; can
         <div className="min-w-0 space-y-1">
           <p className="flex items-center gap-2 text-[13px] font-medium"><Mail className="size-4 shrink-0 text-[#3457d5] [stroke-width:1.7]" /><span className="break-all">{state.mailbox}</span></p>
           <p className="text-[11.5px] text-muted-foreground">ბოლო შემოწმება: {state.lastRunAt ? formatDate(state.lastRunAt, true) : "ჯერ არ შემოწმებულა"}</p>
-          <p className="text-[11.5px] text-muted-foreground">{state.automatic ? "ავტომატური შემოწმება ყოველ 5 წუთში, სერვერის მუშაობისას." : "ავტომატური შემოწმება გამორთულია. გამოიყენეთ „შემოწმება ახლა“."}</p>
+          <p className="text-[11.5px] text-muted-foreground">{state.automatic ? "ავტომატური შემოწმება ყოველ 5 წუთში, სერვერის მუშაობისას." : "სერვერის შიდა ავტომატური შემოწმება გამორთულია. შეგიძლიათ გამოიყენოთ „შემოწმება ახლა“."}</p>
         </div>
         <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto max-md:flex-col max-md:items-stretch max-md:[&>button]:w-full max-md:[&>button]:flex-none max-md:[&>button]:min-h-[44px]">
           <Button size="sm" variant="outline" className="h-11 flex-1 sm:h-8 sm:flex-none" disabled={pending} onClick={() => start(async () => {
@@ -68,7 +68,7 @@ export function MailSyncStatus({ state, canManage }: { state: MailSyncState; can
           </Button>
           {canManage && state.mode === "outlook" && <>
             {connectButton}
-            <ConfirmButton title="Outlook ფოსტის გათიშვა" description="ახალი წერილების მიღება შეჩერდება. უკვე შემოტანილი შეკვეთები დარჩება CRM-ში. Microsoft-ის ანგარიშში გაცემული ნებართვის გაუქმება ცალკე შეგიძლიათ." confirmLabel="გათიშვა" className="max-md:border-transparent max-md:bg-transparent max-md:text-muted-foreground max-md:shadow-none" variant="outline" action={disconnectOutlook}>
+            <ConfirmButton title="Outlook ფოსტის გათიშვა" description="Outlook-ის ეს კავშირი გაითიშება. უკვე შემოტანილი შეკვეთები დარჩება CRM-ში. Microsoft-ის ანგარიშში გაცემული ნებართვის გაუქმება ცალკე შეგიძლიათ." confirmLabel="გათიშვა" className="max-md:border-transparent max-md:bg-transparent max-md:text-muted-foreground max-md:shadow-none" variant="outline" action={disconnectOutlook}>
               <Unplug className="size-3" /> გათიშვა
             </ConfirmButton>
           </>}

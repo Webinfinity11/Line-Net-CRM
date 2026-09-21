@@ -46,7 +46,7 @@ export function EquipmentFields({ siteId, initial }: { siteId: number; initial?:
         <Input id="e-inst" name="installedAt" type="date" defaultValue={initial?.installedAt ?? ""} />
       </div>
       <div className="space-y-1.5">
-        <Label htmlFor="e-war">გარანტია (მდე)</Label>
+        <Label htmlFor="e-war">გარანტიის ბოლო თარიღი</Label>
         <Input id="e-war" name="warrantyUntil" type="date" defaultValue={initial?.warrantyUntil ?? ""} />
       </div>
       <div className="space-y-1.5 sm:col-span-2">

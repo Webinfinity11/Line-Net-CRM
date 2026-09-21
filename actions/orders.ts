@@ -252,7 +252,7 @@ export async function updateOrder(id: number, fd: FormData): Promise<ActionResul
     const recipients = await db.select({ id: user.id }).from(user).where(and(eq(user.role, "client"), eq(user.clientId, v.clientId), eq(user.banned, false)));
     await notifyUsers(recipients.map((u) => u.id), {
       type: "portal",
-      title: "თქვენი შეკვეთა მიღებულია",
+      title: "თქვენი მოთხოვნა მიღებულია",
       body: `${existing.number} · ${v.title}`,
     });
   }
@@ -319,8 +319,8 @@ export async function setStatus(id: number, status: OrderStatus): Promise<Action
   const staff = isStaff(s.user.role);
 
   if (!staff) {
-    if (!existing.assignees.some((a) => a.userId === s.user.id)) return { ok: false, error: "ეს შეკვეთა თქვენ არ გაქვთ დანიშნული" };
-    if (!EXECUTOR_TRANSITIONS[existing.status]?.includes(status)) return { ok: false, error: "ეს სტატუსი თქვენ ვერ დააყენებთ. ჩასაბარებლად გამოიყენეთ „სამუშაო შესრულებულია“." };
+    if (!existing.assignees.some((a) => a.userId === s.user.id)) return { ok: false, error: "ეს შეკვეთა თქვენთვის არ არის დანიშნული" };
+    if (!EXECUTOR_TRANSITIONS[existing.status]?.includes(status)) return { ok: false, error: "ამ სტატუსს ვერ დააყენებთ. ჩასაბარებლად გამოიყენეთ „სამუშაო შესრულებულია“." };
   } else {
     if (existing.status === "closed" && s.user.role !== "admin") return { ok: false, error: "დახურული შეკვეთის გახსნა მხოლოდ ადმინს შეუძლია" };
     if (status === "closed" && existing.status !== "done") return { ok: false, error: "დახურვამდე სამუშაო უნდა ჩაბარდეს (სტატუსი „შესრულებული“)" };
@@ -378,7 +378,7 @@ export async function completeOrder(id: number, note: string): Promise<ActionRes
   const existing = await db.query.orders.findFirst({ where: eq(orders.id, id), with: { assignees: true } });
   if (!existing) return { ok: false, error: "შეკვეთა ვერ მოიძებნა" };
   const staff = isStaff(s.user.role);
-  if (!staff && !existing.assignees.some((a) => a.userId === s.user.id)) return { ok: false, error: "ეს შეკვეთა თქვენ არ გაქვთ დანიშნული" };
+  if (!staff && !existing.assignees.some((a) => a.userId === s.user.id)) return { ok: false, error: "ეს შეკვეთა თქვენთვის არ არის დანიშნული" };
   if (!["assigned", "in_progress"].includes(existing.status)) return { ok: false, error: "ჩაბარება შესაძლებელია მხოლოდ დანიშნული ან მიმდინარე შეკვეთისთვის" };
   const gate = await checkCompletionGates(id, existing.requiresPhoto);
   if (!gate.ok) return { ok: false, error: gate.error };
@@ -426,7 +426,7 @@ export async function addComment(id: number, body: string): Promise<ActionResult
   if (!s) return { ok: false, error: "ავტორიზაცია საჭიროა" };
   const text = body.trim();
   if (!text) return { ok: false, error: "კომენტარი ცარიელია" };
-  if (!(await assigneeOrStaff(id, s.user))) return { ok: false, error: "ეს შეკვეთა თქვენ არ გაქვთ დანიშნული" };
+  if (!(await assigneeOrStaff(id, s.user))) return { ok: false, error: "ეს შეკვეთა თქვენთვის არ არის დანიშნული" };
   await db.insert(orderComments).values({ orderId: id, userId: s.user.id, body: text.slice(0, 5000) });
   await db.update(orders).set({ updatedAt: new Date() }).where(eq(orders.id, id));
   revalidateOrder(id);
@@ -439,7 +439,7 @@ export async function uploadAttachment(id: number, fd: FormData): Promise<Action
   const file = fd.get("file");
   if (!(file instanceof File) || file.size === 0) return { ok: false, error: "ფაილი არ არის არჩეული" };
   if (file.size > 25 * 1024 * 1024) return { ok: false, error: "ფაილი 25 MB-ზე დიდია" };
-  if (!(await assigneeOrStaff(id, s.user))) return { ok: false, error: "ეს შეკვეთა თქვენ არ გაქვთ დანიშნული" };
+  if (!(await assigneeOrStaff(id, s.user))) return { ok: false, error: "ეს შეკვეთა თქვენთვის არ არის დანიშნული" };
   const buf = Buffer.from(await file.arrayBuffer());
   const storagePath = await saveFile(`orders/${id}`, file.name, buf);
   await db.insert(orderAttachments).values({ orderId: id, fileName: file.name, mimeType: file.type || null, size: file.size, storagePath, uploadedBy: s.user.id });

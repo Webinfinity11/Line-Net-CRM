@@ -54,7 +54,7 @@ export function DashboardHero({
               )}
             >
               <Icon className="size-3.5" />
-              {changePct === null ? "პირველი თვე" : flat ? "უცვლელი" : `${up ? "+" : ""}${changePct}%`}
+              {changePct === null ? "შედარება ვერ ითვლება" : flat ? "უცვლელი" : `${up ? "+" : ""}${changePct}%`}
             </span>
           </div>
           <p className="mt-2 text-[12px] text-muted-foreground">გასულ თვეს იმავე დღისთვის {formatMoney(lastMonth)}</p>

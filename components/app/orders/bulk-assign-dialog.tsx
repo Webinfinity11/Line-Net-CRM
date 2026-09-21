@@ -83,7 +83,7 @@ export function BulkAssignDialog({
               ვინ
             </Label>
             <NativeSelect id="bulk-who" className="w-full" value={assignee} onChange={(e) => setAssignee(e.target.value)} required>
-              <NativeSelectOption value="">აირჩიე შემსრულებელი</NativeSelectOption>
+              <NativeSelectOption value="">აირჩიეთ შემსრულებელი</NativeSelectOption>
               {sorted.map((u) => (
                 <NativeSelectOption key={u.id} value={u.id}>
                   {u.name} · {u.hours ?? 0}/{normHours} სთ
@@ -124,7 +124,7 @@ export function BulkAssignDialog({
           )}
           <div className="flex flex-wrap items-center gap-3">
             <Button type="submit" disabled={pending || !assignee}>
-              <UserPlus className="size-4" /> {pending ? "ინახება..." : "დანიშვნა"}
+              <UserPlus className="size-4" /> {pending ? "ინახება…" : "დანიშვნა"}
             </Button>
             <span className="text-[11px] text-muted-foreground">{time ? "ყველა არჩეულ შეკვეთას ერთი დრო დაენიშნება" : "დროის გარეშე მხოლოდ შემსრულებელი დაინიშნება"}</span>
           </div>

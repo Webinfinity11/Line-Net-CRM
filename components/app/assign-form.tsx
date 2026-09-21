@@ -84,14 +84,14 @@ export function AssignForm({ orderId, systemType, executors, normHours, defaultA
           ვინ
         </Label>
         <NativeSelect id={`as-who-${orderId}`} className="w-full" value={assignee} onChange={(e) => setAssignee(e.target.value)} required>
-          <NativeSelectOption value="">აირჩიე შემსრულებელი</NativeSelectOption>
+          <NativeSelectOption value="">აირჩიეთ შემსრულებელი</NativeSelectOption>
           {sorted.map((u) => (
             <NativeSelectOption key={u.id} value={u.id}>
               {u.name} · {u.hours ?? 0}/{normHours} სთ{systemType && u.specializations?.includes(systemType) ? ` · ${systemName}` : ""}
             </NativeSelectOption>
           ))}
         </NativeSelect>
-        <p className="text-[11px] text-muted-foreground">დღეს დაგეგმილი საათები · სპეციალობის შესაბამისობა პირველ ადგილზეა</p>
+        <p className="text-[11px] text-muted-foreground">დაგეგმილი საათები · შესაბამისი სპეციალიზაციის შემსრულებლები სიის თავშია</p>
       </div>
       <div className="grid grid-cols-[1fr_auto_auto] gap-2">
         <div className="space-y-1.5">
@@ -126,9 +126,9 @@ export function AssignForm({ orderId, systemType, executors, normHours, defaultA
       )}
       <div className="flex flex-wrap items-center gap-3">
         <Button type="submit" disabled={pending || !assignee}>
-          <UserPlus className="size-4" /> {pending ? "ინახება..." : "დანიშვნა"}
+          <UserPlus className="size-4" /> {pending ? "ინახება…" : "დანიშვნა"}
         </Button>
-        <span className="text-[11px] text-muted-foreground">{time ? "სტატუსი, განრიგი და შეტყობინება ერთდროულად" : "დროის გარეშე მხოლოდ შემსრულებელი დაინიშნება"}</span>
+        <span className="text-[11px] text-muted-foreground">{time ? "შეინახება შემსრულებელი და დაგეგმილი დრო" : "დროის გარეშე მხოლოდ შემსრულებელი დაინიშნება"}</span>
       </div>
     </form>
   );

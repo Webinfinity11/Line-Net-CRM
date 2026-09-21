@@ -87,7 +87,7 @@ export function CompleteDialog({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>სამუშაოს ჩაბარება</DialogTitle>
-          <DialogDescription>მოკლედ აღწერეთ, რა გაკეთდა. ეს ტექსტი კლიენტის ანგარიშში და ისტორიაში ჩაიწერება.</DialogDescription>
+          <DialogDescription>მოკლედ აღწერეთ, რა გაკეთდა. აღწერა შეკვეთაში შეინახება.</DialogDescription>
         </DialogHeader>
         {/* `needsPhoto` turns false as soon as the upload lands, so the confirmation is kept by local state */}
         {(needsPhoto || photoName) && (
@@ -113,7 +113,7 @@ export function CompleteDialog({
                   disabled={uploading || pending}
                   onClick={() => photoInput.current?.click()}
                 >
-                  <Camera className="size-4" /> {uploading ? "იტვირთება..." : "ფოტოს დამატება"}
+                  <Camera className="size-4" /> {uploading ? "იტვირთება…" : "ფოტოს დამატება"}
                 </Button>
               </>
             )}
@@ -153,7 +153,7 @@ export function CompleteDialog({
               გაუქმება
             </Button>
             <Button type="submit" variant="success" disabled={pending || blocked || note.trim().length < 5}>
-              {pending ? "ინახება..." : "ჩაბარება"}
+              {pending ? "ინახება…" : "ჩაბარება"}
             </Button>
           </div>
         </form>

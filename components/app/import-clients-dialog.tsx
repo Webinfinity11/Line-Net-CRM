@@ -31,7 +31,7 @@ export function ImportClientsDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={<Button variant="outline" className="h-10 sm:h-9" />}>
-        <FileSpreadsheet className="size-4" /> იმპორტი Excel
+        <FileSpreadsheet className="size-4" /> იმპორტი Excel-დან
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
@@ -50,7 +50,7 @@ export function ImportClientsDialog() {
               გაუქმება
             </Button>
             <Button type="submit" className="h-11 sm:h-9" disabled={pending}>
-              <Upload className="size-4" /> {pending ? "იტვირთება..." : "იმპორტი"}
+              <Upload className="size-4" /> {pending ? "იტვირთება…" : "იმპორტი"}
             </Button>
           </div>
         </form>

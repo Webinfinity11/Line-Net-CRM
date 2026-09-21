@@ -18,7 +18,7 @@ export function BulkSitesDialog({ clientId }: { clientId: number }) {
         </>
       }
       title="ობიექტების სიით დამატება"
-      description="თითო ხაზი — თითო ობიექტი. ფორმატი: სახელი, მისამართი"
+      description="თითო სტრიქონი — თითო ობიექტი. ფორმატი: სახელი, მისამართი"
       action={addSitesBulk.bind(null, clientId)}
       submitLabel="დამატება"
       successMessage="ობიექტები დაემატა"
@@ -33,7 +33,7 @@ export function BulkSitesDialog({ clientId }: { clientId: number }) {
           className="text-[16px] sm:text-[13px]"
           placeholder={"ფილიალი ვაკე, ჭავჭავაძის 37\nფილიალი საბურთალო, პეკინის 12\nცენტრალური ოფისი, ბახტრიონის 30"}
         />
-        <p className="text-[11px] text-muted-foreground">მისამართიდან კოორდინატები ავტომატურად მოიძებნება. მაქსიმუმ 200 ხაზი.</p>
+        <p className="text-[11px] text-muted-foreground">კოორდინატები მისამართით იძებნება, თუ შესაძლებელია. მაქსიმუმ 200 სტრიქონი.</p>
       </div>
     </FormDialog>
   );

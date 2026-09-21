@@ -21,7 +21,7 @@ export function MarkAllReadButton() {
         })
       }
     >
-      <CheckCheck className="size-3.5" /> ყველა წაკითხულია
+      <CheckCheck className="size-3.5" /> ყველას წაკითხულად მონიშვნა
     </Button>
   );
 }

@@ -60,7 +60,7 @@ export function CatalogueActions({ name, active, toggle, remove, deleteTitle, de
           <div className="flex justify-end gap-2">
             <Button variant="outline" disabled={pending} onClick={() => setConfirm(false)}>გაუქმება</Button>
             <Button variant="destructive" disabled={pending} onClick={() => remove && run(remove, "წაიშალა")}>
-              {pending ? "იშლება..." : "წაშლა"}
+              {pending ? "იშლება…" : "წაშლა"}
             </Button>
           </div>
         </DialogContent>

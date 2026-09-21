@@ -14,7 +14,7 @@ export async function setWorkHoursPerDay(fd: FormData): Promise<ActionResult> {
   const s = await getSession();
   if (!s || s.user.role !== "admin") return { ok: false, error: "მხოლოდ ადმინს შეუძლია" };
   const parsed = hoursInput.safeParse(fd.get("hours"));
-  if (!parsed.success) return { ok: false, error: "საათები 1-დან 24-მდე" };
+  if (!parsed.success) return { ok: false, error: "საათების რაოდენობა უნდა იყოს 1-დან 24-მდე" };
   const value = String(parsed.data);
   await db
     .insert(appSettings)

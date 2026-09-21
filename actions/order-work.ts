@@ -18,7 +18,7 @@ async function requireOrderAccess(orderId: number, opts: { allowClosed?: boolean
   if (!o) throw new Error("შეკვეთა ვერ მოიძებნა");
   if (!isStaff(s.user.role)) {
     const [a] = await db.select().from(orderAssignees).where(and(eq(orderAssignees.orderId, orderId), eq(orderAssignees.userId, s.user.id)));
-    if (!a) throw new Error("ეს შეკვეთა თქვენ არ გაქვთ დანიშნული");
+    if (!a) throw new Error("ეს შეკვეთა თქვენთვის არ არის დანიშნული");
   }
   if (!opts.allowClosed && o.status === "closed" && s.user.role !== "admin") throw new Error("დახურული შეკვეთის ცვლილება მხოლოდ ადმინს შეუძლია");
   if (o.status === "cancelled" && s.user.role !== "admin") throw new Error("გაუქმებული შეკვეთა არ იცვლება");
@@ -42,7 +42,7 @@ const fail = (e: unknown): ActionResult => ({ ok: false, error: e instanceof Err
 export async function startVisit(orderId: number): Promise<ActionResult<{ visitId: number; resumed: boolean }>> {
   try {
     const { user: me, status } = await requireOrderAccess(orderId);
-    if (status === "done" || status === "closed") return { ok: false, error: "შეკვეთა უკვე ჩაბარებულია. ახალი ვიზიტისთვის მენეჯერმა უნდა დააბრუნოს მიმდინარეში." };
+    if (status === "done" || status === "closed") return { ok: false, error: "შეკვეთა უკვე ჩაბარებულია. ახალი ვიზიტისთვის მენეჯერმა უნდა დააბრუნოს „მიმდინარე“ სტატუსზე." };
     const [open] = await db
       .select({ id: orderVisits.id })
       .from(orderVisits)

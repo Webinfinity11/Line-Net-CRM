@@ -103,7 +103,7 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
               <SystemBadge system={order.systemType} className="order-last max-w-full whitespace-normal break-words md:order-none md:whitespace-nowrap" />
               <PriorityLabel priority={order.priority} className={order.priority === "normal" ? "hidden md:inline-flex" : overdue ? "max-md:text-muted-foreground" : undefined} />
               {overdue && <OverdueBadge className="hidden md:inline-flex" />}
-              {!order.triaged && <span className="rounded-md bg-[#3457d5] px-2 py-0.5 text-xs font-medium text-white">შემოსული წერილი</span>}
+              {!order.triaged && <span className="rounded-md bg-[#3457d5] px-2 py-0.5 text-xs font-medium text-white">დაუმუშავებელი შეკვეთა</span>}
               {order.requiresPhoto && (
                 <span className="inline-flex items-center gap-1 rounded-md bg-[#fff4df] px-2 py-0.5 text-xs text-[#96610b] ring-1 ring-[#f0d9a8]">
                   <Camera className="size-3" /> ფოტო სავალდებულოა

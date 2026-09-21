@@ -69,7 +69,7 @@ export async function createPortalOrder(fd: FormData): Promise<ActionResult<{ id
     return row.id;
   });
 
-  await notifyUsers(await staffUserIds(), { type: "portal", title: `ახალი შეკვეთა: ${company.name}`, body: v.title, orderId: id });
+  await notifyUsers(await staffUserIds(), { type: "portal", title: `ახალი მოთხოვნა: ${company.name}`, body: v.title, orderId: id });
   revalidatePath("/inbox");
   revalidatePath("/portal");
   revalidatePath("/");

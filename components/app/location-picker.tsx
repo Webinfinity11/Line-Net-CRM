@@ -22,7 +22,7 @@ export function LocationPicker({ lat, lng }: { lat?: string | number | null; lng
             {pos.lat.toFixed(5)}, {pos.lng.toFixed(5)}
           </span>
         ) : (
-          <span>კოორდინატები არ არის. მისამართიდან ავტომატურად მოიძებნება, ან მონიშნეთ რუკაზე.</span>
+          <span>კოორდინატები არ არის. მისამართით მოძიება შეიძლება ვერ მოხერხდეს; შეგიძლიათ ადგილი რუკაზე მონიშნოთ.</span>
         )}
         <Button type="button" size="xs" variant="ghost" onClick={() => setOpen((o) => !o)}>
           {open ? "რუკის დამალვა" : "რუკაზე მონიშვნა"}

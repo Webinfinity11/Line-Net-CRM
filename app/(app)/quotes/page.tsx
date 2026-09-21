@@ -97,7 +97,7 @@ export default async function QuotesPage({ searchParams }: PageProps<"/quotes">)
           message={
             q || status
               ? "ამ ფილტრში შეთავაზება ვერ მოიძებნა."
-              : "შეთავაზება არის კლიენტისთვის გაგზავნილი ფასი: პოზიციები კატალოგიდან, ჯამი და ვადა. მიღების შემდეგ ერთი ღილაკით იქცევა შეკვეთად."
+              : "შეთავაზება მოიცავს სერვისებს, ჯამურ ფასსა და ვადას. მიღებულად მონიშვნის შემდეგ მისგან შეკვეთას შექმნით."
           }
           action={q || status ? undefined : <NewQuoteDialog clients={clients} />}
         />
@@ -141,7 +141,7 @@ export default async function QuotesPage({ searchParams }: PageProps<"/quotes">)
                 <tr>
                   <th className={tableCls.th}>ნომერი</th>
                   <th className={tableCls.th}>სათაური</th>
-                  <th className={tableCls.th}>სისტემა</th>
+                  <th className={tableCls.th}>კატეგორია</th>
                   <th className={tableCls.thRight}>ჯამი</th>
                   <th className={tableCls.th}>ძალაშია</th>
                   <th className={tableCls.th}>სტატუსი</th>

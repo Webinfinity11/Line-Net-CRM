@@ -150,7 +150,7 @@ export default async function QuotePage({ params }: PageProps<"/quotes/[id]">) {
                 </div>
                 {quote.systemType ? (
                   <div>
-                    <dt className="mb-1 text-[11px] text-muted-foreground">სისტემა</dt>
+                    <dt className="mb-1 text-[11px] text-muted-foreground">კატეგორია</dt>
                     <dd>
                       <SystemBadge system={quote.systemType} />
                     </dd>

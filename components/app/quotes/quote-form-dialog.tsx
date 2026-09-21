@@ -68,7 +68,7 @@ function Fields({ clients, initial }: { clients: ClientOption[]; initial?: Initi
         </NativeSelect>
       </div>
       <div className="space-y-1.5">
-        <Label htmlFor="q-system">სისტემა</Label>
+        <Label htmlFor="q-system">კატეგორია</Label>
         <NativeSelect id="q-system" name="systemType" defaultValue={initial?.systemType ?? ""}>
           <NativeSelectOption value="">— აირჩიეთ —</NativeSelectOption>
           {systems.map((s) => (

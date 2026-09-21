@@ -51,7 +51,7 @@ export function UserFields({ initial, clients }: { initial?: Partial<User>; clie
             </NativeSelectOption>
           ))}
         </NativeSelect>
-        <p className="text-[11px] text-muted-foreground">შევა კლიენტის კაბინეტში: დაინახავს მხოლოდ ამ კომპანიის შეკვეთებს და გამოგზავნის ახალს.</p>
+        <p className="text-[11px] text-muted-foreground">შევა კლიენტის კაბინეტში: ნახავს მხოლოდ ამ კომპანიის შეკვეთებს და გამოგზავნის ახალ მოთხოვნას.</p>
       </div>
       ) : (
       <div className="space-y-1.5 sm:col-span-2">

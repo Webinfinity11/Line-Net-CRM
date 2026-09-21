@@ -16,7 +16,7 @@ export function ClientFields({ initial, withSites = false }: { initial?: Partial
     <div className={cn("grid gap-3 sm:grid-cols-2", formFields)}>
       <div className="space-y-1.5 sm:col-span-2">
         <Label htmlFor="name">კომპანია *</Label>
-        <Input id="name" name="name" required defaultValue={initial?.name ?? ""} placeholder="შპს ..." />
+        <Input id="name" name="name" required defaultValue={initial?.name ?? ""} placeholder="შპს …" />
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="idCode">საიდენტიფიკაციო კოდი</Label>
@@ -58,7 +58,7 @@ function SiteRows() {
     <div className="rounded-[14px] border border-[#eef1f6] p-3">
       <div className="mb-2 flex items-center justify-between gap-2">
         <span className="font-heading text-[13px] font-semibold text-[#4a5e73]">ობიექტები</span>
-        <span className="text-[11px] text-muted-foreground">ობიექტის პირი და ნომერი შეკვეთაზე ჩანს; კოორდინატები მისამართიდან მოიძებნება</span>
+        <span className="text-[11px] text-muted-foreground">ობიექტის საკონტაქტო პირი და ტელეფონი შეკვეთაში ჩანს; კოორდინატები მისამართით იძებნება, თუ შესაძლებელია.</span>
       </div>
       <div className="space-y-2">
         {rows.map((key, i) => (
@@ -122,7 +122,7 @@ export function SiteFields({ clientId, initial }: { clientId: number; initial?: 
       <LocationPicker lat={initial?.lat} lng={initial?.lng} />
       <div className="space-y-1.5">
         <Label htmlFor="site-notes">შენიშვნა</Label>
-        <Textarea id="site-notes" name="notes" rows={2} defaultValue={initial?.notes ?? ""} placeholder="სართული, შესასვლელი, საკონტაქტო პირი ობიექტზე..." />
+        <Textarea id="site-notes" name="notes" rows={2} defaultValue={initial?.notes ?? ""} placeholder="სართული, შესასვლელი, საკონტაქტო პირი ობიექტზე…" />
       </div>
     </div>
   );

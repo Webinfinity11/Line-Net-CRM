@@ -65,7 +65,7 @@ export function FormDialog({
               {t.common.cancel}
             </Button>
             <Button type="submit" className="h-11 sm:h-9" disabled={pending}>
-              {pending ? "ინახება..." : submitLabel}
+              {pending ? "ინახება…" : submitLabel}
             </Button>
           </div>
         </form>

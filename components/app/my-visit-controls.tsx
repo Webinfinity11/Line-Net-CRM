@@ -51,7 +51,7 @@ function StartButton({ orderId }: { orderId: number }) {
         })
       }
     >
-      <Play className="size-4" /> {pending ? "იწყება..." : "დაწყება"}
+      <Play className="size-4" /> {pending ? "იწყება…" : "დაწყება"}
     </Button>
   );
 }

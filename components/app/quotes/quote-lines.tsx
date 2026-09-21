@@ -84,7 +84,7 @@ export function QuoteLines({
       </CardHeader>
       <CardContent className="space-y-3">
         {items.length === 0 ? (
-          <p className="text-[12.5px] text-muted-foreground">პოზიცია ჯერ არ არის. აირჩიეთ სერვისი სიიდან ან ჩაწერეთ ხელით.</p>
+          <p className="text-[12.5px] text-muted-foreground">პოზიცია ჯერ არ არის. აირჩიეთ სერვისი სიიდან.</p>
         ) : (
           <>
             {/* phone: one card per line */}

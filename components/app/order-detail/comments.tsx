@@ -69,7 +69,7 @@ export function Comments({ orderId, comments, meId }: { orderId: number; comment
           <Textarea
             ref={ref}
             rows={2}
-            placeholder="დაწერეთ კომენტარი..."
+            placeholder="დაწერეთ კომენტარი…"
             className="min-h-11 flex-1 resize-none text-[16px] sm:min-h-10 sm:text-[14px]"
             onKeyDown={(e) => {
               if ((e.metaKey || e.ctrlKey) && e.key === "Enter") submit(e);

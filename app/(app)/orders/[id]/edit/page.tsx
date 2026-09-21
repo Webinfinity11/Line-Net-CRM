@@ -65,11 +65,11 @@ export default async function EditOrderPage({ params }: PageProps<"/orders/[id]/
       <PageHeader
         kicker={order.number}
         title={fromPortal ? "მოთხოვნის დამუშავება" : "წერილის დამუშავება"}
-        subtitle="აირჩიეთ კლიენტი, ობიექტი და შემსრულებელი. დანარჩენი ველები დამატებით პარამეტრებშია."
+        subtitle="აირჩიეთ კლიენტი, ობიექტი და შემსრულებელი. შეავსეთ შეკვეთის დეტალები."
         actions={
           <ConfirmButton
             title={fromPortal ? "მოთხოვნის გაუქმება" : "წერილის გაუქმება"}
-            description="შეკვეთა გადავა „გაუქმებული“ სტატუსში და შემოსულებიდან წაიშლება."
+            description="შეკვეთა გადავა „გაუქმებული“ სტატუსში და შემოსულებში აღარ გამოჩნდება."
             confirmLabel={fromPortal ? "მოთხოვნის გაუქმება" : "შეკვეთის გაუქმება"}
             variant="outline"
             size="sm"

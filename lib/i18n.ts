@@ -63,7 +63,7 @@ export const PRIORITY_COLORS: Record<OrderPriority, string> = {
 
 export const PAYMENT_LABELS: Record<PaymentStatus, string> = {
   unpaid: "გადაუხდელი",
-  partial: "ნაწილობრივ",
+  partial: "ნაწილობრივ გადახდილი",
   paid: "გადახდილი",
 };
 
@@ -135,7 +135,7 @@ export const EVENT_LABELS: Record<string, string> = {
   updated: "განახლდა",
   payment_changed: "გადახდის სტატუსი შეიცვალა",
   attachment_added: "დაემატა ფაილი",
-  triaged: "დამუშავდა მენეჯერის მიერ",
+  triaged: "მენეჯერმა დაამუშავა",
   arrived: "მივიდა ობიექტზე",
   finished: "დაასრულა სამუშაო",
   material_added: "დაემატა მასალა",
@@ -174,7 +174,7 @@ export const t = {
     search: "ძებნა",
     all: "ყველა",
     none: "არ არის",
-    loading: "იტვირთება...",
+    loading: "იტვირთება…",
     noResults: "ჩანაწერები არ მოიძებნა",
     today: "დღეს",
     week: "კვირა",

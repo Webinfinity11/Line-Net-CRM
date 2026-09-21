@@ -40,7 +40,7 @@ export function ScheduleFields({
       <div className="space-y-1.5">
         <Label htmlFor="s-site">ობიექტი</Label>
         <NativeSelect id="s-site" name="siteId" defaultValue={initial?.siteId ? String(initial.siteId) : ""} disabled={!clientId}>
-          <NativeSelectOption value="">— ყველა / არ არის —</NativeSelectOption>
+          <NativeSelectOption value="">— ობიექტის გარეშე —</NativeSelectOption>
           {sites.map((s) => (
             <NativeSelectOption key={s.id} value={String(s.id)}>
               {s.name}

@@ -240,7 +240,7 @@ export default async function ClientPage({ params }: PageProps<"/clients/[id]">)
                 </>
               }
               title="კაბინეტის მომხმარებელი"
-              description={`შევა ელფოსტით და პაროლით, დაინახავს მხოლოდ „${client.name}“-ის შეკვეთებს და გამოგზავნის ახალს.`}
+              description={`შევა ელფოსტით და პაროლით, ნახავს მხოლოდ კომპანიის „${client.name}“ შეკვეთებს და გამოგზავნის ახალ მოთხოვნას.`}
               action={createUser}
               submitLabel={t.common.create}
               successMessage="წვდომა დაემატა"
@@ -271,7 +271,7 @@ export default async function ClientPage({ params }: PageProps<"/clients/[id]">)
       >
         {logins.length === 0 ? (
           <p className="text-[12.5px] text-muted-foreground">
-            კლიენტს კაბინეტი ჯერ არ აქვს. წვდომის მიცემის შემდეგ თავად გამოგზავნის შეკვეთას და ნახავს მის სტატუსს{me.role === "admin" ? "." : "; წვდომას ადმინი ამატებს."}
+            კლიენტს კაბინეტი ჯერ არ აქვს. წვდომის მიცემის შემდეგ თავად გამოგზავნის მოთხოვნას და ნახავს მის სტატუსს{me.role === "admin" ? "." : "; წვდომას ადმინი ამატებს."}
           </p>
         ) : (
           <ul className="divide-y divide-[#eef1f6] md:space-y-1 md:divide-y-0">

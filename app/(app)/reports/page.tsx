@@ -39,7 +39,7 @@ export default async function ReportsPage({ searchParams }: PageProps<"/reports"
       <PageHeader
         title={t.nav2.reports}
         subtitle="პერიოდი შეკვეთის შექმნის თარიღით. „შემოსული“ რეალური გადახდებიდან ითვლება."
-        actions={<ExportButton type="orders" p={p} label="შეკვეთები Excel" />}
+        actions={<ExportButton type="orders" p={p} label="შეკვეთები Excel-ში" />}
       />
 
       <form method="get" className="ln-enter ln-card grid gap-3 p-4 sm:flex sm:flex-wrap sm:items-end">
@@ -179,7 +179,7 @@ export default async function ReportsPage({ searchParams }: PageProps<"/reports"
               {bySystem.map((r, i) => (
                 <DataRow
                   key={r.system ?? `none-${i}`}
-                  title={r.system ? <SystemBadge system={r.system} /> : <span className="text-muted-foreground">მიუთითებელი</span>}
+                  title={r.system ? <SystemBadge system={r.system} /> : <span className="text-muted-foreground">მითითებული არ არის</span>}
                   meta={`${r.total} შეკვეთა · ${r.completed} შესრულებული`}
                   right={
                     <>
@@ -204,7 +204,7 @@ export default async function ReportsPage({ searchParams }: PageProps<"/reports"
                 <tbody>
                   {bySystem.map((r, i) => (
                     <tr key={r.system ?? `none-${i}`} className={tableCls.row}>
-                      <td className={tableCls.td}>{r.system ? <SystemBadge system={r.system} /> : <span className="text-muted-foreground">მიუთითებელი</span>}</td>
+                      <td className={tableCls.td}>{r.system ? <SystemBadge system={r.system} /> : <span className="text-muted-foreground">მითითებული არ არის</span>}</td>
                       <td className={tableCls.tdRight}>{r.total}</td>
                       <td className={tableCls.tdRight}>{r.completed}</td>
                       <td className={tableCls.tdRight}>{formatMoney(r.amount)}</td>
@@ -227,7 +227,7 @@ export default async function ReportsPage({ searchParams }: PageProps<"/reports"
           )}
         </SectionCard>
 
-        <SectionCard title="თვის ფინანსური" icon={TrendingUp} aside="12 თვე" action={<ExportButton type="monthly" />} bodyClassName="-mx-6 -mb-6">
+        <SectionCard title="ყოველთვიური ფინანსები" icon={TrendingUp} aside="12 თვე" action={<ExportButton type="monthly" />} bodyClassName="-mx-6 -mb-6">
           <DataList className="px-6 pb-4">
             {monthly.months.map((m) => {
               const [y, mo] = m.month.split("-");

@@ -123,7 +123,7 @@ export default async function MaintenancePage() {
     <div className="space-y-4">
       <PageHeader
         title={t.nav2.maintenance}
-        subtitle={`${active.length} აქტიური გრაფიკი · სისტემა თვითონ ქმნის შეკვეთას ვადამდე რამდენიმე დღით ადრე`}
+        subtitle={`${active.length} აქტიური გრაფიკი · შეკვეთა იქმნება გრაფიკში მითითებული წინსწრებით`}
         actions={
           <div className="flex flex-wrap items-center gap-2">
             <GenerateNowButton />
@@ -147,7 +147,7 @@ export default async function MaintenancePage() {
       {schedules.length === 0 ? (
         <EmptyState
           icon={CalendarSync}
-          message="გრაფიკები არ არის. დაამატეთ პირველი: მაგალითად სახანძრო სისტემის ყოველთვიური შემოწმება."
+          message="გრაფიკები არ არის. დაამატეთ პირველი: მაგალითად, სახანძრო სისტემის ყოველთვიური შემოწმება."
           className="ln-card border-transparent py-16"
         />
       ) : (
@@ -185,7 +185,7 @@ export default async function MaintenancePage() {
       )}
 
       <p className="text-[11.5px] leading-relaxed text-muted-foreground">
-        გრაფიკები ყოველდღე ავტომატურად მოწმდება და ვადის დადგომისას შეკვეთა თავად იქმნება. ასე შექმნილი შეკვეთები{" "}
+        ავტომატური შემოწმების ჩართვისას გრაფიკები ყოველდღე მოწმდება; შეკვეთები მითითებული წინსწრებით იქმნება. ასე შექმნილი შეკვეთები{" "}
         <Link href="/orders?status=all" className="text-[#3457d5] hover:underline">
           შეკვეთების სიაში
         </Link>{" "}

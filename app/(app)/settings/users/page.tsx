@@ -99,7 +99,7 @@ export default async function UsersPage() {
               </>
             }
             title="ახალი მომხმარებელი"
-            description="მომხმარებელი შევა ელფოსტით და პაროლით. Microsoft-ით შესვლაც შეუძლია, თუ ელფოსტა მის Microsoft ანგარიშს ემთხვევა."
+            description="მომხმარებელი შევა ელფოსტით და პაროლით. Microsoft-ით შესვლაც შეუძლია, თუ ეს კავშირი გამართულია და ელფოსტა მის Microsoft ანგარიშს ემთხვევა."
             action={createUser}
             submitLabel={t.common.create}
           >

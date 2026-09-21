@@ -84,7 +84,7 @@ export async function deleteSystem(slug: string): Promise<ActionResult> {
   const [o] = await db.select({ n: count() }).from(orders).where(eq(orders.systemType, slug));
   const [s] = await db.select({ n: count() }).from(services).where(eq(services.systemType, slug));
   const used = (o?.n ?? 0) + (s?.n ?? 0);
-  if (used > 0) return { ok: false, error: `გამოიყენება ${used} ჩანაწერში. წაშლის ნაცვლად დამალეთ.` };
+  if (used > 0) return { ok: false, error: `გამოიყენება ${used} ჩანაწერში. წაშლის ნაცვლად გამორთეთ.` };
   await db.delete(systems).where(eq(systems.slug, slug));
   revalidateAll();
   return { ok: true };

@@ -41,7 +41,7 @@ export function NotificationBell({ unread, items }: { unread: number; items: Bel
                 })
               }
             >
-              <CheckCheck className="size-3" /> ყველა წაკითხულია
+              <CheckCheck className="size-3" /> ყველას წაკითხულად მონიშვნა
             </button>
           )}
         </DropdownMenuLabel>

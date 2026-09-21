@@ -52,7 +52,7 @@ export function Attachments({ orderId, attachments, canDelete }: { orderId: numb
           {t.order.attachments} <span className="ml-1 text-sm font-normal text-muted-foreground">{attachments.length}</span>
         </CardTitle>
         <Button variant="outline" size="sm" onClick={() => input.current?.click()} disabled={pending}>
-          <Upload className="size-3.5" /> {pending ? "იტვირთება..." : "ატვირთვა"}
+          <Upload className="size-3.5" /> {pending ? "იტვირთება…" : "ატვირთვა"}
         </Button>
         <input ref={input} type="file" multiple className="hidden" onChange={(e) => onFiles(e.target.files)} accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.dwg,.zip" />
       </CardHeader>

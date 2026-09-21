@@ -83,7 +83,7 @@ export default async function InboxPage({ searchParams }: PageProps<"/inbox">) {
                 </Button>
                 <ConfirmButton
                   title={portal ? "მოთხოვნის გაუქმება" : "წერილის გაუქმება"}
-                  description="შეკვეთა გადავა „გაუქმებული“ სტატუსში და შემოსულებიდან წაიშლება."
+                  description="შეკვეთა გადავა „გაუქმებული“ სტატუსში და შემოსულებში აღარ გამოჩნდება."
                   confirmLabel={portal ? "მოთხოვნის გაუქმება" : "შეკვეთის გაუქმება"}
                   variant="outline"
                   size="sm"
