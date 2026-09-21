@@ -70,7 +70,7 @@ export default async function EditOrderPage({ params }: PageProps<"/orders/[id]/
           <ConfirmButton
             title={fromPortal ? "მოთხოვნის გაუქმება" : "წერილის გაუქმება"}
             description="შეკვეთა გადავა „გაუქმებული“ სტატუსში და შემოსულებიდან წაიშლება."
-            confirmLabel="გაუქმება"
+            confirmLabel={fromPortal ? "მოთხოვნის გაუქმება" : "შეკვეთის გაუქმება"}
             variant="outline"
             size="sm"
             action={setStatus.bind(null, order.id, "cancelled")}

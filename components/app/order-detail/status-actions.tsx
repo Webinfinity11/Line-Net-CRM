@@ -110,7 +110,7 @@ export function StatusActions({
         </Button>
       )}
       {staff && (status === "new" || status === "assigned" || status === "in_progress") && (
-        <ConfirmButton title="შეკვეთის გაუქმება" description="შეკვეთა გადავა „გაუქმებული“ სტატუსში. შემსრულებლები შეტყობინებას მიიღებენ." confirmLabel="გაუქმება" variant="destructive" size="default" className={secondary} action={() => setStatus(orderId, "cancelled")}>
+        <ConfirmButton title="შეკვეთის გაუქმება" description="შეკვეთა გადავა „გაუქმებული“ სტატუსში. შემსრულებლები შეტყობინებას მიიღებენ." confirmLabel="შეკვეთის გაუქმება" variant="destructive" size="default" className={secondary} action={() => setStatus(orderId, "cancelled")}>
           <XCircle className="size-4" /> გაუქმება
         </ConfirmButton>
       )}

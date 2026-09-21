@@ -139,6 +139,11 @@ async function selectByText(sel, text) {
   await fill(sel, v);
 }
 
+/** Every step after creation works on the test order only; without it, stop instead of acting on whatever page is open. */
+const needOrder = () => {
+  if (!orderHref) throw new Error("the test order was not created; skipped so no real order is touched");
+};
+
 async function step(name, fn) {
   try {
     await fn();
@@ -149,7 +154,6 @@ async function step(name, fn) {
   }
 }
 
-const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Tbilisi" }).format(new Date());
 const TITLE = `E2E ${new Date().toISOString().slice(0, 16)}`;
 let orderHref = null;
 
@@ -165,7 +169,6 @@ try {
     await fill("#qc-title", TITLE);
     await fill("#qc-system", "cctv");
     await fill("#qc-priority", "urgent");
-    await fill("#qc-due", today);
     await click("button", "შეკვეთის შექმნა");
     await waitFor(hasText("დაემატა"));
   });
@@ -191,9 +194,11 @@ try {
   });
 
   await useSession(EXEC);
-  await step("technician: sees the job", async () => { await goto("/my"); await waitFor(hasText(TITLE)); });
+  await step("technician: sees the job", async () => { needOrder(); await goto("/my?tab=new"); await waitFor(hasText(TITLE)); });
   await step("technician: hands the work over", async () => {
+    needOrder();
     await goto(orderHref);
+    await waitFor(hasText(TITLE));
     await click("button", "სამუშაო შესრულებულია");
     await waitFor("document.querySelector('textarea[aria-label]')");
     await fill("textarea[aria-label='შესრულებული სამუშაოს აღწერა']", "ავტომატური ტესტი: სამუშაო შესრულებულია.");
@@ -203,19 +208,24 @@ try {
 
   await useSession(ADMIN);
   await step("manager: verifies and closes", async () => {
+    needOrder();
     await goto(orderHref);
+    await waitFor(hasText(TITLE));
     await click("button", "შემოწმებულია, დახურვა");
     await sleep(1500);
     await goto(orderHref);
     await waitFor(hasText("დახურული"));
   });
   await step("manager: records a payment", async () => {
+    needOrder();
     await fill("input[name=amount]", "150");
     await click("button[type=submit]", "გადახდა");
     await waitFor(hasText("გადახდა დაფიქსირდა"));
   });
   await step("manager: removes the test order", async () => {
+    needOrder();
     await goto(orderHref);
+    await waitFor(hasText(TITLE));
     // the danger zone, not a material's delete icon
     await click("button", "წაშლა", "წაშლა შეუქცევადია");
     await waitFor(hasText("შეკვეთის წაშლა"));
