@@ -19,8 +19,8 @@ export default async function SystemsPage() {
     db.select({ key: orders.systemType, n: count() }).from(orders).where(sql`${orders.systemType} is not null`).groupBy(orders.systemType),
     db.select({ key: services.systemType, n: count() }).from(services).where(sql`${services.systemType} is not null`).groupBy(services.systemType),
   ]);
-  const usage = new Map<string, number>();
-  for (const r of [...orderUse, ...serviceUse]) if (r.key) usage.set(r.key, (usage.get(r.key) ?? 0) + r.n);
+  const orderCounts = new Map(orderUse.map((r) => [r.key, r.n]));
+  const serviceCounts = new Map(serviceUse.map((r) => [r.key, r.n]));
   const active = rows.filter((r) => r.active).length;
 
   return (
@@ -41,7 +41,7 @@ export default async function SystemsPage() {
 
       <SectionCard title="კატეგორიების სია" icon={Layers} aside={`${active} აქტიური · ${rows.length} სულ`}>
         {rows.map((s, i) => (
-          <SystemRow key={s.key} row={{ slug: s.key, name: s.name, sort: s.sort, active: s.active, usage: usage.get(s.key) ?? 0 }} first={i === 0} last={i === rows.length - 1} />
+          <SystemRow key={s.key} row={{ slug: s.key, name: s.name, sort: s.sort, active: s.active, services: serviceCounts.get(s.key) ?? 0, orders: orderCounts.get(s.key) ?? 0 }} first={i === 0} last={i === rows.length - 1} />
         ))}
         <p className="mt-4 border-t border-[#eef1f6] pt-3 text-[11.5px] leading-relaxed text-muted-foreground">
           სახელი აქვე შეცვალეთ. რიგის შეცვლა, გამორთვა და წაშლა — ⋯ მენიუში. გამორთული კატეგორია ძველ ჩანაწერებში რჩება.

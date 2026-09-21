@@ -223,7 +223,7 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
           </Card>
 
 
-          {financeVisible && <OrderServices orderId={order.id} items={order.items} catalogue={catalogue} readOnly={readOnly} vatPercent={order.vatPercent} />}
+          {financeVisible && <OrderServices orderId={order.id} orderSystemType={order.systemType} items={order.items} catalogue={catalogue} readOnly={readOnly} vatPercent={order.vatPercent} />}
 
           {financeVisible && (
             <Payments

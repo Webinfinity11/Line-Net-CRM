@@ -49,7 +49,7 @@ export default async function ServicesPage({ searchParams }: PageProps<"/setting
                 <Layers className="size-4" /> კატეგორიები
               </Button>
             )}
-            <NewServiceDialog />
+            <NewServiceDialog defaultSystemType={systems.some((s) => s.key === cat) ? cat : undefined} />
           </>
         }
       />
@@ -77,14 +77,16 @@ export default async function ServicesPage({ searchParams }: PageProps<"/setting
         <EmptyState
           icon={ReceiptText}
           message={q ? "ასეთი სერვისი ვერ მოიძებნა." : "სერვისების სია ცარიელია. დაამატეთ პირველი: მაგ. „კამერის მონტაჟი“, ფასი ერთეულზე."}
-          action={q ? undefined : <NewServiceDialog />}
+          action={q ? undefined : <NewServiceDialog defaultSystemType={systems.some((s) => s.key === cat) ? cat : undefined} />}
         />
       ) : (
         <div className="space-y-5">
           {groups.map((g) => (
             <section key={g.key} aria-label={g.name}>
               <div className="mb-2 flex items-center gap-2 px-1 text-[12px] text-muted-foreground">
-                {g.name}<span className="tabular text-[#8b98a9]">{g.items.length}</span>
+                <h2 className="min-w-0 flex-1 break-words font-medium">{g.name} <span className="tabular text-[#8b98a9]">{g.items.length}</span></h2>
+                {/* a new service must have a category, so the uncategorised group only gets fixed, not added to */}
+                {g.key !== NONE && <NewServiceDialog compact defaultSystemType={g.key} />}
               </div>
               <div className="ln-card divide-y divide-[#eef1f6] px-4">
                 {g.items.map((s) => (

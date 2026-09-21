@@ -15,9 +15,9 @@ import type { Service } from "@/db/schema";
 
 const UNITS = ["ცალი", "მეტრი", "წერტილი", "საათი", "კომპლექტი", "მ²"];
 
-function Fields({ initial }: { initial?: Service }) {
+function Fields({ initial, defaultSystemType }: { initial?: Service; defaultSystemType?: string }) {
   // hidden categories stay selectable on a service that already uses one, so saving does not silently drop it
-  const systemOptions = useSystems().filter((s) => s.active || s.key === initial?.systemType);
+  const systemOptions = useSystems().filter((s) => s.active || s.key === initial?.systemType || s.key === defaultSystemType);
   return (
     <div className={`grid gap-3 sm:grid-cols-2 ${formFields}`}>
       <div className="space-y-1.5 sm:col-span-2">
@@ -26,8 +26,8 @@ function Fields({ initial }: { initial?: Service }) {
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="s-system">კატეგორია</Label>
-        <NativeSelect id="s-system" name="systemType" defaultValue={initial?.systemType ?? ""} className="w-full">
-          <NativeSelectOption value="">— კატეგორიის გარეშე —</NativeSelectOption>
+        <NativeSelect id="s-system" name="systemType" required defaultValue={initial?.systemType ?? defaultSystemType ?? ""} className="w-full">
+          <NativeSelectOption value="" disabled>— აირჩიეთ —</NativeSelectOption>
           {systemOptions.map((sys) => (
             <NativeSelectOption key={sys.key} value={sys.key}>
               {sys.name}
@@ -65,13 +65,13 @@ function Fields({ initial }: { initial?: Service }) {
   );
 }
 
-export function NewServiceDialog() {
+export function NewServiceDialog({ defaultSystemType, compact = false }: { defaultSystemType?: string; compact?: boolean }) {
   return (
     <FormDialog
-      trigger={<Button />}
+      trigger={compact ? <Button variant="ghost" size="sm" className="h-11 shrink-0 sm:h-8" /> : <Button />}
       triggerLabel={
         <>
-          <Plus className="size-4" /> ახალი სერვისი
+          <Plus className="size-4" /> {compact ? "სერვისი" : "ახალი სერვისი"}
         </>
       }
       title="ახალი სერვისი"
@@ -79,7 +79,7 @@ export function NewServiceDialog() {
       submitLabel="შენახვა"
       successMessage="სერვისი დაემატა"
     >
-      <Fields />
+      <Fields defaultSystemType={defaultSystemType} />
     </FormDialog>
   );
 }

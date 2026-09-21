@@ -20,7 +20,7 @@ export type ServiceOption = { id: number; name: string; unit: string; price: str
 const MANUAL = "__manual__";
 
 /** Billable lines. The order total follows this list, so the manager edits prices here. */
-export function OrderServices({ orderId, items, catalogue, readOnly, vatPercent }: { orderId: number; items: OrderItem[]; catalogue: ServiceOption[]; readOnly?: boolean; vatPercent?: string | number | null }) {
+export function OrderServices({ orderId, items, catalogue, readOnly, vatPercent, orderSystemType }: { orderId: number; orderSystemType?: string | null; items: OrderItem[]; catalogue: ServiceOption[]; readOnly?: boolean; vatPercent?: string | number | null }) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const busy = useRef(false);
@@ -29,7 +29,7 @@ export function OrderServices({ orderId, items, catalogue, readOnly, vatPercent 
   const [manual, setManual] = useState(false);
   const sums = vatBreakdown(items, vatPercent);
   const chosen = catalogue.find((c) => String(c.id) === picked);
-  const groups = useCategoryGroups(catalogue);
+  const groups = useCategoryGroups(catalogue, orderSystemType);
 
   function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -270,9 +270,12 @@ export function OrderServices({ orderId, items, catalogue, readOnly, vatPercent 
   );
 }
 
-/** The catalogue in the admin's category order; services without a category come last. */
-function useCategoryGroups(catalogue: ServiceOption[]) {
-  const systems = useSystems();
+/** Prefer the order category, keeping the admin order for all other groups. */
+function useCategoryGroups(catalogue: ServiceOption[], orderSystemType?: string | null) {
+  return categoryGroups(catalogue, useSystems(), orderSystemType);
+}
+
+function categoryGroups(catalogue: ServiceOption[], systems: { key: string; name: string }[], orderSystemType?: string | null) {
   const rank = new Map(systems.map((s, i) => [s.key, i]));
   const name = new Map(systems.map((s) => [s.key, s.name]));
   const byKey = new Map<string, ServiceOption[]>();
@@ -282,5 +285,8 @@ function useCategoryGroups(catalogue: ServiceOption[]) {
   }
   return [...byKey.entries()]
     .map(([key, items]) => ({ key, name: key ? name.get(key)! : "კატეგორიის გარეშე", items }))
-    .sort((a, b) => (a.key ? (rank.get(a.key) ?? 99) : 100) - (b.key ? (rank.get(b.key) ?? 99) : 100));
+    .sort((a, b) => {
+      const priority = (key: string) => key && key === orderSystemType ? -1 : (rank.get(key) ?? systems.length);
+      return priority(a.key) - priority(b.key);
+    });
 }

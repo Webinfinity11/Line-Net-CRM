@@ -14,7 +14,7 @@ const emptyToNull = (v: unknown) => (v === "" || v === undefined ? null : v);
 
 const serviceInput = z.object({
   name: z.string().trim().min(2, "დასახელება ძალიან მოკლეა").max(200),
-  systemType: z.preprocess(emptyToNull, systemSlug.nullable()),
+  systemType: z.string({ error: "აირჩიეთ კატეგორია" }).trim().min(1, "აირჩიეთ კატეგორია").pipe(systemSlug),
   unit: z.string().trim().min(1).max(30).default("ცალი"),
   price: z.coerce.number().min(0).max(99999999),
   description: z.preprocess(emptyToNull, z.string().max(1000).nullable()),

@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronDown, ChevronUp, Plus } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -13,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
-export type SystemAdminRow = { slug: string; name: string; sort: number; active: boolean; usage: number };
+export type SystemAdminRow = { slug: string; name: string; sort: number; active: boolean; services: number; orders: number };
 
 export function NewSystemDialog() {
   return (
@@ -40,6 +41,7 @@ export function NewSystemDialog() {
 
 /** One row of the catalogue: rename in place, move, hide, delete when unused. */
 export function SystemRow({ row, first, last }: { row: SystemAdminRow; first: boolean; last: boolean }) {
+  const usage = row.services + row.orders;
   const router = useRouter();
   const [pending, start] = useTransition();
   const [name, setName] = useState(row.name);
@@ -72,16 +74,23 @@ export function SystemRow({ row, first, last }: { row: SystemAdminRow; first: bo
           aria-label={`${row.name} დასახელება`}
           className="h-11 w-full min-w-0 border-transparent bg-transparent px-2 text-[16px] shadow-none hover:border-[#dbe1ec] hover:bg-[#f8faff] focus:border-[#dbe1ec] focus:bg-[#f8faff] focus-visible:border-[#dbe1ec] focus-visible:ring-2 focus-visible:ring-[#3457d5]/30 sm:flex-1 sm:text-[14px]"
         />
-        <div className="flex flex-wrap gap-x-2 px-2 text-[11.5px] text-muted-foreground sm:w-[210px] sm:shrink-0 sm:flex-nowrap sm:px-0">
-          <span>{row.usage > 0 ? `${row.usage} ჩანაწერი` : "არ გამოიყენება"}</span>
-          {!row.active && <span>გამორთული</span>}
+        <div className="flex flex-wrap gap-x-2 px-2 text-[11.5px] text-muted-foreground sm:w-[260px] sm:shrink-0 sm:flex-nowrap sm:px-0">
+          {usage > 0 ? (
+            <span className="flex items-center gap-x-1 whitespace-nowrap">
+              <Link href={`/settings/services?cat=${encodeURIComponent(row.slug)}`} className="inline-flex min-h-11 items-center text-[#3457d5] hover:underline sm:min-h-0">
+                {row.services} სერვისი
+              </Link>
+              <span>· {row.orders} შეკვეთა</span>
+            </span>
+          ) : <span>არ გამოიყენება</span>}
+          {!row.active && <span className="whitespace-nowrap">· გამორთული</span>}
         </div>
       </div>
       <CatalogueActions
         name={row.name} active={row.active} disabled={pending}
         toggle={() => setSystemActive(row.slug, !row.active)}
-        remove={row.usage === 0 ? () => deleteSystem(row.slug) : undefined}
-        deleteDisabledReason={row.usage > 0 ? "გამოყენებული კატეგორია არ იშლება" : undefined}
+        remove={usage === 0 ? () => deleteSystem(row.slug) : undefined}
+        deleteDisabledReason={usage > 0 ? "გამოყენებული კატეგორია არ იშლება" : undefined}
         deleteTitle="კატეგორიის წაშლა"
         deleteDescription={`„${row.name}“ სამუდამოდ წაიშლება. ეს შესაძლებელია, რადგან არსად არ გამოიყენება.`}
       >
