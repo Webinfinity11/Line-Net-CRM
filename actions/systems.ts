@@ -28,7 +28,7 @@ function revalidateAll() {
   for (const p of ["/settings/services/categories", "/orders", "/settings/services", "/", "/reports", "/maintenance"]) revalidatePath(p);
 }
 
-export async function createSystem(fd: FormData): Promise<ActionResult> {
+export async function createSystem(fd: FormData): Promise<ActionResult<{ slug: string }>> {
   if (!(await requireAdmin())) return { ok: false, error: "მხოლოდ ადმინს შეუძლია" };
   const parsed = nameInput.safeParse(fd.get("name"));
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "არასწორი დასახელება" };
@@ -39,7 +39,7 @@ export async function createSystem(fd: FormData): Promise<ActionResult> {
   while (existing.some((s) => s.slug === slug)) slug = `${slug}-2`;
   await db.insert(systems).values({ slug, name, sort: (existing.length + 1) * 10 });
   revalidateAll();
-  return { ok: true };
+  return { ok: true, data: { slug } };
 }
 
 export async function renameSystem(slug: string, name: string): Promise<ActionResult> {

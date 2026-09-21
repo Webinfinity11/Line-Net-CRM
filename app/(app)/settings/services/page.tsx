@@ -17,7 +17,13 @@ export default async function ServicesPage({ searchParams }: PageProps<"/setting
   const sp = await searchParams;
   const q = typeof sp.q === "string" ? sp.q : undefined;
   const cat = typeof sp.cat === "string" ? sp.cat : undefined;
-  const [all, labels, systems] = await Promise.all([listServices({ q, includeInactive: true }), systemLabels(), listSystems()]);
+  const [catalogue, labels, systems] = await Promise.all([listServices({ includeInactive: true }), systemLabels(), listSystems()]);
+  // search looks at the category name too: typing a category finds it, even before it has services
+  const needle = q?.trim().toLowerCase() || undefined;
+  const catHit = (key: string) => !!needle && (labels[key] ?? "").toLowerCase().includes(needle);
+  const all = needle
+    ? catalogue.filter((r) => r.name.toLowerCase().includes(needle) || (r.description ?? "").toLowerCase().includes(needle) || (!!r.systemType && catHit(r.systemType)))
+    : catalogue;
   const keyOf = (r: (typeof all)[number]) => (r.systemType && labels[r.systemType] ? r.systemType : NONE);
   const rows = cat ? all.filter((r) => keyOf(r) === cat) : all;
   const active = rows.filter((r) => r.active).length;
@@ -26,14 +32,14 @@ export default async function ServicesPage({ searchParams }: PageProps<"/setting
   const order = new Map(systems.map((s, i) => [s.key, i]));
   const rank = (key: string) => (key === NONE ? 1000 : (order.get(key) ?? 999));
   const byKey = new Map<string, typeof rows>();
-  // a category without services yet is exactly where the first one gets added, so it keeps its group (not while searching)
-  if (!q) for (const s of systems) if (s.active && (!cat || cat === s.key)) byKey.set(s.key, []);
+  // a category without services yet is exactly where the first one gets added, so it keeps its group
+  for (const s of systems) if (s.active && (!needle || catHit(s.key)) && (!cat || cat === s.key)) byKey.set(s.key, []);
   for (const r of rows) byKey.set(keyOf(r), [...(byKey.get(keyOf(r)) ?? []), r]);
   const groups = [...byKey.entries()]
     .map(([key, items]) => ({ key, name: key === NONE ? "კატეგორიის გარეშე" : labels[key], items }))
     .sort((a, b) => rank(a.key) - rank(b.key));
   const counts = new Map<string, number>();
-  for (const s of systems) if (s.active) counts.set(s.key, 0);
+  for (const s of systems) if (s.active && (!needle || catHit(s.key))) counts.set(s.key, 0);
   for (const r of all) counts.set(keyOf(r), (counts.get(keyOf(r)) ?? 0) + 1);
   const categories = [...counts.entries()]
     .map(([key, n]) => ({ key, n, name: key === NONE ? "კატეგორიის გარეშე" : labels[key] }))

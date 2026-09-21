@@ -17,6 +17,8 @@ import { cn } from "@/lib/utils";
 export type SystemAdminRow = { slug: string; name: string; sort: number; active: boolean; services: number; orders: number };
 
 export function NewSystemDialog() {
+  const router = useRouter();
+  const created = useRef<string | null>(null);
   return (
     <FormDialog
       trigger={<Button />}
@@ -27,9 +29,15 @@ export function NewSystemDialog() {
       }
       title="ახალი კატეგორია"
       description="მაგ. მზის პანელები, ვენტილაცია, ჭკვიანი სახლი"
-      action={createSystem}
+      action={async (fd) => {
+        const res = await createSystem(fd);
+        created.current = res.ok ? (res.data?.slug ?? null) : null;
+        return res;
+      }}
+      // straight to the new, still empty category, where its first service is added
+      onSuccess={() => created.current && router.push(`/settings/services?cat=${encodeURIComponent(created.current)}`)}
       submitLabel="დამატება"
-      successMessage="კატეგორია დაემატა"
+      successMessage="კატეგორია დაემატა. დაამატეთ მისი პირველი სერვისი."
     >
       <div className="space-y-1.5">
         <Label htmlFor="sys-name">დასახელება</Label>
