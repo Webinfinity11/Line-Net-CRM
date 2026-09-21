@@ -128,6 +128,7 @@ export default async function OrdersPage({ searchParams }: PageProps<"/orders">)
 
   return (
     <div className="space-y-4">
+      <div className="max-md:[&>div]:gap-2 max-md:[&>div]:flex-nowrap max-md:[&_h1]:text-[20px]">
       <PageHeader
         title={t.order.many}
         subtitle={`სულ ${pageData.total} შეკვეთა`}
@@ -136,26 +137,27 @@ export default async function OrdersPage({ searchParams }: PageProps<"/orders">)
             <div className="flex rounded-lg border border-[#e6ebf2] bg-white p-0.5">
               <Link
                 href={hrefWith({ view: null })}
-                className={cn("rounded-md p-1.5", view === "list" ? "bg-[#3457d5] text-white" : "text-muted-foreground hover:bg-[#f8faff]")}
+                className={cn("rounded-md p-1.5 max-md:size-11 max-md:grid max-md:place-items-center", view === "list" ? "bg-[#3457d5] text-white" : "text-muted-foreground hover:bg-[#f8faff]")}
                 title="სია"
               >
                 <List className="size-4" />
               </Link>
               <Link
                 href={hrefWith({ view: "kanban" })}
-                className={cn("rounded-md p-1.5", view === "kanban" ? "bg-[#3457d5] text-white" : "text-muted-foreground hover:bg-[#f8faff]")}
+                className={cn("rounded-md p-1.5 max-md:size-11 max-md:grid max-md:place-items-center", view === "kanban" ? "bg-[#3457d5] text-white" : "text-muted-foreground hover:bg-[#f8faff]")}
                 title="Kanban"
               >
                 <LayoutGrid className="size-4" />
               </Link>
             </div>
-            <Button render={<Link href="/orders/new" />}>
-              <Plus className="size-4" /> {t.order.new}
+            <Button aria-label={t.order.new} className="max-md:size-11 max-md:p-0" render={<Link href="/orders/new" />}>
+              <Plus className="size-4" /> <span className="max-md:hidden">{t.order.new}</span>
             </Button>
           </>
         }
       />
 
+      </div>
       <StatusCards counts={summary.counts} flow={summary.flow} activeStatus={CARD_STATUSES.includes(status as OrderStatus) ? status : undefined} hrefFor={(s) => hrefWith({ status: s, view: null })} />
 
       <OrdersToolbar

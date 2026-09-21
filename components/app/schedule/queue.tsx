@@ -22,19 +22,21 @@ export function Queue({ items, day, executors, normHours }: { items: QueueItem[]
     return <div className="rounded-md border border-dashed border-[#e6ebf2] px-3 py-8 text-center text-xs text-muted-foreground">რიგი ცარიელია</div>;
   }
   return (
-    <div className="space-y-2">
+    // a divided list, not boxes: the queue already sits inside a card
+    <div className="divide-y divide-[#eef1f6]">
       {items.map((o) => (
-        <div key={o.id} className="rounded-md border border-[#e6ebf2] bg-white p-[13px] text-xs transition-[border-color,box-shadow] duration-150 hover:border-[#c9d3e3] hover:shadow-[0_4px_14px_rgba(38,57,104,0.06)]">
+        <div key={o.id} className="py-3 text-xs first:pt-0 last:pb-0">
           <Link href={`/orders/${o.id}`} className="block text-[13px] font-medium leading-snug text-foreground hover:text-[#3457d5]">
             {o.title}
           </Link>
           <div className="mt-1 leading-relaxed text-muted-foreground">
-            {o.number} · {o.client ?? "—"} · ვადა {o.dueDate ? formatDate(o.dueDate) : "—"}
+            {o.number} · {o.client ?? "—"}
+            {o.dueDate ? ` · ვადა ${formatDate(o.dueDate)}` : ""}
             {o.scheduled ? " · დღეს, დაუნიშნავი" : ""}
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <SystemBadge system={o.systemType} />
-            <PriorityLabel priority={o.priority} className="text-[11px]" />
+            {o.priority !== "normal" && <PriorityLabel priority={o.priority} className="text-[11px]" />}
             <div className="ml-auto">
               <AssignDialog orderId={o.id} title={o.title} systemType={o.systemType} executors={executors} normHours={normHours} defaultAssigneeId={o.currentAssigneeId} defaultDate={day} defaultTime={null} className="h-10 md:h-8" />
             </div>

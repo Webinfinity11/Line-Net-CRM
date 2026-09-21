@@ -33,7 +33,7 @@ function Counter({
 }) {
   const body = (
     <>
-      <span className={cn("tabular font-heading text-[22px] font-semibold leading-none", alert && value > 0 ? "text-[#b13f32]" : "text-foreground")}>{value}</span>
+      <span className={cn("tabular font-heading text-[22px] font-semibold leading-none", alert && value > 0 ? "text-[#b13f32] max-md:text-foreground" : "text-foreground")}>{value}</span>
       <span className="truncate text-[11px] leading-tight text-muted-foreground">{label}</span>
     </>
   );
@@ -109,8 +109,8 @@ export function DashboardBoard({
         ) : focus ? (
           <div className="flex min-w-0 flex-1 flex-col items-stretch gap-2 border-t border-[#eef1f6] pt-3 sm:flex-row sm:items-center sm:justify-end sm:border-0 sm:pt-0">
             <span className="flex min-w-0 items-center gap-2 text-[12.5px]">
-              <span className="size-2 shrink-0 rounded-full bg-[#b13f32]" />
-              <span className="truncate">
+              <span className="size-2 shrink-0 rounded-full bg-[#b13f32] max-md:bg-[#93a0b0]" />
+              <span className="truncate max-md:whitespace-normal max-md:break-words">
                 <span className="text-[#b13f32]">{focus.kind === "urgent" ? "სასწრაფო:" : "ვადაგადაცილებული:"}</span> {focus.order.title}
                 {focus.more > 0 && <span className="ml-1 text-muted-foreground">+{focus.more}</span>}
               </span>
@@ -136,10 +136,10 @@ export function DashboardBoard({
 
       {/* zone 2 — the day */}
       <div className="ln-enter ln-enter-2 grid items-start gap-4 xl:grid-cols-[minmax(0,8fr)_minmax(0,4fr)]">
-        <section className="ln-card min-w-0 p-6" aria-label="დღევანდელი განრიგი">
+        <section className="ln-card min-w-0 p-6 max-md:p-4" aria-label="დღევანდელი განრიგი">
           <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
             <h2 className="font-heading text-[15px]">{toMtavruli("დღევანდელი განრიგი")}</h2>
-            <Link href="/schedule" className="inline-flex items-center gap-1 text-[11.5px] text-[#3457d5] hover:underline">
+            <Link href="/schedule" className="inline-flex max-md:min-h-[44px] items-center gap-1 text-[11.5px] text-[#3457d5] hover:underline">
               სრული განრიგი <ArrowRight className="size-3" />
             </Link>
           </div>
@@ -147,7 +147,7 @@ export function DashboardBoard({
           {laneRows.length === 0 || blocks.length === 0 ? (
             <div className="rounded-[14px] border border-dashed border-[#e6ebf2] px-4 py-6 text-center">
               <p className="text-[12.5px] text-muted-foreground">დღეს დაგეგმილი ვიზიტი არ არის.</p>
-              <Link href="/schedule" className="mt-2 inline-flex items-center gap-1 text-[12px] font-medium text-[#3457d5] hover:underline">
+              <Link href="/schedule" className="mt-2 inline-flex max-md:min-h-[44px] items-center gap-1 text-[12px] font-medium text-[#3457d5] hover:underline">
                 დაგეგმე დღე <ArrowRight className="size-3.5" />
               </Link>
             </div>
@@ -182,11 +182,11 @@ export function DashboardBoard({
                             <button
                               type="button"
                               onClick={() => setSelectedId(b.id)}
-                              className="flex w-full items-center gap-2 rounded-[8px] px-2 py-1.5 text-left text-[12.5px]"
+                              className="flex min-h-[44px] w-full items-center gap-2 rounded-[8px] px-2 py-1.5 text-left text-[12.5px]"
                               style={{ background: STATUS_TINT[b.status], borderLeft: `3px solid ${STATUS_HEX[b.status]}` }}
                             >
                               <span className="tabular shrink-0 font-medium">{b.timeLabel}</span>
-                              <span className="truncate">{b.title}</span>
+                              <span className="truncate max-md:whitespace-normal max-md:break-words">{b.title}</span>
                             </button>
                           </li>
                         ))}
@@ -241,7 +241,7 @@ export function DashboardBoard({
                                 borderLeft: `3px solid ${STATUS_HEX[b.status]}`,
                               }}
                             >
-                              <span className="truncate">
+                              <span className="truncate max-md:whitespace-normal max-md:break-words">
                                 <span className="tabular text-muted-foreground">{b.timeLabel}</span> {b.title}
                               </span>
                             </button>
@@ -256,7 +256,7 @@ export function DashboardBoard({
           )}
         </section>
 
-        <section className="ln-card min-w-0 p-6" aria-label="დღევანდელი შედეგი">
+        <section className="ln-card min-w-0 p-6 max-md:p-4" aria-label="დღევანდელი შედეგი">
           <h2 className="mb-5 font-heading text-[15px]">{toMtavruli("დღევანდელი დღე")}</h2>
           <dl className="space-y-4">
             {[

@@ -1,10 +1,10 @@
-import { Mail, XCircle } from "lucide-react";
+import { Building2, Mail, XCircle } from "lucide-react";
 import { notFound } from "next/navigation";
 import { setStatus, updateOrder } from "@/actions/orders";
 import { ConfirmButton } from "@/components/app/confirm-button";
 import { OrderForm } from "@/components/app/order-form";
 import { PageHeader } from "@/components/app/page-header";
-import { t } from "@/lib/i18n";
+import { formatDate, t } from "@/lib/i18n";
 import { getOrder, listAssignableUsers, listClientsWithSites } from "@/lib/orders";
 import { toMtavruli } from "@/lib/mtavruli";
 import { requireUser } from "@/lib/session";
@@ -20,6 +20,8 @@ export default async function EditOrderPage({ params }: PageProps<"/orders/[id]/
   if (!order) notFound();
 
   const triage = !order.triaged;
+  // a request from the client portal has no letter behind it: name it for what it is
+  const fromPortal = order.source === "portal";
   const action = updateOrder.bind(null, order.id);
   const form = (
     <OrderForm
@@ -62,11 +64,11 @@ export default async function EditOrderPage({ params }: PageProps<"/orders/[id]/
     <div className="space-y-4">
       <PageHeader
         kicker={order.number}
-        title="წერილის დამუშავება"
-        subtitle="შეავსეთ კლიენტი, ობიექტი და შემსრულებელი. დანარჩენი ველები დამატებით პარამეტრებშია."
+        title={fromPortal ? "მოთხოვნის დამუშავება" : "წერილის დამუშავება"}
+        subtitle="აირჩიეთ კლიენტი, ობიექტი და შემსრულებელი. დანარჩენი ველები დამატებით პარამეტრებშია."
         actions={
           <ConfirmButton
-            title="წერილის გაუქმება"
+            title={fromPortal ? "მოთხოვნის გაუქმება" : "წერილის გაუქმება"}
             description="შეკვეთა გადავა „გაუქმებული“ სტატუსში და შემოსულებიდან წაიშლება."
             confirmLabel="გაუქმება"
             variant="outline"
@@ -79,18 +81,19 @@ export default async function EditOrderPage({ params }: PageProps<"/orders/[id]/
       />
 
       <div className="grid gap-4 xl:grid-cols-[minmax(260px,3fr)_minmax(0,9fr)]">
-        <aside className="ln-card h-fit p-5 xl:sticky xl:top-[84px]" aria-label="შემოსული წერილი">
+        <aside className="ln-card h-fit p-5 xl:sticky xl:top-[84px]" aria-label={fromPortal ? "კაბინეტიდან შემოსული" : "შემოსული წერილი"}>
           <h2 className="mb-3 flex items-center gap-2 font-heading text-[15px]">
-            <Mail className="size-4 text-muted-foreground [stroke-width:1.7]" /> {toMtavruli("შემოსული წერილი")}
+            {fromPortal ? <Building2 className="size-4 text-muted-foreground [stroke-width:1.7]" /> : <Mail className="size-4 text-muted-foreground [stroke-width:1.7]" />}
+            {toMtavruli(fromPortal ? "კაბინეტიდან შემოსული" : "შემოსული წერილი")}
           </h2>
           <dl className="space-y-2 text-[12.5px]">
             <div>
-              <dt className="text-[11px] text-muted-foreground">გამომგზავნი</dt>
-              <dd className="break-all">{order.emailFrom ?? "—"}</dd>
+              <dt className="text-[11px] text-muted-foreground">{fromPortal ? "კომპანია" : "გამომგზავნი"}</dt>
+              <dd className="break-all">{(fromPortal ? order.client?.name : order.emailFrom) ?? "—"}</dd>
             </div>
             <div>
-              <dt className="text-[11px] text-muted-foreground">თემა</dt>
-              <dd>{order.emailSubject ?? "—"}</dd>
+              <dt className="text-[11px] text-muted-foreground">{fromPortal ? "გამოგზავნილია" : "თემა"}</dt>
+              <dd>{fromPortal ? formatDate(order.createdAt, true) : (order.emailSubject ?? "—")}</dd>
             </div>
           </dl>
           {order.description && (

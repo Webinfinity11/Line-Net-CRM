@@ -55,8 +55,8 @@ export function Comments({ orderId, comments, meId }: { orderId: number; comment
             return (
               <div key={c.id} className={cn("flex gap-2.5", mine && "flex-row-reverse")}>
                 <UserAvatar name={c.user?.name ?? "?"} image={c.user?.image} size="md" />
-                <div className={cn("max-w-[85%] rounded-xl px-3 py-2 text-sm", mine ? "bg-[#3457d5] text-white" : "bg-neutral-100 dark:bg-neutral-800")}>
-                  <div className={cn("mb-0.5 text-[11px]", mine ? "text-blue-100" : "text-muted-foreground")}>
+                <div className={cn("max-w-[85%] rounded-xl px-3 py-2 text-sm", mine ? "bg-[#3457d5] text-white" : "bg-[#f1f4f9] dark:bg-neutral-800")}>
+                  <div className={cn("mb-0.5 text-[11px]", mine ? "text-white/75" : "text-muted-foreground")}>
                     {c.user?.name ?? "—"} · {formatDate(c.createdAt, true)}
                   </div>
                   <div className="whitespace-pre-wrap">{c.body}</div>

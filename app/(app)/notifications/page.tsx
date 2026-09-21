@@ -1,4 +1,4 @@
-import { Bell, CalendarClock, CircleCheck, Mail, UserPlus } from "lucide-react";
+import { Bell, Building2, CalendarClock, CircleCheck, Mail, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { MarkAllReadButton } from "@/components/app/mark-all-read";
 import { PageHeader } from "@/components/app/page-header";
@@ -16,6 +16,7 @@ const ICONS: Record<string, typeof Bell> = {
   assigned: UserPlus,
   done: CircleCheck,
   email: Mail,
+  portal: Building2,
   schedule: CalendarClock,
 };
 

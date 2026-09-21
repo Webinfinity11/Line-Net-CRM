@@ -1,5 +1,4 @@
 import type { SystemType } from "@/db/schema";
-import { SYSTEM_LABELS } from "@/lib/i18n";
 import { JobIcon } from "./job-icon";
 
 /** Tiny inline trend line. Pure SVG: no library, no layout shift. */
@@ -28,7 +27,7 @@ function Bar({ pct, color, delay = 0 }: { pct: number; color: string; delay?: nu
 }
 
 /** Orders per system, with the system's own icon on each row. */
-export function SystemBars({ rows }: { rows: { system: SystemType | null; n: number }[] }) {
+export function SystemBars({ rows, labels }: { rows: { system: SystemType | null; n: number }[]; labels: Record<string, string> }) {
   if (rows.length === 0) return <p className="py-8 text-center text-[12.5px] text-muted-foreground">ამ პერიოდში შეკვეთა არ არის</p>;
   const max = Math.max(...rows.map((r) => r.n));
   return (
@@ -38,7 +37,7 @@ export function SystemBars({ rows }: { rows: { system: SystemType | null; n: num
           <JobIcon system={r.system} className="size-8 rounded-[10px]" />
           <div className="min-w-0 flex-1">
             <div className="mb-1 flex items-center justify-between gap-2">
-              <span className="truncate text-[12.5px]">{r.system ? SYSTEM_LABELS[r.system] : "სისტემის გარეშე"}</span>
+              <span className="truncate text-[12.5px]">{r.system ? (labels[r.system] ?? r.system) : "კატეგორიის გარეშე"}</span>
               <span className="tabular shrink-0 text-[12.5px] font-semibold">{r.n}</span>
             </div>
             <Bar pct={(r.n / max) * 100} color="#3457d5" delay={i * 70} />

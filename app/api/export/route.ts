@@ -1,8 +1,9 @@
 import * as XLSX from "xlsx";
 import { materialsCost } from "@/lib/finance";
-import { PAYMENT_LABELS, PRIORITY_LABELS, STATUS_LABELS, SYSTEM_LABELS, TYPE_LABELS } from "@/lib/i18n";
+import { PAYMENT_LABELS, PRIORITY_LABELS, STATUS_LABELS, TYPE_LABELS } from "@/lib/i18n";
 import { clientsForExport, defaultPeriod, ordersForExport, reportByClient, reportByExecutor, reportBySystem, reportMonthly, type Period } from "@/lib/reports";
 import { getSession, isStaff } from "@/lib/session";
+import { systemLabels } from "@/lib/systems";
 
 function fmtDate(d: Date | string | null | undefined) {
   if (!d) return "";
@@ -40,6 +41,7 @@ export async function GET(req: Request) {
   const type = url.searchParams.get("type") ?? "orders";
   const p = period(url);
   const suffix = `${p.from}_${p.to}`;
+  const SYSTEM_LABELS = await systemLabels();
 
   switch (type) {
     case "orders": {
@@ -54,7 +56,7 @@ export async function GET(req: Request) {
               სათაური: o.title,
               სტატუსი: STATUS_LABELS[o.status],
               ტიპი: TYPE_LABELS[o.type],
-              სისტემა: o.systemType ? SYSTEM_LABELS[o.systemType] : "",
+              კატეგორია: o.systemType ? SYSTEM_LABELS[o.systemType] : "",
               პრიორიტეტი: PRIORITY_LABELS[o.priority],
               კლიენტი: o.client?.name ?? "",
               ობიექტი: o.site?.name ?? "",
@@ -96,7 +98,7 @@ export async function GET(req: Request) {
     }
     case "systems": {
       const rows = await reportBySystem(p);
-      return xlsx([{ name: "სისტემები", rows: rows.map((r) => ({ სისტემა: r.system ? SYSTEM_LABELS[r.system] : "—", შეკვეთები: r.total, შესრულებული: r.completed, თანხა: r.amount, გადახდილი: r.paid })) }], `report-systems-${suffix}.xlsx`);
+      return xlsx([{ name: "კატეგორიები", rows: rows.map((r) => ({ კატეგორია: r.system ? SYSTEM_LABELS[r.system] : "—", შეკვეთები: r.total, შესრულებული: r.completed, თანხა: r.amount, გადახდილი: r.paid })) }], `report-systems-${suffix}.xlsx`);
     }
     case "monthly": {
       const r = await reportMonthly(12);

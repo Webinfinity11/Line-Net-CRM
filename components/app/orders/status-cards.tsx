@@ -48,7 +48,7 @@ export function StatusCards({
   hrefFor: (status: OrderStatus) => string;
 }) {
   return (
-    <div className="grid grid-cols-2 gap-2.5 sm:gap-3 xl:grid-cols-4">
+    <div className="grid grid-cols-2 max-md:grid-cols-2 max-md:gap-1.5 gap-2.5 sm:gap-3 xl:grid-cols-4">
       {CARDS.map((c) => {
         const f = c.flow ? flow[c.flow] : null;
         return (
@@ -57,19 +57,19 @@ export function StatusCards({
             href={hrefFor(c.key)}
             aria-current={activeStatus === c.key ? "page" : undefined}
             className={cn(
-              "overflow-hidden ln-card transition-[box-shadow,border-color] duration-150 hover:border-[#c9d3e3] hover:shadow-[0_4px_14px_rgba(38,57,104,0.06)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3457d5]",
+              "overflow-hidden ln-card max-md:min-w-0 max-md:rounded-[12px] max-md:flex max-md:min-h-[44px] max-md:items-center max-md:justify-between max-md:gap-1 max-md:px-3 transition-[box-shadow,border-color] duration-150 hover:border-[#c9d3e3] hover:shadow-[0_4px_14px_rgba(38,57,104,0.06)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3457d5]",
               activeStatus === c.key && "border-[#3457d5] ring-2 ring-[#3457d5]",
             )}
           >
-            <div className="truncate px-3 py-2 text-[12px] font-medium text-[#17212b] sm:px-4" style={{ background: c.tint }}>
+            <div className="truncate max-md:overflow-visible max-md:whitespace-nowrap max-md:px-0 max-md:py-2 max-md:text-[11px] max-md:!bg-transparent px-3 py-2 text-[12px] font-medium text-[#17212b] sm:px-4" style={{ background: c.tint }}>
               {STATUS_LABELS[c.key]}
             </div>
-            <div className="flex items-end justify-between gap-2 px-3 py-2.5 sm:px-4 sm:py-3">
+            <div className="flex max-md:justify-center max-md:px-1 max-md:py-2 items-end justify-between gap-2 px-3 py-2.5 sm:px-4 sm:py-3">
               <div className="min-w-0">
-                <div className="tabular font-heading text-[24px] font-bold leading-none text-foreground sm:text-[28px]">{counts[c.key] ?? 0}</div>
-                <div className="mt-1.5 truncate text-[11px] text-muted-foreground">{f && c.caption ? `${c.caption} ${f.now}` : "მიმდინარე ჯამი"}</div>
+                <div className="tabular max-md:text-center max-md:text-[16px] font-heading text-[24px] font-bold leading-none text-foreground sm:text-[28px]">{counts[c.key] ?? 0}</div>
+                <div className="max-md:hidden mt-1.5 truncate text-[11px] text-muted-foreground">{f && c.caption ? `${c.caption} ${f.now}` : "მიმდინარე ჯამი"}</div>
               </div>
-              {f ? <div className="hidden sm:block">{<Trend flow={f} />}</div> : null}
+              {f ? <div className="hidden md:block">{<Trend flow={f} />}</div> : null}
             </div>
           </Link>
         );

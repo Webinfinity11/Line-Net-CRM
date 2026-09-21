@@ -42,7 +42,7 @@ export default async function ClientsPage({ searchParams }: PageProps<"/clients"
         title={t.nav.clients}
         subtitle={q ? `„${q}“ · ნაპოვნია ${rows.length}` : `${rows.length} კლიენტი`}
         actions={
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 max-md:[&_button]:h-11 max-md:[&_a]:h-11">
             <ImportClientsDialog />
             <Button render={<a href="/api/export?type=clients-list" />} variant="outline" size="sm" className="h-10 sm:h-8">
               <Download className="size-4" /> Excel
@@ -74,11 +74,11 @@ export default async function ClientsPage({ searchParams }: PageProps<"/clients"
             className="h-11 w-full rounded-full border border-[#e6ebf2] bg-[#f8faff] pl-9 pr-4 text-[16px] outline-none transition focus:border-[#7f97e6] focus:bg-white sm:h-9 sm:text-[13px]"
           />
         </div>
-        <Button type="submit" variant="outline" size="sm" className="h-10 flex-1 sm:h-8 sm:flex-none">
+        <Button type="submit" variant="outline" size="sm" className="h-11 flex-1 md:h-8 md:flex-none">
           ძებნა
         </Button>
         {q && (
-          <Button render={<Link href="/clients" />} variant="ghost" size="sm" className="h-10 flex-1 sm:h-8 sm:flex-none">
+          <Button render={<Link href="/clients" />} variant="ghost" size="sm" className="h-11 flex-1 md:h-8 md:flex-none">
             გასუფთავება
           </Button>
         )}
@@ -92,7 +92,7 @@ export default async function ClientsPage({ searchParams }: PageProps<"/clients"
         />
       ) : (
         <div className={cn(tableCls.wrap, "ln-enter ln-enter-2")}>
-          <DataList className="px-4 py-2">
+          <DataList className="px-4 py-2 sm:block md:hidden">
             {rows.map((c) => (
               <DataRow
                 key={c.id}
@@ -110,7 +110,7 @@ export default async function ClientsPage({ searchParams }: PageProps<"/clients"
               />
             ))}
           </DataList>
-          <div className={cn(tableCls.scroll, "hidden sm:block")}>
+          <div className={cn(tableCls.scroll, "hidden md:block")}>
             <table className={tableCls.table}>
               <thead className={tableCls.head}>
                 <tr>

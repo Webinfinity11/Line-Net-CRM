@@ -15,14 +15,14 @@ export function MailSyncStatus({ state, canManage }: { state: MailSyncState; can
   const router = useRouter();
   const [pending, start] = useTransition();
   const connectButton = (
-    <Button size="sm" className="h-11 w-full sm:h-8 sm:w-auto" disabled={pending || !state.canConnect} onClick={() => start(() => connectOutlook())}>
-      <Mail className="size-4" /> {state.configured ? "ხელახლა დაკავშირება" : "Outlook ფოსტის დაკავშირება"}
+    <Button size="sm" className="h-11 w-full sm:h-8 sm:w-auto max-md:w-full max-md:flex-none max-md:whitespace-nowrap" disabled={pending || !state.canConnect} onClick={() => start(() => connectOutlook())}>
+      <Mail className="size-4 shrink-0" /> {state.configured ? "ხელახლა დაკავშირება" : "Outlook ფოსტის დაკავშირება"}
     </Button>
   );
 
   if (!state.configured) {
     return (
-      <div className="ln-card ln-enter p-5">
+      <div className="ln-card ln-enter p-5 max-md:p-4">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-2xl space-y-1.5">
             <h2 className="flex items-center gap-2 font-heading text-[15px]"><Mail className="size-4 text-[#3457d5] [stroke-width:1.7]" /> {toMtavruli('Outlook ფოსტა')}</h2>
@@ -37,7 +37,7 @@ export function MailSyncStatus({ state, canManage }: { state: MailSyncState; can
             {state.missing.connect.length > 0 && (
               <p className="mt-1.5">
                 შესავსებია:{" "}
-                <span className="font-mono">{state.missing.connect.join(", ")}</span>
+                <span className="font-mono max-md:break-all">{state.missing.connect.join(", ")}</span>
               </p>
             )}
             <p className="mt-1.5 opacity-80">ინსტრუქცია: docs/06-outlook-personal-setup.md (პირადი Outlook) ან docs/03-microsoft-365-setup.md (კომპანიის ყუთი).</p>
@@ -50,14 +50,14 @@ export function MailSyncStatus({ state, canManage }: { state: MailSyncState; can
   }
 
   return (
-    <div className="ln-card ln-enter space-y-3 p-5">
+    <div className="ln-card ln-enter space-y-3 p-5 max-md:p-4 max-md:break-words">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0 space-y-1">
           <p className="flex items-center gap-2 text-[13px] font-medium"><Mail className="size-4 shrink-0 text-[#3457d5] [stroke-width:1.7]" /><span className="break-all">{state.mailbox}</span></p>
           <p className="text-[11.5px] text-muted-foreground">ბოლო შემოწმება: {state.lastRunAt ? formatDate(state.lastRunAt, true) : "ჯერ არ შემოწმებულა"}</p>
           <p className="text-[11.5px] text-muted-foreground">{state.automatic ? "ავტომატური შემოწმება ყოველ 5 წუთში, სერვერის მუშაობისას." : "ავტომატური შემოწმება გამორთულია. გამოიყენეთ „შემოწმება ახლა“."}</p>
         </div>
-        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto max-md:flex-col max-md:items-stretch max-md:[&>button]:w-full max-md:[&>button]:flex-none max-md:[&>button]:min-h-[44px]">
           <Button size="sm" variant="outline" className="h-11 flex-1 sm:h-8 sm:flex-none" disabled={pending} onClick={() => start(async () => {
             const res = await pollMailNow();
             if (!res.ok) toast.error(res.error);
@@ -68,7 +68,7 @@ export function MailSyncStatus({ state, canManage }: { state: MailSyncState; can
           </Button>
           {canManage && state.mode === "outlook" && <>
             {connectButton}
-            <ConfirmButton title="Outlook ფოსტის გათიშვა" description="ახალი წერილების მიღება შეჩერდება. უკვე შემოტანილი შეკვეთები დარჩება CRM-ში. Microsoft-ის ანგარიშში გაცემული ნებართვის გაუქმება ცალკე შეგიძლიათ." confirmLabel="გათიშვა" variant="outline" action={disconnectOutlook}>
+            <ConfirmButton title="Outlook ფოსტის გათიშვა" description="ახალი წერილების მიღება შეჩერდება. უკვე შემოტანილი შეკვეთები დარჩება CRM-ში. Microsoft-ის ანგარიშში გაცემული ნებართვის გაუქმება ცალკე შეგიძლიათ." confirmLabel="გათიშვა" className="max-md:border-transparent max-md:bg-transparent max-md:text-muted-foreground max-md:shadow-none" variant="outline" action={disconnectOutlook}>
               <Unplug className="size-3" /> გათიშვა
             </ConfirmButton>
           </>}

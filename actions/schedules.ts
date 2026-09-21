@@ -4,7 +4,8 @@ import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/db";
-import { frequencyEnum, serviceSchedules, systemTypeEnum } from "@/db/schema";
+import { frequencyEnum, serviceSchedules } from "@/db/schema";
+import { systemSlug } from "@/lib/systems";
 import { generateDueOrders } from "@/lib/schedules";
 import { getSession, isStaff } from "@/lib/session";
 import type { ActionResult } from "./orders";
@@ -14,7 +15,7 @@ const emptyToNull = (v: unknown) => (v === "" || v === undefined ? null : v);
 const input = z.object({
   clientId: z.coerce.number().int().positive("კლიენტი სავალდებულოა"),
   siteId: z.preprocess(emptyToNull, z.coerce.number().int().positive().nullable()),
-  systemType: z.enum(systemTypeEnum.enumValues),
+  systemType: systemSlug,
   title: z.string().trim().min(2, "სათაური ძალიან მოკლეა").max(200),
   description: z.preprocess(emptyToNull, z.string().max(5000).nullable()),
   frequency: z.enum(frequencyEnum.enumValues),
@@ -33,7 +34,7 @@ async function requireStaff() {
 function parse(fd: FormData) {
   const obj: Record<string, unknown> = Object.fromEntries([...fd.entries()].filter(([k, v]) => typeof v === "string" && k !== "assigneeIds"));
   obj.assigneeIds = fd.getAll("assigneeIds").filter((v): v is string => typeof v === "string");
-  return input.safeParse(obj);
+  return input.safeParseAsync(obj);
 }
 
 function revalidate() {
@@ -44,7 +45,7 @@ function revalidate() {
 
 export async function createSchedule(fd: FormData): Promise<ActionResult<{ id: number }>> {
   await requireStaff();
-  const parsed = parse(fd);
+  const parsed = await parse(fd);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "არასწორი მონაცემები" };
   const v = parsed.data;
   const [row] = await db
@@ -57,7 +58,7 @@ export async function createSchedule(fd: FormData): Promise<ActionResult<{ id: n
 
 export async function updateSchedule(id: number, fd: FormData): Promise<ActionResult> {
   await requireStaff();
-  const parsed = parse(fd);
+  const parsed = await parse(fd);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "არასწორი მონაცემები" };
   const v = parsed.data;
   await db

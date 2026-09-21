@@ -1,11 +1,12 @@
 "use client";
 
-import { ChevronDown, ChevronUp, Eye, EyeOff, Plus, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { createSystem, deleteSystem, moveSystem, renameSystem, setSystemActive } from "@/actions/systems";
-import { ConfirmButton } from "@/components/app/confirm-button";
+import { CatalogueActions } from "@/components/app/service-toggle";
+import { DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { FormDialog } from "@/components/app/form-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,14 +21,14 @@ export function NewSystemDialog() {
       trigger={<Button />}
       triggerLabel={
         <>
-          <Plus className="size-4" /> ახალი სისტემა
+          <Plus className="size-4" /> ახალი კატეგორია
         </>
       }
-      title="ახალი სისტემა"
+      title="ახალი კატეგორია"
       description="მაგ. მზის პანელები, ვენტილაცია, ჭკვიანი სახლი"
       action={createSystem}
       submitLabel="დამატება"
-      successMessage="სისტემა დაემატა"
+      successMessage="კატეგორია დაემატა"
     >
       <div className="space-y-1.5">
         <Label htmlFor="sys-name">დასახელება</Label>
@@ -60,75 +61,38 @@ export function SystemRow({ row, first, last }: { row: SystemAdminRow; first: bo
   }
 
   return (
-    // phone: the name owns the first line, everything else sits under it; sm+ folds back into one row
-    <div className={cn("grid gap-2 border-t border-[#eef1f6] py-2.5 first:border-t-0 sm:flex sm:items-center", !row.active && "opacity-60")}>
-      <Input
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        onBlur={() => name.trim() !== row.name && name.trim().length >= 2 && run(() => renameSystem(row.slug, name.trim()), "შენახულია")}
-        aria-label={`${row.name} დასახელება`}
-        className="h-11 w-full min-w-0 text-[16px] sm:order-2 sm:h-9 sm:flex-1 sm:text-[13px]"
-      />
-
-      <div className="flex items-center gap-2 sm:contents">
-        <div className="flex shrink-0 gap-1 sm:order-1 sm:flex-col sm:gap-0">
-          <button
-            type="button"
-            aria-label="ზემოთ"
-            disabled={first || pending}
-            onClick={() => run(() => moveSystem(row.slug, "up"))}
-            className="grid size-8 place-items-center rounded-lg border border-[#e6ebf2] text-[#8b98a9] transition-colors hover:bg-[#f1f4f9] hover:text-foreground disabled:opacity-30 sm:size-5 sm:rounded sm:border-0"
-          >
-            <ChevronUp className="size-4 sm:size-3.5" />
-          </button>
-          <button
-            type="button"
-            aria-label="ქვემოთ"
-            disabled={last || pending}
-            onClick={() => run(() => moveSystem(row.slug, "down"))}
-            className="grid size-8 place-items-center rounded-lg border border-[#e6ebf2] text-[#8b98a9] transition-colors hover:bg-[#f1f4f9] hover:text-foreground disabled:opacity-30 sm:size-5 sm:rounded sm:border-0"
-          >
-            <ChevronDown className="size-4 sm:size-3.5" />
-          </button>
-        </div>
-
-        <span className="tabular min-w-0 flex-1 truncate text-[11.5px] text-muted-foreground sm:order-3 sm:w-[96px] sm:flex-none">
-          {row.usage > 0 ? `${row.usage} ჩანაწერი` : "არ გამოიყენება"}
-        </span>
-
-        <div className="flex shrink-0 items-center gap-1.5 sm:order-4">
-          <Button
-            variant="outline"
-            size="sm"
-            aria-label={row.active ? `${row.name} დამალვა` : `${row.name} ჩვენება`}
-            className="size-10 p-0 sm:h-8 sm:w-auto sm:px-3"
-            disabled={pending}
-            onClick={() => run(() => setSystemActive(row.slug, !row.active), row.active ? "დაიმალა" : "ჩაირთო")}
-          >
-            {row.active ? <EyeOff className="size-4 sm:size-3.5" /> : <Eye className="size-4 sm:size-3.5" />}
-            <span className="hidden sm:inline">{row.active ? "დამალვა" : "ჩვენება"}</span>
-          </Button>
-          {row.usage === 0 ? (
-            <ConfirmButton
-              title="სისტემის წაშლა"
-              description={`„${row.name}“ სამუდამოდ წაიშლება. ეს შესაძლებელია, რადგან არსად არ გამოიყენება.`}
-              confirmLabel="წაშლა"
-              variant="destructive"
-              size="sm"
-              ariaLabel={`${row.name} წაშლა`}
-              className="size-10 p-0 sm:h-8 sm:w-auto sm:px-3"
-              action={() => deleteSystem(row.slug)}
-            >
-              <Trash2 className="size-4 sm:size-3.5" />
-              <span className="hidden sm:inline">წაშლა</span>
-            </ConfirmButton>
-          ) : (
-            <span className="hidden text-[11px] text-muted-foreground sm:inline" title="გამოყენებული სისტემა არ იშლება, რომ ძველი ჩანაწერები არ დაზიანდეს">
-              წაშლა შეუძლებელია
-            </span>
-          )}
+    <div className={cn("flex items-center gap-2 border-t border-[#eef1f6] py-3 first:border-t-0 sm:py-[6px]", !row.active && "opacity-60")}>
+      <div className="min-w-0 flex-1 sm:flex sm:items-center sm:gap-4">
+        <Input
+          value={name}
+          maxLength={60}
+          disabled={pending}
+          onChange={(e) => setName(e.target.value)}
+          onBlur={() => name.trim() !== row.name && name.trim().length >= 2 && run(() => renameSystem(row.slug, name.trim()), "შენახულია")}
+          aria-label={`${row.name} დასახელება`}
+          className="h-11 w-full min-w-0 border-transparent bg-transparent px-2 text-[16px] shadow-none hover:border-[#dbe1ec] hover:bg-[#f8faff] focus:border-[#dbe1ec] focus:bg-[#f8faff] focus-visible:border-[#dbe1ec] focus-visible:ring-2 focus-visible:ring-[#3457d5]/30 sm:flex-1 sm:text-[14px]"
+        />
+        <div className="flex flex-wrap gap-x-2 px-2 text-[11.5px] text-muted-foreground sm:w-[210px] sm:shrink-0 sm:flex-nowrap sm:px-0">
+          <span>{row.usage > 0 ? `${row.usage} ჩანაწერი` : "არ გამოიყენება"}</span>
+          {!row.active && <span>გამორთული</span>}
         </div>
       </div>
+      <CatalogueActions
+        name={row.name} active={row.active} disabled={pending}
+        toggle={() => setSystemActive(row.slug, !row.active)}
+        remove={row.usage === 0 ? () => deleteSystem(row.slug) : undefined}
+        deleteDisabledReason={row.usage > 0 ? "გამოყენებული კატეგორია არ იშლება" : undefined}
+        deleteTitle="კატეგორიის წაშლა"
+        deleteDescription={`„${row.name}“ სამუდამოდ წაიშლება. ეს შესაძლებელია, რადგან არსად არ გამოიყენება.`}
+      >
+        <DropdownMenuItem disabled={first || pending} onClick={() => run(() => moveSystem(row.slug, "up"))}>
+          <ChevronUp className="size-4" /> ზემოთ
+        </DropdownMenuItem>
+        <DropdownMenuItem disabled={last || pending} onClick={() => run(() => moveSystem(row.slug, "down"))}>
+          <ChevronDown className="size-4" /> ქვემოთ
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+      </CatalogueActions>
     </div>
   );
 }

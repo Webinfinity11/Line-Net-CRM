@@ -7,7 +7,8 @@ import { StatusBadge } from "@/components/app/badges";
 import { UserAvatar } from "@/components/app/user-avatar";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
-import { PRIORITY_COLORS, PRIORITY_LABELS, SYSTEM_LABELS, TYPE_LABELS, formatDate } from "@/lib/i18n";
+import { PRIORITY_COLORS, PRIORITY_LABELS, TYPE_LABELS, formatDate } from "@/lib/i18n";
+import { useSystemLabel } from "@/components/app/systems-provider";
 import { cn } from "@/lib/utils";
 import { JobIcon } from "./job-icon";
 import type { BoardOrder, Executor } from "./types";
@@ -19,6 +20,7 @@ const CLOSED_FOR_ASSIGN = new Set(["done", "closed", "cancelled"]);
  * replaces the current list) and links to the full order page / schedule.
  */
 export function OrderDrawer({ order, executors, normHours, today, onClose }: { order: BoardOrder | null; executors: Executor[]; normHours: number; today: string; onClose: () => void }) {
+  const systemName = useSystemLabel(order?.systemType);
   const canAssign = order ? !CLOSED_FOR_ASSIGN.has(order.status) : false;
 
 
@@ -50,10 +52,10 @@ export function OrderDrawer({ order, executors, normHours, today, onClose }: { o
 
             <dl className="grid grid-cols-2 gap-x-4 gap-y-3 rounded-lg border border-border bg-[#f8faff] p-3 text-[12px]">
               <div>
-                <dt className="text-[11px] text-muted-foreground">ტიპი · სისტემა</dt>
+                <dt className="text-[11px] text-muted-foreground">ტიპი · კატეგორია</dt>
                 <dd className="mt-0.5">
                   {TYPE_LABELS[order.type]}
-                  {order.systemType ? ` · ${SYSTEM_LABELS[order.systemType]}` : ""}
+                  {order.systemType ? ` · ${systemName}` : ""}
                 </dd>
               </div>
               <div>

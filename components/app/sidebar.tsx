@@ -10,7 +10,7 @@ import { toMtavruli } from "@/lib/mtavruli";
 import type { SessionUser } from "@/lib/session";
 import { cn } from "@/lib/utils";
 import { UserAvatar } from "./user-avatar";
-import { navFor } from "./nav";
+import { activeHref, isStaffRole, navFor } from "./nav";
 
 const STORE_KEY = "ln-sidebar-open";
 
@@ -29,10 +29,11 @@ export function NavLinks({
 }) {
   const pathname = usePathname();
   const items = navFor(user.role, { inbox: inboxCount, unseen: unseenCount });
+  const current = activeHref(items, pathname);
   return (
     <nav className={cn("flex flex-col gap-1", collapsed && "items-center")}>
       {items.map((item) => {
-        const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+        const active = item.href === current;
         const Icon = item.icon;
         return (
           <Link
@@ -49,7 +50,7 @@ export function NavLinks({
               active ? "bg-[#3457d5] font-medium text-white shadow-[0_6px_16px_rgba(52,87,213,0.35)]" : "text-[#9fb0c0] hover:bg-white/[0.07] hover:text-white",
             )}
           >
-            <Icon className="size-[18px] shrink-0 [stroke-width:1.7]" />
+            <Icon className={cn("size-[18px] shrink-0", active ? "[stroke-width:2]" : "[stroke-width:1.7]")} />
             {collapsed ? (
               <span className="sr-only">{item.label}</span>
             ) : (
@@ -60,7 +61,7 @@ export function NavLinks({
                 className={cn(
                   "flex items-center justify-center rounded-full text-[10px] font-semibold leading-none text-white",
                   collapsed ? "absolute -right-0.5 -top-0.5 size-[18px] ring-2 ring-[#16293a]" : "px-1.5 py-0.5",
-                  "bg-[#d95c4c]",
+                  "bg-[#b13f32]",
                 )}
               >
                 {item.badge}
@@ -162,17 +163,26 @@ export function Sidebar(props: { user: SessionUser; inboxCount: number; unseenCo
       className={cn("sticky top-0 hidden h-screen shrink-0 flex-col bg-[#16293a] transition-[width] duration-200 ease-out md:flex", open ? "w-[224px]" : "w-[84px]")}
       aria-label="მთავარი მენიუ"
     >
-      <div className={cn("flex h-16 items-center", open ? "gap-2.5 px-4" : "justify-center px-2")}>
+      <Link
+        href="/"
+        title={open ? undefined : t.nav.dashboard}
+        className={cn(
+          "flex h-16 items-center rounded-[14px] outline-none focus-visible:ring-2 focus-visible:ring-[#3457d5]/60",
+          open ? "gap-2.5 px-4" : "justify-center px-2",
+        )}
+      >
         <div className="flex size-9 shrink-0 items-center justify-center rounded-[12px] bg-[#3457d5] font-heading text-xs font-bold text-white shadow-[0_6px_16px_rgba(52,87,213,0.28)]">LN</div>
-        {open && (
+        {open ? (
           <div className="min-w-0 leading-tight">
             <div className="truncate font-heading text-[15px] text-white">{t.appName}</div>
             <div className="truncate text-[11px] text-[#8296a8]">სერვისის მართვა</div>
           </div>
+        ) : (
+          <span className="sr-only">{t.appName}</span>
         )}
-      </div>
+      </Link>
 
-      {props.user.role !== "executor" && (
+      {isStaffRole(props.user.role) && (
         <div className={cn("pb-1 pt-1", open ? "px-3" : "px-2")}>
           <Link
             href="/orders/new"

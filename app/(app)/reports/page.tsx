@@ -168,7 +168,7 @@ export default async function ReportsPage({ searchParams }: PageProps<"/reports"
           )}
         </SectionCard>
 
-        <SectionCard title="სისტემების მიხედვით" icon={Layers} action={<ExportButton type="systems" p={p} />} bodyClassName="-mx-6 -mb-6">
+        <SectionCard title="კატეგორიების მიხედვით" icon={Layers} action={<ExportButton type="systems" p={p} />} bodyClassName="-mx-6 -mb-6">
           {bySystem.length === 0 ? (
             <div className="px-6 pb-6">
               <EmptyState icon={Layers} message="ამ პერიოდში მონაცემები არ არის." />
@@ -194,7 +194,7 @@ export default async function ReportsPage({ searchParams }: PageProps<"/reports"
               <table className={tableCls.table}>
                 <thead className={tableCls.head}>
                   <tr>
-                    <th className={tableCls.th}>სისტემა</th>
+                    <th className={tableCls.th}>კატეგორია</th>
                     <th className={tableCls.thRight}>შეკვ.</th>
                     <th className={tableCls.thRight}>შესრ.</th>
                     <th className={tableCls.thRight}>თანხა</th>

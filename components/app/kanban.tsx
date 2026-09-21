@@ -51,8 +51,8 @@ export function Kanban({ orders }: { orders: OrderListItem[] }) {
             onDragLeave={() => setOverCol(null)}
             onDrop={() => drop(status)}
             className={cn(
-              "flex w-72 shrink-0 flex-col rounded-xl border bg-neutral-100/70 transition-colors dark:bg-neutral-900",
-              overCol === status && dragId !== null && "border-blue-400 bg-blue-50 dark:bg-blue-950/30",
+              "flex w-72 shrink-0 flex-col rounded-xl border bg-[#f1f4f9]/70 transition-colors dark:bg-neutral-900",
+              overCol === status && dragId !== null && "border-[#3457d5] bg-[#eef2ff] dark:bg-blue-950/30",
             )}
           >
             <div className="flex items-center gap-2 px-3 py-2.5">

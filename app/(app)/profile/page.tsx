@@ -5,14 +5,15 @@ import { Chip } from "@/components/app/section-card";
 import { UserAvatar } from "@/components/app/user-avatar";
 import { db } from "@/db";
 import { user } from "@/db/schema";
-import { ROLE_LABELS, SYSTEM_LABELS, t } from "@/lib/i18n";
+import { ROLE_LABELS, t } from "@/lib/i18n";
 import { requireUser } from "@/lib/session";
+import { systemLabels } from "@/lib/systems";
 
 export const metadata = { title: "პროფილი" };
 
 export default async function ProfilePage() {
   const me = await requireUser();
-  const [row] = await db.select({ specializations: user.specializations }).from(user).where(eq(user.id, me.id));
+  const [[row], labels] = await Promise.all([db.select({ specializations: user.specializations }).from(user).where(eq(user.id, me.id)), systemLabels()]);
   return (
     <div className="max-w-4xl space-y-4">
       <PageHeader title={t.nav2.profile} subtitle={me.email} />
@@ -25,7 +26,7 @@ export default async function ProfilePage() {
           {row?.specializations?.length ? (
             <div className="mt-2 flex flex-wrap gap-1">
               {row.specializations.map((k) => (
-                <Chip key={k}>{SYSTEM_LABELS[k as keyof typeof SYSTEM_LABELS] ?? k}</Chip>
+                <Chip key={k}>{labels[k] ?? k}</Chip>
               ))}
             </div>
           ) : null}

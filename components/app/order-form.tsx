@@ -13,8 +13,8 @@ import { Label } from "@/components/ui/label";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { useActiveSystems } from "@/components/app/systems-provider";
 import { Textarea } from "@/components/ui/textarea";
-import type { Order, SystemType } from "@/db/schema";
-import { PRIORITY_LABELS, ROLE_LABELS, SYSTEM_LABELS, SYSTEM_ORDER, TYPE_LABELS, t } from "@/lib/i18n";
+import type { Order } from "@/db/schema";
+import { PRIORITY_LABELS, TYPE_LABELS, t } from "@/lib/i18n";
 import { toMtavruli } from "@/lib/mtavruli";
 import { toLocalInput } from "@/lib/order-utils";
 import { cn } from "@/lib/utils";
@@ -165,7 +165,7 @@ export function OrderForm({
             </Field>
           </Section>
 
-          <Section title="დრო და პრიორიტეტი" collapsible={compact} summary="დრო, ხანგრძლივობა, ვადა, პრიორიტეტი">
+          <Section title="დრო და პრიორიტეტი" collapsible={compact} summary="დრო, პრიორიტეტი">
             <Field label={t.order.priority} htmlFor="priority">
               <NativeSelect id="priority" name="priority" defaultValue={initial?.priority ?? "normal"}>
                 {Object.entries(PRIORITY_LABELS).map(([k, v]) => (
@@ -178,30 +178,11 @@ export function OrderForm({
             <Field label={t.order.scheduledAt} htmlFor="scheduledAt">
               <Input id="scheduledAt" name="scheduledAt" type="datetime-local" defaultValue={toLocalInput(initial?.scheduledAt)} />
             </Field>
-            <Field label="ხანგრძლივობა" htmlFor="plannedMinutes">
-              <NativeSelect id="plannedMinutes" name="plannedMinutes" defaultValue={initial?.plannedMinutes ? String(initial.plannedMinutes) : ""}>
-                <NativeSelectOption value="">— ნაგულისხმევი 2 სთ</NativeSelectOption>
-                {[30, 60, 90, 120, 180, 240, 300, 360, 480].map((m) => (
-                  <NativeSelectOption key={m} value={String(m)}>
-                    {m < 60 ? `${m} წთ` : `${m / 60} სთ`}
-                  </NativeSelectOption>
-                ))}
-              </NativeSelect>
-            </Field>
-            <Field label={t.order.dueDate} htmlFor="dueDate" hint="ცარიელი დატოვებისას დაგეგმილი დღე გამოიყენება">
-              <Input id="dueDate" name="dueDate" type="date" defaultValue={initial?.dueDate ?? ""} />
-            </Field>
           </Section>
 
-          <Section title="ფინანსები და ჩაბარება" collapsible={compact} summary="თანხა, გარანტია, ფოტოს მოთხოვნა">
-            <Field label={`${t.order.amount} (₾)`} htmlFor="amount" hint="სერვისების დამატებისას ჯამი თავისით ითვლება">
+          <Section title="ფინანსები და ჩაბარება" collapsible={compact} summary="თანხა, ფოტოს მოთხოვნა">
+            <Field label={`${t.order.amount} (₾)`} htmlFor="amount" hint="სერვისების დამატებისას ჯამი ავტომატურად ითვლება">
               <Input id="amount" name="amount" type="number" step="0.01" min="0" defaultValue={initial?.amount ?? ""} placeholder="0.00" />
-            </Field>
-            <Field label="დღგ (%)" htmlFor="vatPercent" hint="0, თუ დღგ არ ერიცხება">
-              <Input id="vatPercent" name="vatPercent" type="number" step="0.01" min="0" max="100" defaultValue={initial?.vatPercent ?? "0"} />
-            </Field>
-            <Field label="გარანტია (თვე)" htmlFor="warrantyMonths">
-              <Input id="warrantyMonths" name="warrantyMonths" type="number" min="0" max="240" defaultValue={initial?.warrantyMonths ?? ""} placeholder="0" />
             </Field>
             <label className="flex items-center gap-2.5 rounded-[12px] bg-[#f8faff] px-3 py-2.5 text-[13px] sm:col-span-2">
               <input id="requiresPhoto" name="requiresPhoto" type="checkbox" defaultChecked={Boolean(initial?.requiresPhoto)} className="size-4 accent-[#3457d5]" />
@@ -216,7 +197,7 @@ export function OrderForm({
           <CardContent className="pt-6">
             <h3 className="font-heading text-[15px]">{toMtavruli(t.order.assignees)}</h3>
             <p className="mb-3 mt-1 text-[11.5px] text-muted-foreground">
-              {system ? "შესაბამისი სპეციალიზაციის ხალხი ზემოთაა." : "სისტემის არჩევისას შესაბამისი ხალხი ზემოთ დადგება."}
+              {system ? "შესაბამისი სპეციალიზაციის შემსრულებლები სიის თავშია." : "აირჩიეთ კატეგორია და შესაბამისი შემსრულებლები სიის თავში გამოჩნდებიან."}
             </p>
             <div className="max-h-[320px] space-y-1 overflow-y-auto">
               {sortedUsers.map((u) => {

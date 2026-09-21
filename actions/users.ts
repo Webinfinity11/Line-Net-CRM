@@ -5,14 +5,16 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/db";
-import { systemTypeEnum, user } from "@/db/schema";
+import { clients, user } from "@/db/schema";
+import { systemSlug } from "@/lib/systems";
 import { auth } from "@/lib/auth";
 import { getSession } from "@/lib/session";
 import type { ActionResult } from "./orders";
 
-const roleEnum = z.enum(["admin", "manager", "executor"]);
+const roleEnum = z.enum(["admin", "manager", "executor", "client"]);
 
-const specs = z.array(z.enum(systemTypeEnum.enumValues)).default([]);
+const specs = z.array(systemSlug).default([]);
+const companyId = z.preprocess((v) => (v === "" || v === undefined ? null : v), z.coerce.number().int().positive().nullable()).default(null);
 
 const createInput = z.object({
   name: z.string().trim().min(2, "სახელი ძალიან მოკლეა").max(120),
@@ -21,6 +23,7 @@ const createInput = z.object({
   role: roleEnum,
   phone: z.string().max(60).optional().or(z.literal("")),
   specializations: specs,
+  clientId: companyId,
 });
 
 const updateInput = z.object({
@@ -29,7 +32,17 @@ const updateInput = z.object({
   phone: z.string().max(60).optional().or(z.literal("")),
   password: z.string().min(6, "პაროლი მინიმუმ 6 სიმბოლო").optional().or(z.literal("")),
   specializations: specs,
+  clientId: companyId,
 });
+
+/** A client login must name its company; every other role carries none and no specializations leak onto a client. */
+async function roleLinks(v: { role: z.infer<typeof roleEnum>; clientId: number | null; specializations: string[] }): Promise<{ clientId: number | null; specializations: string[] } | string> {
+  if (v.role !== "client") return { clientId: null, specializations: v.specializations };
+  if (!v.clientId) return "კლიენტის ანგარიშს კომპანია უნდა მიუთითოთ";
+  const [c] = await db.select({ id: clients.id }).from(clients).where(eq(clients.id, v.clientId));
+  if (!c) return "კომპანია ვერ მოიძებნა";
+  return { clientId: c.id, specializations: [] };
+}
 
 async function requireAdmin() {
   const s = await getSession();
@@ -45,15 +58,17 @@ function fdToObj(fd: FormData) {
 
 export async function createUser(fd: FormData): Promise<ActionResult<{ id: string }>> {
   await requireAdmin();
-  const parsed = createInput.safeParse(fdToObj(fd));
+  const parsed = await createInput.safeParseAsync(fdToObj(fd));
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "არასწორი მონაცემები" };
   const v = parsed.data;
+  const links = await roleLinks(v);
+  if (typeof links === "string") return { ok: false, error: links };
   try {
     const res = await auth.api.createUser({
       headers: await headers(),
       body: { email: v.email, password: v.password, name: v.name, role: v.role as unknown as "admin", data: { phone: v.phone || null } },
     });
-    await db.update(user).set({ specializations: v.specializations }).where(eq(user.id, res.user.id));
+    await db.update(user).set(links).where(eq(user.id, res.user.id));
     revalidatePath("/settings/users");
     return { ok: true, data: { id: res.user.id } };
   } catch (e) {
@@ -64,13 +79,15 @@ export async function createUser(fd: FormData): Promise<ActionResult<{ id: strin
 
 export async function updateUser(id: string, fd: FormData): Promise<ActionResult> {
   const me = await requireAdmin();
-  const parsed = updateInput.safeParse(fdToObj(fd));
+  const parsed = await updateInput.safeParseAsync(fdToObj(fd));
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "არასწორი მონაცემები" };
   const v = parsed.data;
   if (id === me.id && v.role !== "admin") return { ok: false, error: "საკუთარ თავს ადმინის როლს ვერ მოხსნით" };
+  const links = await roleLinks(v);
+  if (typeof links === "string") return { ok: false, error: links };
   await db
     .update(user)
-    .set({ name: v.name, role: v.role, phone: v.phone || null, specializations: v.specializations, updatedAt: new Date() })
+    .set({ name: v.name, role: v.role, phone: v.phone || null, ...links, updatedAt: new Date() })
     .where(eq(user.id, id));
   if (v.password) {
     await auth.api.setUserPassword({ headers: await headers(), body: { userId: id, newPassword: v.password } });

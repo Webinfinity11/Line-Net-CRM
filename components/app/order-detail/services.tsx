@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, ReceiptText, Trash2 } from "lucide-react";
+import { Plus, ReceiptText, Trash2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -8,12 +8,16 @@ import { addOrderItem, removeOrderItem, updateOrderItem } from "@/actions/servic
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
+import { NativeSelect, NativeSelectOptGroup, NativeSelectOption } from "@/components/ui/native-select";
+import { useSystems } from "@/components/app/systems-provider";
 import type { OrderItem } from "@/db/schema";
 import { formatMoney } from "@/lib/i18n";
 import { vatBreakdown } from "@/lib/finance";
 
-export type ServiceOption = { id: number; name: string; unit: string; price: string };
+export type ServiceOption = { id: number; name: string; unit: string; price: string; systemType: string | null };
+
+/** Sentinel in the service list: the row switches to a typed line instead of a pick. */
+const MANUAL = "__manual__";
 
 /** Billable lines. The order total follows this list, so the manager edits prices here. */
 export function OrderServices({ orderId, items, catalogue, readOnly, vatPercent }: { orderId: number; items: OrderItem[]; catalogue: ServiceOption[]; readOnly?: boolean; vatPercent?: string | number | null }) {
@@ -22,8 +26,10 @@ export function OrderServices({ orderId, items, catalogue, readOnly, vatPercent 
   const busy = useRef(false);
   const [pending, start] = useTransition();
   const [picked, setPicked] = useState("");
+  const [manual, setManual] = useState(false);
   const sums = vatBreakdown(items, vatPercent);
   const chosen = catalogue.find((c) => String(c.id) === picked);
+  const groups = useCategoryGroups(catalogue);
 
   function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -39,6 +45,7 @@ export function OrderServices({ orderId, items, catalogue, readOnly, vatPercent 
         }
         formRef.current?.reset();
         setPicked("");
+        setManual(false);
         router.refresh();
       } finally {
         busy.current = false;
@@ -74,7 +81,7 @@ export function OrderServices({ orderId, items, catalogue, readOnly, vatPercent 
                   <div className="flex items-start justify-between gap-2">
                     <span className="text-[13px] font-medium">{i.name}</span>
                     {!readOnly && (
-                      <Button variant="ghost" size="icon-xs" aria-label={`${i.name} წაშლა`} disabled={pending} onClick={() => start(async () => { const r = await removeOrderItem(i.id); if (!r.ok) toast.error(r.error); router.refresh(); })}>
+                      <Button variant="ghost" size="icon-xs" className="-mr-2 -mt-2 size-11" aria-label={`${i.name} წაშლა`} disabled={pending} onClick={() => start(async () => { const r = await removeOrderItem(i.id); if (!r.ok) toast.error(r.error); router.refresh(); })}>
                         <Trash2 className="size-3.5 text-muted-foreground" />
                       </Button>
                     )}
@@ -189,20 +196,51 @@ export function OrderServices({ orderId, items, catalogue, readOnly, vatPercent 
 
         {!readOnly && (
           <form ref={formRef} onSubmit={submit} className="grid gap-2 sm:grid-cols-[1fr_88px_110px_auto]">
-            <NativeSelect
-              name="serviceId"
-              value={picked}
-              onChange={(e) => setPicked(e.target.value)}
-              aria-label="სერვისი"
-              className="h-11 text-[16px] sm:h-9 sm:text-[13px]"
-            >
-              <NativeSelectOption value="">— აირჩიეთ სერვისი —</NativeSelectOption>
-              {catalogue.map((c) => (
-                <NativeSelectOption key={c.id} value={String(c.id)}>
-                  {c.name} · {formatMoney(c.price)}
-                </NativeSelectOption>
-              ))}
-            </NativeSelect>
+            {/* not every job is in the catalogue: the same row takes a typed line too */}
+            {manual ? (
+              <div className="grid min-w-0 grid-cols-[1fr_44px] gap-2 md:flex">
+                <Input name="name" placeholder="დასახელება" aria-label="პოზიციის დასახელება" className="col-span-2 h-11 min-w-0 flex-1 text-[16px] sm:h-9 sm:text-[13px]" required autoFocus />
+                <Input name="unit" defaultValue="ცალი" aria-label="ერთეული" className="h-11 w-full md:w-[74px] shrink-0 text-[16px] sm:h-9 sm:text-[13px]" />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label="სიაში დაბრუნება"
+                  title="სიაში დაბრუნება"
+                  className="h-11 w-11 shrink-0 md:h-9 md:w-9"
+                  onClick={() => setManual(false)}
+                >
+                  <X className="size-4 text-muted-foreground" />
+                </Button>
+              </div>
+            ) : (
+              <NativeSelect
+                name="serviceId"
+                value={picked}
+                onChange={(e) => {
+                  if (e.target.value === MANUAL) {
+                    setManual(true);
+                    setPicked("");
+                    return;
+                  }
+                  setPicked(e.target.value);
+                }}
+                aria-label="სერვისი"
+                className="h-11 text-[16px] sm:h-9 sm:text-[13px] max-md:w-full max-md:min-w-0 max-md:[&_select]:h-11 max-md:[&_select]:text-[16px]"
+              >
+                <NativeSelectOption value="">— აირჩიეთ სერვისი —</NativeSelectOption>
+                <NativeSelectOption value={MANUAL}>✎ ჩაწერა ხელით</NativeSelectOption>
+                {groups.map((g) => (
+                  <NativeSelectOptGroup key={g.key} label={g.name}>
+                    {g.items.map((c) => (
+                      <NativeSelectOption key={c.id} value={String(c.id)}>
+                        {c.name} · {formatMoney(c.price)}
+                      </NativeSelectOption>
+                    ))}
+                  </NativeSelectOptGroup>
+                ))}
+              </NativeSelect>
+            )}
             <Input name="quantity" type="number" step="0.01" min="0.01" defaultValue="1" aria-label="რაოდენობა" className="h-11 text-[16px] sm:h-9 sm:text-[13px]" />
             <Input
               key={picked}
@@ -216,7 +254,7 @@ export function OrderServices({ orderId, items, catalogue, readOnly, vatPercent 
               className="h-11 text-[16px] sm:h-9 sm:text-[13px]"
               required
             />
-            <input type="hidden" name="unit" value={chosen?.unit ?? "ცალი"} />
+            {!manual && <input type="hidden" name="unit" value={chosen?.unit ?? "ცალი"} />}
             <Button type="submit" variant="outline" disabled={pending} className="h-11 sm:h-9">
               <Plus className="size-4" /> დამატება
             </Button>
@@ -230,4 +268,19 @@ export function OrderServices({ orderId, items, catalogue, readOnly, vatPercent 
       </CardContent>
     </Card>
   );
+}
+
+/** The catalogue in the admin's category order; services without a category come last. */
+function useCategoryGroups(catalogue: ServiceOption[]) {
+  const systems = useSystems();
+  const rank = new Map(systems.map((s, i) => [s.key, i]));
+  const name = new Map(systems.map((s) => [s.key, s.name]));
+  const byKey = new Map<string, ServiceOption[]>();
+  for (const c of catalogue) {
+    const key = c.systemType && name.has(c.systemType) ? c.systemType : "";
+    byKey.set(key, [...(byKey.get(key) ?? []), c]);
+  }
+  return [...byKey.entries()]
+    .map(([key, items]) => ({ key, name: key ? name.get(key)! : "კატეგორიის გარეშე", items }))
+    .sort((a, b) => (a.key ? (rank.get(a.key) ?? 99) : 100) - (b.key ? (rank.get(b.key) ?? 99) : 100));
 }

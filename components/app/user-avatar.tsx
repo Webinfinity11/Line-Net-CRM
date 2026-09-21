@@ -1,18 +1,10 @@
 import { cn } from "@/lib/utils";
 
-const PALETTE = ["bg-blue-600", "bg-indigo-500", "bg-teal-600", "bg-cyan-600", "bg-slate-500", "bg-violet-500"];
-
 export function initials(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean);
   const first = parts[0]?.[0] ?? "?";
   const second = parts.length > 1 ? parts[parts.length - 1][0] : "";
   return (first + second).toUpperCase();
-}
-
-function colorFor(name: string) {
-  let h = 0;
-  for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) % 9973;
-  return PALETTE[h % PALETTE.length];
 }
 
 export function UserAvatar({
@@ -26,7 +18,7 @@ export function UserAvatar({
   image?: string | null;
   size?: "xs" | "sm" | "md" | "lg";
   className?: string;
-  /** neutral = pale chip (Direction 1); color = hashed palette for lanes/legends */
+  /** neutral = pale chip for dense lists; color = solid grey for a single large avatar (avatars stay neutral, see CLAUDE.md) */
   tone?: "neutral" | "color";
 }) {
   const dims = { xs: "size-5 text-[9px]", sm: "size-6 text-[10px]", md: "size-8 text-xs", lg: "size-12 text-base" }[size];
@@ -40,7 +32,7 @@ export function UserAvatar({
       className={cn(
         "inline-flex shrink-0 items-center justify-center rounded-full font-semibold",
         dims,
-        tone === "color" ? cn("text-white", colorFor(name)) : "bg-[#f1f4f9] text-[#617084]",
+        tone === "color" ? "bg-[#617084] text-white" : "bg-[#f1f4f9] text-[#617084]",
         className,
       )}
     >
@@ -59,7 +51,7 @@ export function AvatarStack({ users, max = 3 }: { users: { id: string; name: str
         <UserAvatar key={u.id} name={u.name} image={u.image} size="sm" className="ring-2 ring-white dark:ring-neutral-900" />
       ))}
       {rest > 0 && (
-        <span className="inline-flex size-6 items-center justify-center rounded-full bg-neutral-200 text-[10px] font-semibold ring-2 ring-white dark:bg-neutral-700 dark:ring-neutral-900">
+        <span className="inline-flex size-6 items-center justify-center rounded-full bg-[#e6ebf2] text-[10px] font-semibold ring-2 ring-white dark:bg-neutral-700 dark:ring-neutral-900">
           +{rest}
         </span>
       )}

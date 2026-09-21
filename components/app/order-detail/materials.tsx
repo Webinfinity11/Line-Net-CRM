@@ -83,6 +83,7 @@ export function Materials({
                   <Button
                     variant="ghost"
                     size="icon-sm"
+                    className="size-11"
                     aria-label={`${m.name} წაშლა`}
                     disabled={pending}
                     onClick={() =>

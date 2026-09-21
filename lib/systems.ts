@@ -1,6 +1,7 @@
 import "server-only";
 import { asc, eq } from "drizzle-orm";
 import { cache } from "react";
+import { z } from "zod";
 import { db } from "@/db";
 import { systems, type SystemType } from "@/db/schema";
 import { SYSTEM_LABELS, SYSTEM_ORDER } from "@/lib/i18n";
@@ -26,3 +27,12 @@ export async function getSystem(key: SystemType) {
   const [row] = await db.select().from(systems).where(eq(systems.slug, key));
   return row ?? null;
 }
+
+/** Categories are rows an admin adds, so a submitted slug is checked against the table, not the seed list. */
+export async function isKnownSystem(slug: string | null | undefined) {
+  if (!slug) return true;
+  return (await listSystems()).some((s) => s.key === slug);
+}
+
+/** Validator for a submitted category slug. Async: the parse must use safeParseAsync. */
+export const systemSlug = z.string().trim().min(1).max(60).refine(isKnownSystem, "კატეგორია ვერ მოიძებნა");

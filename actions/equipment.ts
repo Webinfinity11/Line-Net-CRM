@@ -4,7 +4,8 @@ import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/db";
-import { siteEquipment, sites, systemTypeEnum } from "@/db/schema";
+import { siteEquipment, sites } from "@/db/schema";
+import { systemSlug } from "@/lib/systems";
 import { getSession, isStaff } from "@/lib/session";
 import type { ActionResult } from "./orders";
 
@@ -12,7 +13,7 @@ const emptyToNull = (v: unknown) => (v === "" || v === undefined ? null : v);
 
 const input = z.object({
   siteId: z.coerce.number().int().positive(),
-  systemType: z.preprocess(emptyToNull, z.enum(systemTypeEnum.enumValues).nullable()),
+  systemType: z.preprocess(emptyToNull, systemSlug.nullable()),
   name: z.string().trim().min(1, "დასახელება სავალდებულოა").max(200),
   model: z.preprocess(emptyToNull, z.string().max(120).nullable()),
   serial: z.preprocess(emptyToNull, z.string().max(120).nullable()),
@@ -36,7 +37,7 @@ async function revalidateSite(siteId: number) {
 
 export async function createEquipment(fd: FormData): Promise<ActionResult<{ id: number }>> {
   await requireStaff();
-  const parsed = input.safeParse(Object.fromEntries([...fd.entries()].filter(([, v]) => typeof v === "string")));
+  const parsed = await input.safeParseAsync(Object.fromEntries([...fd.entries()].filter(([, v]) => typeof v === "string")));
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "არასწორი მონაცემები" };
   const [row] = await db.insert(siteEquipment).values(parsed.data).returning({ id: siteEquipment.id });
   await revalidateSite(parsed.data.siteId);
@@ -45,7 +46,7 @@ export async function createEquipment(fd: FormData): Promise<ActionResult<{ id: 
 
 export async function updateEquipment(id: number, fd: FormData): Promise<ActionResult> {
   await requireStaff();
-  const parsed = input.safeParse(Object.fromEntries([...fd.entries()].filter(([, v]) => typeof v === "string")));
+  const parsed = await input.safeParseAsync(Object.fromEntries([...fd.entries()].filter(([, v]) => typeof v === "string")));
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "არასწორი მონაცემები" };
   await db.update(siteEquipment).set(parsed.data).where(eq(siteEquipment.id, id));
   await revalidateSite(parsed.data.siteId);

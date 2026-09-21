@@ -72,12 +72,12 @@ export function Attachments({ orderId, attachments, canDelete }: { orderId: numb
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={`/api/files/${a.id}`} alt="" className="size-10 shrink-0 rounded object-cover" />
                     ) : (
-                      <span className="flex size-10 shrink-0 items-center justify-center rounded bg-neutral-100 dark:bg-neutral-800">
+                      <span className="flex size-10 shrink-0 items-center justify-center rounded bg-[#f1f4f9] dark:bg-neutral-800">
                         {a.mimeType === "application/pdf" ? <FileText className="size-5 text-[#b13f32]" /> : <ImageIcon className="size-5 text-muted-foreground" />}
                       </span>
                     )}
                     <span className="min-w-0">
-                      <span className="block truncate text-sm font-medium hover:text-blue-700">{a.fileName}</span>
+                      <span className="block truncate text-sm font-medium hover:text-[#2846b7]">{a.fileName}</span>
                       <span className="block text-xs text-muted-foreground">
                         {fmtSize(a.size)} · {formatDate(a.createdAt)}
                       </span>

@@ -18,6 +18,7 @@ import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/s
 import { signOut } from "@/lib/auth-client";
 import { ROLE_LABELS, t } from "@/lib/i18n";
 import type { SessionUser } from "@/lib/session";
+import { isStaffRole } from "./nav";
 import { NotificationBell, type BellItem } from "./notification-bell";
 import { NavLinks, SidebarFooter } from "./sidebar";
 import { UserAvatar } from "./user-avatar";
@@ -37,7 +38,7 @@ export function Topbar({
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const staff = user.role !== "executor";
+  const staff = isStaffRole(user.role);
 
   async function logout() {
     await signOut();
@@ -47,7 +48,7 @@ export function Topbar({
 
   return (
     <header className="sticky top-0 z-20 flex h-16 items-center gap-3 bg-[#f4f6fa]/90 px-4 backdrop-blur dark:bg-neutral-900/90 md:px-6">
-      <Sheet open={open} onOpenChange={setOpen}>
+      {staff && <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger render={<Button variant="ghost" size="icon" className="md:hidden" aria-label="მენიუ" />}>
           <Menu className="size-5" />
         </SheetTrigger>
@@ -58,7 +59,7 @@ export function Topbar({
             <SidebarFooter user={user} onNavigate={() => setOpen(false)} />
           </div>
         </SheetContent>
-      </Sheet>
+      </Sheet>}
 
       {staff ? (
         <form action="/orders" method="get" className="relative hidden w-full max-w-[520px] sm:block">

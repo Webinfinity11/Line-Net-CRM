@@ -33,13 +33,13 @@ export function DashboardHero({
   const Icon = changePct === null || flat ? Minus : up ? ArrowUpRight : ArrowDownRight;
 
   return (
-    <section className="ln-card p-5 sm:p-6" aria-label="თვის შედეგი">
+    <section className="ln-card p-5 sm:p-6 max-md:p-4" aria-label="თვის შედეგი">
       <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4">
         <div className="min-w-0">
-          <h1 className="font-heading text-[24px] leading-[1.25] tracking-[-0.4px] sm:text-[26px]">{toMtavruli(greeting)}</h1>
+          <h1 className="font-heading max-md:text-[21px] text-[24px] leading-[1.25] tracking-[-0.4px] sm:text-[26px]">{toMtavruli(greeting)}</h1>
           <p className="mt-1 text-[13px] text-muted-foreground">{dateLine}</p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">{children}</div>
+        <div className="flex flex-wrap items-center gap-2 max-md:w-full max-md:flex-nowrap max-md:gap-1">{children}</div>
       </div>
 
       <div className="mt-5 flex flex-wrap items-end justify-between gap-x-8 gap-y-4 border-t border-[#eef1f6] pt-5">
@@ -60,7 +60,7 @@ export function DashboardHero({
           <p className="mt-2 text-[12px] text-muted-foreground">გასულ თვეს იმავე დღისთვის {formatMoney(lastMonth)}</p>
         </div>
 
-        <div className="min-w-0 flex-1 sm:max-w-[380px]">
+        <div className="min-w-0 flex-1 sm:max-w-[380px] max-md:w-full max-md:flex-none max-md:max-w-none">
           <div className="mb-1 flex items-center justify-between text-[11.5px] text-muted-foreground">
             <span>ბოლო 14 დღე</span>
             <span className="tabular">{formatMoney(cash.reduce((s, c) => s + c.amount, 0))}</span>

@@ -13,6 +13,7 @@ import {
   serial,
   text,
   timestamp,
+  type AnyPgColumn,
 } from "drizzle-orm/pg-core";
 
 // ---------------------------------------------------------------------------
@@ -35,6 +36,8 @@ export const user = pgTable("user", {
   // custom
   phone: text("phone"),
   specializations: text("specializations").array().notNull().default(sql`'{}'::text[]`),
+  /** role "client": the company whose orders this login places and follows */
+  clientId: integer("client_id").references((): AnyPgColumn => clients.id, { onDelete: "set null" }),
 });
 
 export const session = pgTable(
@@ -101,7 +104,7 @@ export const orderStatusEnum = pgEnum("order_status", [
 ]);
 export const orderPriorityEnum = pgEnum("order_priority", ["low", "normal", "high", "urgent"]);
 export const paymentStatusEnum = pgEnum("payment_status", ["unpaid", "partial", "paid"]);
-export const orderSourceEnum = pgEnum("order_source", ["manual", "email", "schedule"]);
+export const orderSourceEnum = pgEnum("order_source", ["manual", "email", "schedule", "portal"]);
 export const systemTypeEnum = pgEnum("system_type", [
   "fire",
   "electrical",
@@ -125,7 +128,7 @@ export type OrderSource = (typeof orderSourceEnum.enumValues)[number];
 /** A system is a row in `systems`; the slug is the key stored on orders and services. */
 export type SystemType = string;
 export type ScheduleFrequency = (typeof frequencyEnum.enumValues)[number];
-export type UserRole = "admin" | "manager" | "executor";
+export type UserRole = "admin" | "manager" | "executor" | "client";
 
 // ---------------------------------------------------------------------------
 // Clients and sites

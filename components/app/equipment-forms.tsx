@@ -6,10 +6,11 @@ import { Label } from "@/components/ui/label";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
 import type { SiteEquipment } from "@/db/schema";
-import { SYSTEM_LABELS, SYSTEM_ORDER } from "@/lib/i18n";
+import { useSystems } from "@/components/app/systems-provider";
 import { cn } from "@/lib/utils";
 
 export function EquipmentFields({ siteId, initial }: { siteId: number; initial?: Partial<SiteEquipment> }) {
+  const systemOptions = useSystems().filter((s) => s.active || s.key === initial?.systemType);
   return (
     <div className={cn("grid gap-3 sm:grid-cols-2", formFields)}>
       <input type="hidden" name="siteId" value={siteId} />
@@ -18,12 +19,12 @@ export function EquipmentFields({ siteId, initial }: { siteId: number; initial?:
         <Input id="e-name" name="name" required defaultValue={initial?.name ?? ""} placeholder="მაგ. სახანძრო პანელი, IP კამერა" />
       </div>
       <div className="space-y-1.5">
-        <Label htmlFor="e-system">სისტემა</Label>
+        <Label htmlFor="e-system">კატეგორია</Label>
         <NativeSelect id="e-system" name="systemType" defaultValue={initial?.systemType ?? ""}>
           <NativeSelectOption value="">—</NativeSelectOption>
-          {SYSTEM_ORDER.map((k) => (
-            <NativeSelectOption key={k} value={k}>
-              {SYSTEM_LABELS[k]}
+          {systemOptions.map((sys) => (
+            <NativeSelectOption key={sys.key} value={sys.key}>
+              {sys.name}
             </NativeSelectOption>
           ))}
         </NativeSelect>

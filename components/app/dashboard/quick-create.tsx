@@ -88,7 +88,7 @@ export function QuickCreate({ clients }: { clients: ClientOption[] }) {
               </NativeSelect>
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="qc-system">სისტემა</Label>
+              <Label htmlFor="qc-system">კატეგორია</Label>
               <NativeSelect id="qc-system" name="systemType" className="w-full" defaultValue="">
                 <NativeSelectOption value="">— აირჩიეთ —</NativeSelectOption>
                 {systemOptions.map((sys) => (
@@ -107,10 +107,6 @@ export function QuickCreate({ clients }: { clients: ClientOption[] }) {
                   </NativeSelectOption>
                 ))}
               </NativeSelect>
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="qc-due">ვადა</Label>
-              <Input id="qc-due" name="dueDate" type="date" />
             </div>
             <div className="space-y-1.5 sm:col-span-2">
               <Label htmlFor="qc-desc">აღწერა</Label>

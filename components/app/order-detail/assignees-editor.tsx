@@ -63,10 +63,10 @@ export function AssigneesEditor({
                 onClick={() => setValue((v) => (on ? v.filter((x) => x !== u.id) : [...v, u.id]))}
                 className={cn(
                   "flex w-full items-center gap-2.5 rounded-lg border px-2.5 py-2 text-left text-sm",
-                  on ? "border-blue-500 bg-blue-50 dark:bg-blue-950/30" : "hover:bg-neutral-50 dark:hover:bg-neutral-800",
+                  on ? "border-[#3457d5] bg-[#eef2ff] dark:bg-blue-950/30" : "hover:bg-[#f8faff] dark:hover:bg-neutral-800",
                 )}
               >
-                <input type="checkbox" readOnly checked={on} className="accent-blue-600" />
+                <input type="checkbox" readOnly checked={on} className="accent-[#3457d5]" />
                 <UserAvatar name={u.name} image={u.image} />
                 <span className="flex-1 truncate">{u.name}</span>
                 <span className="text-[11px] text-muted-foreground">{ROLE_LABELS[u.role as keyof typeof ROLE_LABELS] ?? u.role}</span>

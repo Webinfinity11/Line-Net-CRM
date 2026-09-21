@@ -139,21 +139,21 @@ export default async function SchedulePage({ searchParams }: PageProps<"/schedul
   const week = Array.from({ length: 7 }, (_, i) => shift(day, i - 3));
 
   return (
-    <div>
+    <div className="max-md:[&_h1]:text-[21px] max-md:[&_button]:min-h-[44px] max-md:[&_button]:min-w-[44px]">
       <PageHeader
         kicker={t.nav2.schedule}
         title={title}
         subtitle={`ნორმა ${normHours} სთ/დღე · ${dayOrders.length} დაგეგმილი ვიზიტი`}
         actions={
           <div className="flex items-center gap-1.5">
-            <Button variant="outline" size="icon-sm" className="h-10 w-10 md:h-8 md:w-8" render={<Link href={`/schedule?date=${shift(day, -1)}`} aria-label="წინა დღე" />}>
+            <Button variant="outline" size="icon-sm" className="h-11 w-11 md:h-8 md:w-8" render={<Link href={`/schedule?date=${shift(day, -1)}`} aria-label="წინა დღე" />}>
               <ChevronLeft className="size-4" />
             </Button>
-            <Button variant={day === today ? "default" : "outline"} size="sm" className="h-10 md:h-8" render={<Link href="/schedule" />}>
+            <Button variant={day === today ? "default" : "outline"} size="sm" className="h-11 md:h-8" render={<Link href="/schedule" />}>
               დღეს
             </Button>
             <DateJump value={day} basePath="/schedule" label="სხვა თარიღი" />
-            <Button variant="outline" size="icon-sm" className="h-10 w-10 md:h-8 md:w-8" render={<Link href={`/schedule?date=${shift(day, 1)}`} aria-label="შემდეგი დღე" />}>
+            <Button variant="outline" size="icon-sm" className="h-11 w-11 md:h-8 md:w-8" render={<Link href={`/schedule?date=${shift(day, 1)}`} aria-label="შემდეგი დღე" />}>
               <ChevronRight className="size-4" />
             </Button>
           </div>
@@ -169,7 +169,7 @@ export default async function SchedulePage({ searchParams }: PageProps<"/schedul
               href={`/schedule?date=${w}`}
               aria-current={w === day ? "date" : undefined}
               className={cn(
-                "rounded-md border px-1 py-1.5 text-center text-[11px] transition-colors duration-150 sm:min-w-[72px] sm:flex-1 sm:px-2",
+                "max-md:min-h-[44px] rounded-md border px-1 py-1.5 text-center text-[11px] transition-colors duration-150 sm:min-w-[72px] sm:flex-1 sm:px-2",
                 w === day
                   ? "border-[#3457d5] bg-[#3457d5] text-white"
                   : w === today
@@ -194,7 +194,7 @@ export default async function SchedulePage({ searchParams }: PageProps<"/schedul
 
       <div className="ln-stagger grid gap-[18px] lg:grid-cols-[minmax(260px,3fr)_minmax(0,7fr)]">
         <Card className="self-start">
-          <CardHeader className="flex-row items-center justify-between">
+          <CardHeader className="flex-row items-center justify-between max-md:flex-wrap max-md:gap-1">
             <CardTitle>დაუნიშნავი / დაუგეგმავი</CardTitle>
             <span className="text-[11px] text-muted-foreground tabular">{queue.length}</span>
           </CardHeader>
@@ -204,7 +204,7 @@ export default async function SchedulePage({ searchParams }: PageProps<"/schedul
         </Card>
 
         <Card>
-          <CardHeader className="flex-row items-center justify-between">
+          <CardHeader className="flex-row items-center justify-between max-md:flex-wrap max-md:gap-1">
             <CardTitle>ტექნიკოსების განრიგი</CardTitle>
             <span className="text-[11px] text-muted-foreground">დაგეგმილი დრო · ერთი ღერძი</span>
           </CardHeader>
@@ -216,17 +216,17 @@ export default async function SchedulePage({ searchParams }: PageProps<"/schedul
 
       <div className="ln-stagger mt-[18px] grid gap-[18px] md:grid-cols-2">
         <Card>
-          <CardHeader className="flex-row items-center justify-between">
+          <CardHeader className="flex-row items-center justify-between max-md:flex-wrap max-md:gap-1">
             <CardTitle>ჩასაბარებელი</CardTitle>
             <span className="text-[11px] text-muted-foreground">შესრულებული, ელოდება შემოწმებას</span>
           </CardHeader>
           <CardContent>
             {awaiting.length === 0 && <p className="py-4 text-center text-xs text-muted-foreground">ჩასაბარებელი შეკვეთა არ არის</p>}
             {awaiting.map((o) => (
-              <Link key={o.id} href={`/orders/${o.id}`} className="grid grid-cols-[1fr_auto] items-center gap-3 border-t border-[#e6ebf2] py-2.5 text-xs first:border-t-0 hover:text-[#3457d5]">
+              <Link key={o.id} href={`/orders/${o.id}`} className="grid grid-cols-[1fr_auto] max-md:grid-cols-1 max-md:gap-1 items-center gap-3 border-t border-[#e6ebf2] py-2.5 text-xs first:border-t-0 hover:text-[#3457d5]">
                 <span className="min-w-0">
-                  <span className="block truncate text-[13px] font-medium text-foreground">{o.title}</span>
-                  <span className="block truncate text-muted-foreground">
+                  <span className="block truncate max-md:whitespace-normal max-md:break-words text-[13px] font-medium text-foreground">{o.title}</span>
+                  <span className="block truncate max-md:whitespace-normal max-md:break-words text-muted-foreground">
                     {o.number} · {o.client?.name ?? "—"}
                     {o.assignees.length ? ` · ${o.assignees.map((a) => a.user.name.split(" ")[0]).join(", ")}` : ""}
                   </span>
@@ -237,17 +237,17 @@ export default async function SchedulePage({ searchParams }: PageProps<"/schedul
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex-row items-center justify-between">
+          <CardHeader className="flex-row items-center justify-between max-md:flex-wrap max-md:gap-1">
             <CardTitle>ვადაგადაცილებული</CardTitle>
             <span className="text-[11px] text-muted-foreground">აქტიური, ვადა გასულია</span>
           </CardHeader>
           <CardContent>
             {overdue.length === 0 && <p className="py-4 text-center text-xs text-muted-foreground">ვადაგადაცილებული შეკვეთა არ არის</p>}
             {overdue.map((o) => (
-              <Link key={o.id} href={`/orders/${o.id}`} className="grid grid-cols-[1fr_auto] items-center gap-3 border-t border-[#e6ebf2] py-2.5 text-xs first:border-t-0 hover:text-[#3457d5]">
+              <Link key={o.id} href={`/orders/${o.id}`} className="grid grid-cols-[1fr_auto] max-md:grid-cols-1 max-md:gap-1 items-center gap-3 border-t border-[#e6ebf2] py-2.5 text-xs first:border-t-0 hover:text-[#3457d5]">
                 <span className="min-w-0">
-                  <span className="block truncate text-[13px] font-medium text-foreground">{o.title}</span>
-                  <span className="block truncate text-muted-foreground">
+                  <span className="block truncate max-md:whitespace-normal max-md:break-words text-[13px] font-medium text-foreground">{o.title}</span>
+                  <span className="block truncate max-md:whitespace-normal max-md:break-words text-muted-foreground">
                     {o.number} · {o.client?.name ?? "—"}
                   </span>
                 </span>

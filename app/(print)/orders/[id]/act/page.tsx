@@ -69,7 +69,7 @@ export default async function ActPage({ params }: PageProps<"/orders/[id]/act">)
               <td className="border border-neutral-300 px-2 py-1">{order.site?.name ?? order.address ?? "—"}</td>
             </tr>
             <tr>
-              <td className="border border-neutral-300 px-2 py-1 text-neutral-500">სისტემა</td>
+              <td className="border border-neutral-300 px-2 py-1 text-neutral-500">კატეგორია</td>
               <td className="border border-neutral-300 px-2 py-1">{order.systemType ? (labels[order.systemType] ?? order.systemType) : "—"}</td>
             </tr>
             <tr>

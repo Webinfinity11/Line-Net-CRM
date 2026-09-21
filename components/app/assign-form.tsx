@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import type { SystemType } from "@/db/schema";
-import { SYSTEM_LABELS } from "@/lib/i18n";
+import { useSystemLabel } from "@/components/app/systems-provider";
 
 export type ExecutorOption = { id: string; name: string; image?: string | null; specializations?: string[]; hours?: number };
 
@@ -36,6 +36,7 @@ const DURATIONS = [30, 60, 90, 120, 180, 240, 480];
  * specialization match, then by today's planned hours (least loaded first).
  */
 export function AssignForm({ orderId, systemType, executors, normHours, defaultAssigneeId, defaultDate, defaultTime, defaultMinutes, onDone }: AssignProps) {
+  const systemName = useSystemLabel(systemType);
   const router = useRouter();
   const busy = useRef(false);
   const [pending, start] = useTransition();
@@ -86,7 +87,7 @@ export function AssignForm({ orderId, systemType, executors, normHours, defaultA
           <NativeSelectOption value="">აირჩიე შემსრულებელი</NativeSelectOption>
           {sorted.map((u) => (
             <NativeSelectOption key={u.id} value={u.id}>
-              {u.name} · {u.hours ?? 0}/{normHours} სთ{systemType && u.specializations?.includes(systemType) ? ` · ${SYSTEM_LABELS[systemType]}` : ""}
+              {u.name} · {u.hours ?? 0}/{normHours} სთ{systemType && u.specializations?.includes(systemType) ? ` · ${systemName}` : ""}
             </NativeSelectOption>
           ))}
         </NativeSelect>

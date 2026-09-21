@@ -33,7 +33,7 @@ export function NotificationBell({ unread, items }: { unread: number; items: Bel
           {unread > 0 && (
             <button
               type="button"
-              className="flex items-center gap-1 text-xs font-normal text-blue-600 hover:underline"
+              className="flex items-center gap-1 text-xs font-normal text-[#3457d5] hover:underline"
               onClick={() =>
                 start(async () => {
                   await markAllNotificationsRead();
@@ -51,7 +51,7 @@ export function NotificationBell({ unread, items }: { unread: number; items: Bel
           {items.map((n) => (
             <DropdownMenuItem
               key={n.id}
-              className={cn("flex flex-col items-start gap-0.5 whitespace-normal", !n.readAt && "bg-blue-50 dark:bg-blue-950/30")}
+              className={cn("flex flex-col items-start gap-0.5 whitespace-normal", !n.readAt && "bg-[#eef2ff] dark:bg-blue-950/30")}
               onClick={() => {
                 start(async () => {
                   if (!n.readAt) await markNotificationRead(n.id);
@@ -67,7 +67,7 @@ export function NotificationBell({ unread, items }: { unread: number; items: Bel
           ))}
         </div>
         <DropdownMenuSeparator />
-        <DropdownMenuItem render={<Link href="/notifications" />} className="justify-center text-sm text-blue-600">
+        <DropdownMenuItem render={<Link href="/notifications" />} className="justify-center text-sm text-[#3457d5]">
           ყველას ნახვა
         </DropdownMenuItem>
         </DropdownMenuGroup>

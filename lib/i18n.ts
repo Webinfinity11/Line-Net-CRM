@@ -55,10 +55,10 @@ export const PRIORITY_LABELS: Record<OrderPriority, string> = {
 };
 
 export const PRIORITY_COLORS: Record<OrderPriority, string> = {
-  low: "text-slate-400",
-  normal: "text-slate-600 dark:text-neutral-300",
-  high: "text-amber-600 font-medium",
-  urgent: "text-rose-600 font-semibold",
+  low: "text-[#8b98a9]",
+  normal: "text-[#617084] dark:text-neutral-300",
+  high: "text-[#96610b] font-medium",
+  urgent: "text-[#b13f32] font-semibold",
 };
 
 export const PAYMENT_LABELS: Record<PaymentStatus, string> = {
@@ -68,9 +68,9 @@ export const PAYMENT_LABELS: Record<PaymentStatus, string> = {
 };
 
 export const PAYMENT_COLORS: Record<PaymentStatus, string> = {
-  unpaid: "bg-rose-50 text-rose-700 dark:bg-rose-900/40 dark:text-rose-200",
-  partial: "bg-amber-50 text-amber-700 dark:bg-amber-900/40 dark:text-amber-200",
-  paid: "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200",
+  unpaid: "bg-[#faeeee] text-[#b13f32] dark:bg-rose-900/40 dark:text-rose-200",
+  partial: "bg-[#fff4df] text-[#96610b] dark:bg-amber-900/40 dark:text-amber-200",
+  paid: "bg-[#eaf6ef] text-[#25815a] dark:bg-emerald-900/40 dark:text-emerald-200",
 };
 
 export const SYSTEM_LABELS: Record<SystemType, string> = {
@@ -105,10 +105,25 @@ export const FREQUENCY_LABELS: Record<ScheduleFrequency, string> = {
   annual: "წელიწადში ერთხელ",
 };
 
+/** What a client sees in the portal: the stage of their request, not the internal workflow. */
+export const PORTAL_STATUS_LABELS: Record<OrderStatus, string> = {
+  new: "მიღებულია",
+  assigned: "დაგეგმილია",
+  in_progress: "მიმდინარეობს",
+  done: "შესრულებულია",
+  closed: "შესრულებულია",
+  cancelled: "გაუქმებულია",
+};
+
+export function portalStatusLabel(status: OrderStatus, triaged: boolean): string {
+  return triaged ? PORTAL_STATUS_LABELS[status] : "გაგზავნილია";
+}
+
 export const ROLE_LABELS: Record<UserRole, string> = {
   admin: "ადმინი",
   manager: "მენეჯერი",
   executor: "შემსრულებელი",
+  client: "კლიენტი",
 };
 
 export const EVENT_LABELS: Record<string, string> = {
@@ -194,7 +209,7 @@ export const t = {
     source: "წყარო",
     overdue: "ვადაგადაცილებული",
     unassigned: "დაუნიშნავი",
-    system: "სისტემა",
+    system: "კატეგორია",
     scheduledAt: "დაგეგმილი დრო",
     warranty: "გარანტია",
     materials: "მასალები",

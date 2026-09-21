@@ -15,7 +15,6 @@ import {
   orders,
   orderStatusEnum,
   orderTypeEnum,
-  systemTypeEnum,
   user,
   type OrderStatus,
   type UserRole,
@@ -24,7 +23,9 @@ import { notifyUsers, staffUserIds } from "@/lib/notify";
 import { addMonthsIso } from "@/lib/order-utils";
 import { recomputeOrderAmount } from "@/lib/order-items";
 import { recomputeOrderPayments } from "@/lib/payments";
+import { shouldNotifyPortalAcceptance } from "@/lib/portal";
 import { getSession, isStaff, type SessionUser } from "@/lib/session";
+import { systemSlug } from "@/lib/systems";
 import { deleteStoredFile, saveFile } from "@/lib/storage";
 
 export type ActionResult<T = undefined> = { ok: true; data?: T } | { ok: false; error: string };
@@ -43,7 +44,7 @@ const orderInput = z.object({
   siteId: z.preprocess(emptyToNull, z.coerce.number().int().positive().nullable()),
   address: z.preprocess(emptyToNull, z.string().max(300).nullable()),
   dueDate: z.preprocess(emptyToNull, z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable()),
-  systemType: z.preprocess(emptyToNull, z.enum(systemTypeEnum.enumValues).nullable()),
+  systemType: z.preprocess(emptyToNull, systemSlug.nullable()),
   scheduledAt: z.preprocess(emptyToNull, z.coerce.date().nullable()),
   plannedMinutes: z.preprocess(emptyToNull, z.coerce.number().int().min(15).max(1440).nullable()),
   warrantyMonths: z.preprocess(emptyToNull, z.coerce.number().int().min(0).max(240).nullable()),
@@ -123,7 +124,7 @@ export async function createOrder(fd: FormData): Promise<ActionResult<{ id: numb
   } catch (e) {
     return { ok: false, error: (e as Error).message };
   }
-  const parsed = orderInput.safeParse(formToObject(fd));
+  const parsed = await orderInput.safeParseAsync(formToObject(fd));
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "არასწორი მონაცემები" };
   const v = parsed.data;
 
@@ -176,7 +177,7 @@ export async function updateOrder(id: number, fd: FormData): Promise<ActionResul
   } catch (e) {
     return { ok: false, error: (e as Error).message };
   }
-  const parsed = orderInput.safeParse(formToObject(fd));
+  const parsed = await orderInput.safeParseAsync(formToObject(fd));
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "არასწორი მონაცემები" };
   const v = parsed.data;
   const existing = await db.query.orders.findFirst({ where: eq(orders.id, id), with: { assignees: true } });
@@ -187,9 +188,26 @@ export async function updateOrder(id: number, fd: FormData): Promise<ActionResul
     return { ok: false, error: (e as Error).message };
   }
 
+  // The form no longer carries deadline, duration, warranty or VAT; an absent field keeps what the order already has.
+  const sent = (k: string) => fd.has(k);
+  const plannedMinutes = sent("plannedMinutes") ? v.plannedMinutes : existing.plannedMinutes;
+  const warrantyMonths = sent("warrantyMonths") ? v.warrantyMonths : existing.warrantyMonths;
+  const vatPercent = sent("vatPercent") ? (v.vatPercent ?? Number(existing.vatPercent ?? 0)) : Number(existing.vatPercent ?? 0);
+  // A deadline that only mirrored the visit day follows the visit; one set on purpose (a schedule, an older edit) stays.
+  const mirrored = !existing.dueDate || (existing.scheduledAt !== null && existing.dueDate === localDateIso(existing.scheduledAt));
+  const dueDate = sent("dueDate")
+    ? (v.dueDate ?? (v.scheduledAt ? localDateIso(v.scheduledAt) : null))
+    : mirrored && v.scheduledAt
+      ? localDateIso(v.scheduledAt)
+      : existing.dueDate;
+
   let added: string[] = [];
+  let acceptedPortal = false;
   await db.transaction(async (tx) => {
-    const wasInbox = !existing.triaged;
+    // Lock before reading the transition so concurrent saves notify only once.
+    const [current] = await tx.select({ source: orders.source, triaged: orders.triaged }).from(orders).where(eq(orders.id, id)).for("update");
+    const wasInbox = !current.triaged;
+    acceptedPortal = shouldNotifyPortalAcceptance(current.source, current.triaged, true);
     let status: OrderStatus = existing.status;
     if (status === "new" && v.assignees.length) status = "assigned";
     if (status === "assigned" && v.assignees.length === 0) status = "new";
@@ -204,22 +222,22 @@ export async function updateOrder(id: number, fd: FormData): Promise<ActionResul
         clientId: v.clientId,
         siteId: v.siteId,
         address: v.address,
-        dueDate: v.dueDate ?? (v.scheduledAt ? localDateIso(v.scheduledAt) : null),
+        dueDate,
         systemType: v.systemType,
         scheduledAt: v.scheduledAt,
-        plannedMinutes: v.plannedMinutes,
-        warrantyMonths: v.warrantyMonths,
-        warrantyUntil: v.warrantyMonths && existing.completedAt ? addMonthsIso(existing.completedAt, v.warrantyMonths) : v.warrantyMonths ? existing.warrantyUntil : null,
+        plannedMinutes,
+        warrantyMonths,
+        warrantyUntil: warrantyMonths && existing.completedAt ? addMonthsIso(existing.completedAt, warrantyMonths) : warrantyMonths ? existing.warrantyUntil : null,
         requiresPhoto: v.requiresPhoto || existing.requiresPhoto,
         amount,
-        vatPercent: (v.vatPercent ?? Number(existing.vatPercent ?? 0)).toFixed(2),
+        vatPercent: vatPercent.toFixed(2),
         status,
         triaged: true,
         updatedAt: new Date(),
       })
       .where(eq(orders.id, id));
     // A changed VAT rate moves the gross total, so the line-driven amount is redone first.
-    if ((v.vatPercent ?? Number(existing.vatPercent ?? 0)) !== Number(existing.vatPercent ?? 0)) await recomputeOrderAmount(tx, id);
+    if (vatPercent !== Number(existing.vatPercent ?? 0)) await recomputeOrderAmount(tx, id);
     else if (amount !== existing.amount) await recomputeOrderPayments(tx, id);
     await tx.insert(orderEvents).values({
       orderId: id,
@@ -230,6 +248,15 @@ export async function updateOrder(id: number, fd: FormData): Promise<ActionResul
     added = await syncAssignees(tx, id, existing.assignees.map((a) => a.userId), v.assignees, me.id);
   });
   if (added.length) await notifyUsers(added, { type: "assigned", title: `დაგენიშნათ შეკვეთა ${existing.number}`, body: v.title, orderId: id }, { excludeUserId: me.id });
+  if (acceptedPortal && v.clientId !== null) {
+    const recipients = await db.select({ id: user.id }).from(user).where(and(eq(user.role, "client"), eq(user.clientId, v.clientId), eq(user.banned, false)));
+    await notifyUsers(recipients.map((u) => u.id), {
+      type: "portal",
+      title: "თქვენი შეკვეთა მიღებულია",
+      body: `${existing.number} · ${v.title}`,
+    });
+  }
+  revalidatePath("/portal");
   revalidateOrder(id);
   return { ok: true };
 }

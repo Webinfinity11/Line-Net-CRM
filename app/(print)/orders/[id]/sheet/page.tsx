@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation";
 import { PrintButton } from "@/components/app/print-button";
-import { PAYMENT_LABELS, PRIORITY_LABELS, STATUS_LABELS, SYSTEM_LABELS, TYPE_LABELS, formatDate, formatMoney } from "@/lib/i18n";
+import { PAYMENT_LABELS, PRIORITY_LABELS, STATUS_LABELS, TYPE_LABELS, formatDate, formatMoney } from "@/lib/i18n";
 import { getOrder } from "@/lib/orders";
 import { isStaff, requireUser } from "@/lib/session";
+import { systemLabels } from "@/lib/systems";
 
 export const metadata = { title: "სამუშაო ფურცელი" };
 
@@ -13,6 +14,7 @@ export default async function WorkSheetPage({ params }: PageProps<"/orders/[id]/
   if (!order) notFound();
   const staff = isStaff(me.role);
   if (!staff && !order.assignees.some((a) => a.userId === me.id)) notFound();
+  const SYSTEM_LABELS = await systemLabels();
 
   const Row = ({ label, value }: { label: string; value: React.ReactNode }) => (
     <tr>
@@ -46,7 +48,7 @@ export default async function WorkSheetPage({ params }: PageProps<"/orders/[id]/
         <tbody>
           <Row label="კლიენტი" value={order.client ? `${order.client.name}${order.client.contactName ? " · " + order.client.contactName : ""}${order.client.phone ? " · " + order.client.phone : ""}` : null} />
           <Row label="ობიექტი" value={[order.site?.name, order.address ?? order.site?.address].filter(Boolean).join(" · ") || null} />
-          <Row label="სისტემა / ტიპი" value={`${order.systemType ? SYSTEM_LABELS[order.systemType] + " · " : ""}${TYPE_LABELS[order.type]} · ${PRIORITY_LABELS[order.priority]}`} />
+          <Row label="კატეგორია / ტიპი" value={`${order.systemType ? SYSTEM_LABELS[order.systemType] + " · " : ""}${TYPE_LABELS[order.type]} · ${PRIORITY_LABELS[order.priority]}`} />
           <Row label="დაგეგმილი დრო" value={order.scheduledAt ? formatDate(order.scheduledAt, true) : formatDate(order.dueDate)} />
           <Row label="შემსრულებლები" value={order.assignees.map((a) => a.user.name + (a.user.phone ? ` (${a.user.phone})` : "")).join(", ") || null} />
           <Row label="სტატუსი" value={STATUS_LABELS[order.status]} />

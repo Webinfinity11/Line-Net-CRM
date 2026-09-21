@@ -1,12 +1,13 @@
 import { X } from "lucide-react";
 import Link from "next/link";
-import type { OrderPriority, OrderType, SystemType } from "@/db/schema";
-import { PRIORITY_LABELS, SYSTEM_LABELS, TYPE_LABELS, t } from "@/lib/i18n";
+import type { OrderPriority, OrderType } from "@/db/schema";
+import { PRIORITY_LABELS, TYPE_LABELS, t } from "@/lib/i18n";
+import { systemLabels } from "@/lib/systems";
 
 type Sp = Record<string, string | string[] | undefined>;
 
 /** Chips for every filter that is actually applied, each removable on its own. */
-export function FilterChips({ sp, users, clients }: { sp: Sp; users: { id: string; name: string }[]; clients: { id: number; name: string }[] }) {
+export async function FilterChips({ sp, users, clients }: { sp: Sp; users: { id: string; name: string }[]; clients: { id: number; name: string }[] }) {
   const get = (k: string) => (typeof sp[k] === "string" ? (sp[k] as string) : undefined);
   const base = new URLSearchParams();
   for (const [k, v] of Object.entries(sp)) if (typeof v === "string" && v && k !== "page") base.set(k, v);
@@ -25,7 +26,7 @@ export function FilterChips({ sp, users, clients }: { sp: Sp; users: { id: strin
   const type = get("type");
   if (type) chips.push({ key: "type", label: `${t.order.type}: ${TYPE_LABELS[type as OrderType] ?? type}` });
   const system = get("system");
-  if (system) chips.push({ key: "system", label: `${t.order.system}: ${SYSTEM_LABELS[system as SystemType] ?? system}` });
+  if (system) chips.push({ key: "system", label: `${t.order.system}: ${(await systemLabels())[system] ?? system}` });
   const priority = get("priority");
   if (priority) chips.push({ key: "priority", label: `${t.order.priority}: ${PRIORITY_LABELS[priority as OrderPriority] ?? priority}` });
   const assignee = get("assignee");

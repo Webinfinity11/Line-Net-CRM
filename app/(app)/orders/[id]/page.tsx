@@ -89,21 +89,21 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
 
   return (
     // extra bottom room on a phone: the action bar floats above the bottom navigation
-    <div className="space-y-4 pb-[104px] md:pb-0">
+    <div className="space-y-4 pb-[152px] md:pb-0">
       {!staff && <MarkSeen orderId={order.id} />}
 
       {/* Summary header: status, people, place, time, next action */}
       <div className="ln-card p-4 md:p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <div className="mb-1.5 flex flex-wrap items-center gap-2">
-              <span className="font-mono text-sm text-muted-foreground">{order.number}</span>
+            <div className="mb-2 flex flex-wrap items-center gap-1.5 md:mb-1.5 md:gap-2">
+              <span className="font-mono text-[11px] text-muted-foreground md:text-sm">{order.number}</span>
               <StatusBadge status={order.status} />
               <TypeBadge type={order.type} />
-              <SystemBadge system={order.systemType} />
-              <PriorityLabel priority={order.priority} />
-              {overdue && <OverdueBadge />}
-              {!order.triaged && <span className="rounded-md bg-blue-600 px-2 py-0.5 text-xs font-medium text-white">შემოსული წერილი</span>}
+              <SystemBadge system={order.systemType} className="order-last max-w-full whitespace-normal break-words md:order-none md:whitespace-nowrap" />
+              <PriorityLabel priority={order.priority} className={order.priority === "normal" ? "hidden md:inline-flex" : overdue ? "max-md:text-muted-foreground" : undefined} />
+              {overdue && <OverdueBadge className="hidden md:inline-flex" />}
+              {!order.triaged && <span className="rounded-md bg-[#3457d5] px-2 py-0.5 text-xs font-medium text-white">შემოსული წერილი</span>}
               {order.requiresPhoto && (
                 <span className="inline-flex items-center gap-1 rounded-md bg-[#fff4df] px-2 py-0.5 text-xs text-[#96610b] ring-1 ring-[#f0d9a8]">
                   <Camera className="size-3" /> ფოტო სავალდებულოა
@@ -117,7 +117,7 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
                 <div className="min-w-0">
                   <dt className="text-xs text-muted-foreground">{t.order.client} / {t.order.site}</dt>
                   <dd className="font-medium">
-                    {order.client ? (staff ? <Link href={`/clients/${order.client.id}`} className="hover:text-blue-700">{order.client.name}</Link> : order.client.name) : "—"}
+                    {order.client ? (staff ? <Link href={`/clients/${order.client.id}`} className="hover:text-[#2846b7]">{order.client.name}</Link> : order.client.name) : "—"}
                     {order.site ? <span className="text-muted-foreground"> · {order.site.name}</span> : null}
                   </dd>
                 </div>
@@ -136,7 +136,7 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
                 <CalendarDays className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
                 <div>
                   <dt className="text-xs text-muted-foreground">{t.order.dueDate}</dt>
-                  <dd className={overdue ? "font-semibold text-[#b13f32]" : "font-medium"}>{formatDate(order.dueDate)}</dd>
+                  <dd className={overdue ? "font-semibold text-[#b13f32]" : "font-medium"}>{overdue && <span className="md:hidden">ვადაგადაცილებულია · </span>}{formatDate(order.dueDate)}</dd>
                 </div>
               </div>
               <div className="flex items-start gap-2">
@@ -171,16 +171,16 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
             </dl>
           </div>
           <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-            <Button render={<Link href={`/orders/${order.id}/sheet`} target="_blank" />} variant="outline" size="sm" className="h-10 flex-1 sm:h-8 sm:flex-none">
+            <Button render={<Link href={`/orders/${order.id}/sheet`} target="_blank" />} variant="outline" size="sm" className="h-11 flex-1 md:h-8 md:flex-none">
               <Printer className="size-3.5" /> სამუშაო ფურცელი
             </Button>
             {staff && (order.status === "done" || order.status === "closed") && (
-              <Button render={<Link href={`/orders/${order.id}/act`} target="_blank" />} variant="outline" size="sm" className="h-10 flex-1 sm:h-8 sm:flex-none">
+              <Button render={<Link href={`/orders/${order.id}/act`} target="_blank" />} variant="outline" size="sm" className="h-11 flex-1 md:h-8 md:flex-none">
                 <FileCheck className="size-3.5" /> მიღება-ჩაბარების აქტი
               </Button>
             )}
             {staff && !readOnly && (
-              <Button render={<Link href={`/orders/${order.id}/edit`} />} variant="outline" size="sm" className="h-10 flex-1 sm:h-8 sm:flex-none">
+              <Button render={<Link href={`/orders/${order.id}/edit`} />} variant="outline" size="sm" className="h-11 flex-1 md:h-8 md:flex-none">
                 <Pencil className="size-3.5" /> {t.common.edit}
               </Button>
             )}
@@ -199,7 +199,7 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
             </CardHeader>
             <CardContent className="space-y-3">
               {order.source === "email" && (
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg bg-blue-50 px-3 py-2 text-xs text-blue-800 dark:bg-blue-950/30 dark:text-blue-200">
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg bg-[#eef2ff] px-3 py-2 text-xs text-[#3457d5] dark:bg-blue-950/30 dark:text-blue-200">
                   <span className="flex items-center gap-1">
                     <Mail className="size-3.5" /> {order.emailFrom}
                   </span>
@@ -207,11 +207,11 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
                   <span>{formatDate(order.emailReceivedAt ?? order.createdAt, true)}</span>
                 </div>
               )}
-              {order.description ? <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed">{order.description}</pre> : <p className="text-sm text-muted-foreground">აღწერა არ არის</p>}
+              {order.description ? <pre className="whitespace-pre-wrap max-md:break-words font-sans text-sm leading-relaxed">{order.description}</pre> : <p className="text-sm text-muted-foreground">აღწერა არ არის</p>}
               {order.completionNote && (
-                <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm dark:bg-emerald-950/20">
+                <div className="rounded-lg border border-[#25815a]/20 bg-[#eaf6ef] p-3 text-sm dark:bg-emerald-950/20">
                   <div className="mb-0.5 text-xs font-medium text-[#25815a]">შესრულებული სამუშაო (ჩაბარებისას)</div>
-                  <pre className="whitespace-pre-wrap font-sans">{order.completionNote}</pre>
+                  <pre className="whitespace-pre-wrap max-md:break-words font-sans">{order.completionNote}</pre>
                 </div>
               )}
               {order.status === "closed" && order.verifier && (
@@ -262,7 +262,7 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
                       href={`https://maps.google.com/?q=${siteCoords ? `${siteCoords.lat},${siteCoords.lng}` : encodeURIComponent(address)}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-xs text-blue-700 hover:underline"
+                      className="text-xs text-[#3457d5] hover:underline"
                     >
                       {address}
                     </a>
@@ -283,7 +283,7 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
                       {contact.namedOnSite && <span className="ml-1.5 text-[11px] font-normal text-muted-foreground">ობიექტზე</span>}
                     </div>
                     {contact.phone ? (
-                      <a href={telHref(contact.phone)!} className="text-xs text-blue-700 hover:underline">
+                      <a href={telHref(contact.phone)!} className="text-xs text-[#3457d5] hover:underline">
                         {contact.phone}
                       </a>
                     ) : (
@@ -317,7 +317,7 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
                       <div className="min-w-0 flex-1">
                         <div className="truncate text-sm font-medium">{a.user.name}</div>
                         {a.user.phone && (
-                          <a href={`tel:${a.user.phone.replace(/\s+/g, "")}`} className="text-xs text-muted-foreground hover:text-blue-700">
+                          <a href={`tel:${a.user.phone.replace(/\s+/g, "")}`} className="text-xs text-muted-foreground hover:text-[#2846b7]">
                             {a.user.phone}
                           </a>
                         )}

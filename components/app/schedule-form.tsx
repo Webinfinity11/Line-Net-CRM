@@ -6,7 +6,8 @@ import { Label } from "@/components/ui/label";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
 import type { ServiceSchedule } from "@/db/schema";
-import { FREQUENCY_LABELS, SYSTEM_LABELS, SYSTEM_ORDER } from "@/lib/i18n";
+import { FREQUENCY_LABELS } from "@/lib/i18n";
+import { useSystems } from "@/components/app/systems-provider";
 import { UserAvatar } from "./user-avatar";
 
 export function ScheduleFields({
@@ -19,7 +20,8 @@ export function ScheduleFields({
   initial?: Partial<ServiceSchedule>;
 }) {
   const [clientId, setClientId] = useState(initial?.clientId ? String(initial.clientId) : "");
-  const [system, setSystem] = useState(initial?.systemType ?? "fire");
+  const systemOptions = useSystems().filter((s) => s.active || s.key === initial?.systemType);
+  const [system, setSystem] = useState<string>(initial?.systemType ?? systemOptions[0]?.key ?? "");
   const sites = useMemo(() => clients.find((c) => String(c.id) === clientId)?.sites ?? [], [clients, clientId]);
 
   return (
@@ -47,11 +49,11 @@ export function ScheduleFields({
         </NativeSelect>
       </div>
       <div className="space-y-1.5">
-        <Label htmlFor="s-system">სისტემა *</Label>
-        <NativeSelect id="s-system" name="systemType" value={system} onChange={(e) => setSystem(e.target.value as typeof system)}>
-          {SYSTEM_ORDER.map((k) => (
-            <NativeSelectOption key={k} value={k}>
-              {SYSTEM_LABELS[k]}
+        <Label htmlFor="s-system">კატეგორია *</Label>
+        <NativeSelect id="s-system" name="systemType" value={system} onChange={(e) => setSystem(e.target.value)}>
+          {systemOptions.map((sys) => (
+            <NativeSelectOption key={sys.key} value={sys.key}>
+              {sys.name}
             </NativeSelectOption>
           ))}
         </NativeSelect>
@@ -92,7 +94,7 @@ export function ScheduleFields({
         <div className="max-h-40 space-y-1 overflow-y-auto rounded-lg border p-2">
           {users.map((u) => (
             <label key={u.id} className="flex cursor-pointer items-center gap-2 text-sm">
-              <input type="checkbox" name="assigneeIds" value={u.id} defaultChecked={initial?.assigneeIds?.includes(u.id)} className="accent-blue-600" />
+              <input type="checkbox" name="assigneeIds" value={u.id} defaultChecked={initial?.assigneeIds?.includes(u.id)} className="accent-[#3457d5]" />
               <UserAvatar name={u.name} image={u.image} />
               {u.name}
               {u.specializations?.includes(system) && <span className="text-[11px] text-[#25815a]">სპეც.</span>}

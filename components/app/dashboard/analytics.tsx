@@ -1,10 +1,10 @@
 "use client";
 
-import { FileCheck2, HardHat, TrendingUp, Wallet } from "lucide-react";
+import { HardHat, TrendingUp, Wallet } from "lucide-react";
 import Link from "next/link";
 import { CountUp, DrawnArea, GrowBar, Reveal } from "@/components/app/motion";
 import { UserAvatar } from "@/components/app/user-avatar";
-import type { Aging, Conversion, CrewRow, RevenueTrend } from "@/lib/analytics";
+import type { Aging, CrewRow, RevenueTrend } from "@/lib/analytics";
 import { formatMoney } from "@/lib/i18n";
 import { toMtavruli } from "@/lib/mtavruli";
 import { cn } from "@/lib/utils";
@@ -31,7 +31,7 @@ export function RevenueTrendCard({ trend }: { trend: RevenueTrend }) {
   const total = points.reduce((s, v) => s + v, 0);
 
   return (
-    <Reveal as="section" className="ln-card ln-lift min-w-0 p-6" delay={0} ariaLabel="შემოსავლის ტრენდი" view="trend">
+    <Reveal as="section" className="ln-card ln-lift min-w-0 p-6 max-md:p-4" delay={0} ariaLabel="შემოსავლის ტრენდი" view="trend">
       <CardHead icon={TrendingUp} title="შემოსავლის ტრენდი" aside="12 თვე" />
       <div className="flex flex-wrap items-end gap-x-6 gap-y-2">
         <div>
@@ -54,7 +54,7 @@ export function AgingCard({ aging }: { aging: Aging }) {
   const total = Math.max(1, aging.total);
 
   return (
-    <Reveal as="section" className="ln-card ln-lift min-w-0 p-6" delay={80} ariaLabel="გადაუხდელები" view="aging">
+    <Reveal as="section" className="ln-card ln-lift min-w-0 p-6 max-md:p-4" delay={80} ariaLabel="გადაუხდელები" view="aging">
       <CardHead icon={Wallet} title="გადაუხდელები" aside="ყველა შეკვეთა" />
       <CountUp value={aging.total} format={formatMoney} className="font-heading text-[26px] font-semibold leading-none tracking-[-0.6px]" />
       <p className="mt-1.5 text-[11.5px] text-muted-foreground">
@@ -111,7 +111,7 @@ export function AgingCard({ aging }: { aging: Aging }) {
 export function CrewCard({ crew, normHours }: { crew: CrewRow[]; normHours: number }) {
   const top = crew.slice(0, 5);
   return (
-    <Reveal as="section" className="ln-card ln-lift min-w-0 p-6" delay={160} ariaLabel="ტექნიკოსების შედეგი" view="crew">
+    <Reveal as="section" className="ln-card ln-lift min-w-0 p-6 max-md:p-4" delay={160} ariaLabel="ტექნიკოსების შედეგი" view="crew">
       <CardHead icon={HardHat} title="ტექნიკოსები" aside="ამ თვეში" />
       {top.length === 0 ? (
         <p className="rounded-[12px] border border-dashed border-[#e6ebf2] px-4 py-6 text-center text-[12.5px] text-muted-foreground">ამ თვეში დანიშნული სამუშაო ჯერ არ არის.</p>
@@ -137,70 +137,6 @@ export function CrewCard({ crew, normHours }: { crew: CrewRow[]; normHours: numb
         </ul>
       )}
       <p className="mt-4 border-t border-[#eef1f6] pt-3 text-[11px] text-muted-foreground">დატვირთვა ითვლება დღის ნორმაზე ({normHours} სთ) და თვის გასულ დღეებზე.</p>
-    </Reveal>
-  );
-}
-
-/** Quotes sent against quotes won, and the money still on the table. */
-export function ConversionCard({ c }: { c: Conversion }) {
-  const rate = c.rate ?? 0;
-  const circumference = 2 * Math.PI * 42;
-
-  return (
-    <Reveal as="section" className="ln-card ln-lift min-w-0 p-6" delay={240} ariaLabel="შეთავაზებების კონვერსია" view="quotes">
-      <CardHead icon={FileCheck2} title="შეთავაზებები" aside="3 თვე" />
-      <div className="flex flex-wrap items-center gap-x-5 gap-y-4">
-        <div className="relative size-[96px] shrink-0">
-          <svg viewBox="0 0 100 100" className="size-full -rotate-90">
-            <circle cx="50" cy="50" r="42" fill="none" stroke="#eef1f6" strokeWidth="10" />
-            <circle
-              cx="50"
-              cy="50"
-              r="42"
-              fill="none"
-              stroke="#25815a"
-              strokeWidth="10"
-              strokeLinecap="round"
-              strokeDasharray={circumference}
-              strokeDashoffset={circumference * (1 - rate / 100)}
-              className="transition-[stroke-dashoffset] duration-[1200ms] ease-[cubic-bezier(0.16,0.84,0.44,1)] motion-reduce:transition-none"
-            />
-          </svg>
-          <div className="absolute inset-0 grid place-items-center">
-            {c.rate === null ? (
-              <span className="text-[12px] text-muted-foreground">—</span>
-            ) : (
-              <CountUp value={rate} format={(n) => `${Math.round(n)}%`} className="font-heading text-[22px] font-bold tracking-[-0.5px]" />
-            )}
-          </div>
-        </div>
-
-        <div className="min-w-0 flex-1">
-          <div className="text-[11px] text-muted-foreground">მოგებული სამუშაო</div>
-          <CountUp value={c.acceptedValue} format={formatMoney} className="font-heading text-[20px] font-semibold leading-tight text-[#25815a]" duration={900} />
-          <div className="mt-0.5 text-[11.5px] text-muted-foreground">{c.accepted} შეთავაზებიდან</div>
-        </div>
-      </div>
-
-      <dl className="mt-4 space-y-2.5 border-t border-[#eef1f6] pt-3 text-[12.5px]">
-        <div className="flex items-center justify-between gap-2">
-          <dt className="text-muted-foreground">პასუხის მოლოდინში</dt>
-          <dd className="tabular font-medium">
-            {c.sent} · {formatMoney(c.openValue)}
-          </dd>
-        </div>
-        <div className="flex items-center justify-between gap-2">
-          <dt className="text-muted-foreground">უარყოფილი</dt>
-          <dd className="tabular font-medium text-muted-foreground">{c.declined}</dd>
-        </div>
-        <div className="flex items-center justify-between gap-2">
-          <dt className="text-muted-foreground">საშუალო ღირებულება</dt>
-          <dd className="tabular font-semibold">{formatMoney(c.avgValue)}</dd>
-        </div>
-      </dl>
-      <Link href="/quotes" className="mt-4 inline-flex items-center gap-1 text-[12px] font-medium text-[#3457d5] hover:underline">
-        ყველა შეთავაზება
-      </Link>
     </Reveal>
   );
 }

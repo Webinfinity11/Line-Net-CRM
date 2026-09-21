@@ -42,7 +42,7 @@ const firstName = (n: string) => n.split(" ")[0];
 function RowMenu({ o, onAssign }: { o: OrderRow; onAssign: (o: OrderRow) => void }) {
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" aria-label={`${o.number} მოქმედებები`} />}>
+      <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" className="max-md:size-11" aria-label={`${o.number} მოქმედებები`} />}>
         <MoreHorizontal className="size-4" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
@@ -74,7 +74,7 @@ function OrderCardRow({ o, onAssign }: { o: OrderRow; onAssign: (o: OrderRow) =>
         <span className="flex items-start gap-2">
           <span className="min-w-0 flex-1">
             <span className="block text-[15px] font-semibold leading-snug text-foreground">{o.title}</span>
-            <span className="mt-1 block truncate text-[12.5px] text-muted-foreground">
+            <span className="mt-1 block break-words text-[12.5px] text-muted-foreground">
               {o.number}
               {o.client ? ` · ${o.client}` : ""}
               {o.site ? ` · ${o.site}` : ""}
@@ -84,7 +84,7 @@ function OrderCardRow({ o, onAssign }: { o: OrderRow; onAssign: (o: OrderRow) =>
         </span>
         <span className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[12.5px]">
           <StatusBadge status={o.status} />
-          <span className={cn("text-muted-foreground", o.overdue && "font-semibold text-[#b13f32]")}>
+          <span className={cn("text-muted-foreground", o.overdue && "font-semibold text-[#b13f32]", o.priority === "urgent" && "max-md:text-muted-foreground")}>
             {o.dueLabel ? `ვადა ${o.dueLabel}` : "ვადის გარეშე"}
           </span>
           <span className="text-muted-foreground">{lead ? firstName(lead.name) : "დაუნიშნავი"}</span>
@@ -231,7 +231,7 @@ export function OrdersTable({
                           />
                         )}
                       </td>
-                      <td data-col="due" className={cn(td, "hidden whitespace-nowrap md:table-cell", o.overdue && "font-semibold text-[#b13f32]")} title={o.overdue ? t.order.overdue : undefined}>
+                      <td data-col="due" className={cn(td, "hidden whitespace-nowrap md:table-cell", o.overdue && "font-semibold text-[#b13f32]", o.priority === "urgent" && "max-md:text-muted-foreground")} title={o.overdue ? t.order.overdue : undefined}>
                         {o.dueLabel ?? "—"}
                         {o.overdue && <span className="sr-only"> {t.order.overdue}</span>}
                       </td>
@@ -258,10 +258,10 @@ export function OrdersTable({
             <span className="text-muted-foreground">
               გვერდი <span className="tabular font-medium text-foreground">{page}</span> / {pages}
             </span>
-            <Button render={prevHref ? <Link href={prevHref} /> : <span />} variant="outline" size="icon-sm" aria-label="წინა გვერდი" disabled={!prevHref}>
+            <Button render={prevHref ? <Link href={prevHref} /> : <span />} variant="outline" size="icon-sm" className="max-md:size-11" aria-label="წინა გვერდი" disabled={!prevHref}>
               <ChevronLeft className="size-4" />
             </Button>
-            <Button render={nextHref ? <Link href={nextHref} /> : <span />} variant="outline" size="icon-sm" aria-label="შემდეგი გვერდი" disabled={!nextHref}>
+            <Button render={nextHref ? <Link href={nextHref} /> : <span />} variant="outline" size="icon-sm" className="max-md:size-11" aria-label="შემდეგი გვერდი" disabled={!nextHref}>
               <ChevronRight className="size-4" />
             </Button>
           </nav>

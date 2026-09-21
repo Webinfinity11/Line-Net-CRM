@@ -1,8 +1,10 @@
 import "server-only";
-import { and, eq, gte, ne, sql } from "drizzle-orm";
+import { and, eq, gte, lt, ne, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { orderAssignees, orderPayments, orders, quotes, user } from "@/db/schema";
+import { orderAssignees, orderPayments, orders, user } from "@/db/schema";
 import { reportMonthly } from "@/lib/reports";
+
+import { periodBounds, rangeStart, type CustomPeriod, type DateRange } from "@/lib/orders";
 
 const num = (v: unknown) => Number(v ?? 0);
 
@@ -26,15 +28,13 @@ export type Aging = { buckets: AgingBucket[]; total: number; overdue: number; ol
 
 export type CrewRow = { id: string; name: string; image: string | null; hours: number; completed: number; revenue: number; utilPct: number };
 
-export type Conversion = { draft: number; sent: number; accepted: number; declined: number; rate: number | null; acceptedValue: number; openValue: number; avgValue: number };
-
 /**
- * The four numbers that show where the business is heading, as opposed to what
+ * The three numbers that show where the business is heading, as opposed to what
  * is happening today. One round trip each, all in parallel.
  */
 export async function getDashboardAnalytics(normHours: number) {
-  const [trend, aging, crew, conversion] = await Promise.all([revenueTrend(), unpaidAging(), crewPerformance(normHours), quoteConversion()]);
-  return { trend, aging, crew, conversion };
+  const [trend, aging, crew] = await Promise.all([revenueTrend(), unpaidAging(), crewPerformance(normHours)]);
+  return { trend, aging, crew };
 }
 
 async function revenueTrend(): Promise<RevenueTrend> {
@@ -137,33 +137,6 @@ async function crewPerformance(normHours: number): Promise<CrewRow[]> {
     .sort((a, b) => b.revenue - a.revenue || b.completed - a.completed);
 }
 
-async function quoteConversion(): Promise<Conversion> {
-  const since = monthStart(2); // this month plus the two before it
-  const rows = await db
-    .select({ status: quotes.status, n: sql<number>`count(*)`.mapWith(Number), total: sql<string>`coalesce(sum(${quotes.total}), 0)` })
-    .from(quotes)
-    .where(gte(quotes.createdAt, since))
-    .groupBy(quotes.status);
-
-  const by = (s: string) => rows.find((r) => r.status === s);
-  const draft = by("draft")?.n ?? 0;
-  const sent = by("sent")?.n ?? 0;
-  const accepted = by("accepted")?.n ?? 0;
-  const declined = by("declined")?.n ?? 0;
-  const decided = accepted + declined;
-  const acceptedValue = num(by("accepted")?.total);
-  return {
-    draft,
-    sent,
-    accepted,
-    declined,
-    rate: decided > 0 ? Math.round((accepted / decided) * 100) : null,
-    acceptedValue,
-    openValue: num(by("sent")?.total) + num(by("draft")?.total),
-    avgValue: accepted > 0 ? Math.round(acceptedValue / accepted) : 0,
-  };
-}
-
 /** Payments in the last 14 days, for the hero sparkline. */
 export async function recentCash(days = 14) {
   const start = new Date();
@@ -185,3 +158,22 @@ export async function recentCash(days = 14) {
   return out;
 }
 
+
+/** Completed in the selected period; a missing deadline stays explicitly unknown. */
+export async function dashboardTimeliness(range: DateRange, custom?: CustomPeriod) {
+  const bounds = custom ? periodBounds(custom) : null;
+  const start = bounds?.start ?? rangeStart(range);
+  const [row] = await db.select({
+    total: sql<number>`count(*)`.mapWith(Number),
+    onTime: sql<number>`count(*) filter (where (${orders.completedAt} at time zone 'Asia/Tbilisi')::date <= ${orders.dueDate})`.mapWith(Number),
+    late: sql<number>`count(*) filter (where (${orders.completedAt} at time zone 'Asia/Tbilisi')::date > ${orders.dueDate})`.mapWith(Number),
+    unknown: sql<number>`count(*) filter (where ${orders.dueDate} is null)`.mapWith(Number),
+  }).from(orders).where(and(
+    eq(orders.triaged, true),
+    sql`${orders.status} in ('done', 'closed')`,
+    sql`${orders.completedAt} is not null`,
+    start ? gte(orders.completedAt, start) : undefined,
+    bounds ? lt(orders.completedAt, bounds.end) : undefined,
+  ));
+  return row;
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 /** One place to ask whether motion is welcome, so every effect here obeys the same answer. */
@@ -72,7 +72,6 @@ const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
 export function useCountUp(value: number, duration = 1100) {
   const ref = useRef<HTMLSpanElement>(null);
   const [n, setN] = useState(value);
-  const started = useRef(false);
 
   useEffect(() => {
     const el = ref.current;
@@ -81,10 +80,9 @@ export function useCountUp(value: number, duration = 1100) {
       setN(value);
       return;
     }
+    setN(value);
     let frame = 0;
     const run = () => {
-      if (started.current) return;
-      started.current = true;
       const t0 = performance.now();
       const tick = (now: number) => {
         const p = Math.min(1, (now - t0) / duration);
@@ -96,8 +94,7 @@ export function useCountUp(value: number, duration = 1100) {
       frame = requestAnimationFrame(tick);
     };
     if (el.getBoundingClientRect().top < window.innerHeight) {
-      run();
-      return () => cancelAnimationFrame(frame);
+      return;
     }
     const io = new IntersectionObserver(
       (entries) => {
@@ -129,8 +126,12 @@ export function CountUp({ value, format, className, duration }: { value: number;
 }
 
 /**
- * An area chart that draws itself: the line is stroked left to right, then the
+ * An area chart that draws itself: the line is uncovered left to right, then the
  * fill fades in under it. Pure SVG, no chart library.
+ *
+ * The draw is a growing clip, not a stroke-dash trick: with `non-scaling-stroke` and a
+ * stretched viewBox, browsers measure dashes in screen pixels while `pathLength`
+ * counts in user units, so a dashed line came out broken into pieces.
  */
 export function DrawnArea({
   points,
@@ -165,6 +166,8 @@ export function DrawnArea({
     .join(" ");
   const area = `${line} L ${w} ${height} L 0 ${height} Z`;
   const id = `g-${stroke.replace("#", "")}`;
+  // useId can contain characters that do not survive inside url(#…)
+  const clip = `c${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
 
   return (
     <div className={cn("relative", className)}>
@@ -174,6 +177,16 @@ export function DrawnArea({
             <stop offset="0%" stopColor={fill} stopOpacity="0.22" />
             <stop offset="100%" stopColor={fill} stopOpacity="0" />
           </linearGradient>
+          <clipPath id={clip}>
+            <rect
+              x={-2}
+              y={-2}
+              width={w + 4}
+              height={height + 4}
+              style={{ transform: shown ? "scaleX(1)" : "scaleX(0)", transformOrigin: "0 0" }}
+              className="transition-transform duration-[1100ms] ease-[cubic-bezier(0.22,0.61,0.36,1)] motion-reduce:transition-none"
+            />
+          </clipPath>
         </defs>
         <path
           d={area}
@@ -188,10 +201,7 @@ export function DrawnArea({
           strokeWidth="1.6"
           strokeLinecap="round"
           vectorEffect="non-scaling-stroke"
-          pathLength={1}
-          strokeDasharray={1}
-          strokeDashoffset={shown ? 0 : 1}
-          className="transition-[stroke-dashoffset] duration-[1100ms] ease-[cubic-bezier(0.22,0.61,0.36,1)] motion-reduce:transition-none"
+          clipPath={`url(#${clip})`}
         />
       </svg>
       {labels && (
@@ -214,6 +224,32 @@ export function GrowBar({ pct, color, delay = 0, className }: { pct: number; col
         className="h-full rounded-full transition-[width] duration-[900ms] ease-[cubic-bezier(0.16,0.84,0.44,1)] motion-reduce:transition-none"
         style={{ width: shown ? `${Math.max(0, Math.min(100, pct))}%` : "0%", background: color, transitionDelay: `${delay}ms` }}
       />
+    </div>
+  );
+}
+
+/** Fixed circular geometry: no stretched viewBox or non-scaling stroke. */
+export function Ring({ segments, children, label }: { segments: { value: number; color: string }[]; children: ReactNode; label: string }) {
+  const { ref, shown } = useRevealed<SVGSVGElement>(0.2);
+  const total = segments.reduce((sum, segment) => sum + Math.max(0, segment.value), 0);
+  const circumference = 2 * Math.PI * 66;
+  let offset = 0;
+  return (
+    <div className="relative mx-auto size-[172px] shrink-0">
+      <svg ref={ref} viewBox="0 0 172 172" className="size-[172px]" role="img" aria-label={label}>
+        <circle cx="86" cy="86" r="66" fill="none" stroke="#eef1f5" strokeWidth="16" />
+        <g transform="rotate(-90 86 86)">
+          {segments.map((segment, index) => {
+            const length = total > 0 ? Math.max(0, segment.value) / total * circumference : 0;
+            const start = offset;
+            offset += length;
+            return <circle key={index} cx="86" cy="86" r="66" fill="none" stroke={segment.color} strokeWidth="16"
+              strokeDasharray={`${shown ? length : 0} ${circumference}`} strokeDashoffset={-start}
+              className="transition-[stroke-dasharray] duration-[1100ms] ease-out motion-reduce:transition-none" />;
+          })}
+        </g>
+      </svg>
+      <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">{children}</div>
     </div>
   );
 }

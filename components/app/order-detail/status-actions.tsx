@@ -32,7 +32,7 @@ export function StatusActions({
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
-  const staff = role !== "executor";
+  const staff = role === "admin" || role === "manager";
 
   function run(to: OrderStatus) {
     start(async () => {
@@ -84,10 +84,10 @@ export function StatusActions({
 
   return (
     <div
-      className="ln-card fixed inset-x-4 bottom-[76px] z-20 flex flex-wrap items-center gap-2 p-3 shadow-[0_-8px_28px_rgba(16,24,40,0.14)] md:static md:inset-auto md:p-4 md:shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)]"
+      className="ln-card fixed inset-x-4 bottom-[calc(76px+env(safe-area-inset-bottom,0px))] z-20 flex flex-wrap items-center gap-2 p-3 shadow-[0_-8px_28px_rgba(16,24,40,0.14)] md:static md:inset-auto md:p-4 md:shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)]"
       aria-live="polite"
     >
-      <span className="line-clamp-1 w-full text-[11.5px] text-muted-foreground md:mr-auto md:line-clamp-none md:w-auto md:text-[12.5px]">{next}</span>
+      <span className="hidden text-muted-foreground md:mr-auto md:inline md:text-[12.5px]">{next}</span>
       {canComplete && <CompleteDialog orderId={orderId} requiredLeft={requiredLeft} needsPhoto={needsPhoto} className={primary} />}
       {staff && status === "done" && (
         <Button size="default" className={primary} disabled={pending} onClick={() => run("closed")}>

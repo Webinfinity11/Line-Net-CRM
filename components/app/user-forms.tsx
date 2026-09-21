@@ -1,15 +1,19 @@
 "use client";
 
+import { useState } from "react";
 import { formFields } from "@/components/app/section-card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import type { User } from "@/db/schema";
-import { ROLE_LABELS, SYSTEM_LABELS, SYSTEM_ORDER } from "@/lib/i18n";
+import { ROLE_LABELS } from "@/lib/i18n";
+import { useSystems } from "@/components/app/systems-provider";
 import { cn } from "@/lib/utils";
 
-export function UserFields({ initial }: { initial?: Partial<User> }) {
+export function UserFields({ initial, clients }: { initial?: Partial<User>; clients: { id: number; name: string }[] }) {
   const editing = Boolean(initial?.id);
+  const [role, setRole] = useState<string>(initial?.role ?? "executor");
+  const systemOptions = useSystems().filter((s) => s.active || initial?.specializations?.includes(s.key));
   return (
     <div className={cn("grid gap-3 sm:grid-cols-2", formFields)}>
       <div className="space-y-1.5 sm:col-span-2">
@@ -24,7 +28,7 @@ export function UserFields({ initial }: { initial?: Partial<User> }) {
       )}
       <div className="space-y-1.5">
         <Label htmlFor="u-role">როლი</Label>
-        <NativeSelect id="u-role" name="role" defaultValue={initial?.role ?? "executor"}>
+        <NativeSelect id="u-role" name="role" value={role} onChange={(e) => setRole(e.target.value)}>
           {Object.entries(ROLE_LABELS).map(([k, v]) => (
             <NativeSelectOption key={k} value={k}>
               {v}
@@ -36,17 +40,32 @@ export function UserFields({ initial }: { initial?: Partial<User> }) {
         <Label htmlFor="u-phone">ტელეფონი</Label>
         <Input id="u-phone" name="phone" defaultValue={initial?.phone ?? ""} />
       </div>
+      {role === "client" ? (
       <div className="space-y-1.5 sm:col-span-2">
-        <Label>სპეციალიზაცია (რომელ სისტემებს აკეთებს)</Label>
+        <Label htmlFor="u-client">კომპანია *</Label>
+        <NativeSelect id="u-client" name="clientId" required defaultValue={initial?.clientId ? String(initial.clientId) : ""}>
+          <NativeSelectOption value="">— აირჩიეთ კლიენტი —</NativeSelectOption>
+          {clients.map((c) => (
+            <NativeSelectOption key={c.id} value={String(c.id)}>
+              {c.name}
+            </NativeSelectOption>
+          ))}
+        </NativeSelect>
+        <p className="text-[11px] text-muted-foreground">შევა კლიენტის კაბინეტში: დაინახავს მხოლოდ ამ კომპანიის შეკვეთებს და გამოგზავნის ახალს.</p>
+      </div>
+      ) : (
+      <div className="space-y-1.5 sm:col-span-2">
+        <Label>სპეციალიზაცია (რომელ კატეგორიებზე მუშაობს)</Label>
         <div className="grid grid-cols-2 gap-1.5 rounded-lg border p-2 text-sm">
-          {SYSTEM_ORDER.map((k) => (
-            <label key={k} className="flex cursor-pointer items-center gap-2">
-              <input type="checkbox" name="specializations" value={k} defaultChecked={initial?.specializations?.includes(k)} className="accent-blue-600" />
-              {SYSTEM_LABELS[k]}
+          {systemOptions.map((sys) => (
+            <label key={sys.key} className="flex cursor-pointer items-center gap-2">
+              <input type="checkbox" name="specializations" value={sys.key} defaultChecked={initial?.specializations?.includes(sys.key)} className="size-4 accent-[#3457d5]" />
+              {sys.name}
             </label>
           ))}
         </div>
       </div>
+      )}
       <div className="space-y-1.5 sm:col-span-2">
         <Label htmlFor="u-password">{editing ? "ახალი პაროლი (თუ იცვლება)" : "პაროლი *"}</Label>
         <Input id="u-password" name="password" type="password" required={!editing} minLength={6} autoComplete="new-password" />

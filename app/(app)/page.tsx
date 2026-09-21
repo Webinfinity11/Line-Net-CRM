@@ -2,7 +2,8 @@ import { Layers, MapPinned } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { WeeklyBars } from "@/components/app/dashboard-charts";
-import { AgingCard, ConversionCard, CrewCard, RevenueTrendCard } from "@/components/app/dashboard/analytics";
+import { AgingCard, CrewCard, RevenueTrendCard } from "@/components/app/dashboard/analytics";
+import { DashboardRings } from "@/components/app/dashboard/rings";
 import { DashboardBoard } from "@/components/app/dashboard/board";
 import { DashboardHero } from "@/components/app/dashboard/hero";
 import { SystemBars } from "@/components/app/dashboard/mini-charts";
@@ -12,7 +13,7 @@ import type { BoardOrder, TodayBlock } from "@/components/app/dashboard/types";
 import { MapView } from "@/components/app/map-switch";
 import { Reveal } from "@/components/app/motion";
 import { ViewPrefs } from "@/components/app/view-prefs";
-import { getDashboardAnalytics, recentCash } from "@/lib/analytics";
+import { dashboardTimeliness, getDashboardAnalytics, recentCash } from "@/lib/analytics";
 import { getMailSyncState } from "@/lib/graph-mail";
 import { STATUS_HEX, STATUS_LABELS, formatDate, formatMoney, t } from "@/lib/i18n";
 import { toMtavruli } from "@/lib/mtavruli";
@@ -20,6 +21,7 @@ import { isOverdue } from "@/lib/order-utils";
 import { getDashboardStats, listAssignableUsers, listClientsWithSites, type DateRange } from "@/lib/orders";
 import { tbilisiToday } from "@/lib/schedule-utils";
 import { isStaff, requireUser } from "@/lib/session";
+import { systemLabels } from "@/lib/systems";
 import { getWorkHoursPerDay } from "@/lib/settings";
 import { cn } from "@/lib/utils";
 
@@ -51,18 +53,19 @@ const ACTIVE = new Set(["new", "assigned", "in_progress"]);
 
 /** The blocks anyone can switch off for themselves, in the order they appear. */
 const DASHBOARD_BLOCKS = [
+  { key: "status-ring", label: "შეკვეთების სტატუსები" },
+  { key: "timeliness-ring", label: "დროზე შესრულება" },
   { key: "flow", label: "სამუშაოს ნაკადი", hint: "ბოლო 7 დღე" },
-  { key: "systems", label: "სისტემები" },
+  { key: "systems", label: "კატეგორიები" },
   { key: "aging", label: "გადაუხდელები" },
   { key: "trend", label: "შემოსავლის ტრენდი" },
   { key: "crew", label: "ტექნიკოსები" },
-  { key: "quotes", label: "შეთავაზებები" },
   { key: "map", label: "რუკა" },
 ];
 
 export default async function DashboardPage({ searchParams }: PageProps<"/">) {
   const user = await requireUser();
-  if (!isStaff(user.role)) redirect("/my");
+  if (!isStaff(user.role)) redirect(user.role === "client" ? "/portal" : "/my");
   const sp = await searchParams;
   const isDay = (v: unknown): v is string => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v);
   const custom = isDay(sp.from) && isDay(sp.to) && sp.from <= sp.to ? { from: sp.from, to: sp.to } : undefined;
@@ -71,13 +74,14 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
   const periodLabel = custom ? `${formatDate(custom.from)} – ${formatDate(custom.to)}` : rangeDef.period;
 
   const normHours = await getWorkHoursPerDay();
-  const [s, mail, users, clientRows, analytics, cash] = await Promise.all([
+  const [s, mail, users, clientRows, analytics, cash, timeliness] = await Promise.all([
     getDashboardStats(range, custom),
     getMailSyncState(),
     listAssignableUsers(),
     listClientsWithSites(),
     getDashboardAnalytics(normHours),
     recentCash(14),
+    dashboardTimeliness(range, custom),
   ]);
 
   const executors = users
@@ -140,14 +144,14 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
         lastMonth={analytics.trend.lastMonth}
         cash={cash}
       >
-        <div className="inline-flex rounded-full border border-[#e6ebf2] bg-white p-1" role="group" aria-label="პერიოდი">
+        <div className="inline-flex max-md:min-w-0 max-md:flex-1 rounded-full border border-[#e6ebf2] bg-white p-1" role="group" aria-label="პერიოდი">
           {RANGES.map((r) => (
             <Link
               key={r.key}
               href={`/?range=${r.key}`}
               aria-current={!custom && r.key === range ? "page" : undefined}
               className={cn(
-                "rounded-full px-3.5 py-1.5 font-heading text-[11.5px] font-bold tracking-[-0.005em] transition-colors duration-150",
+                "rounded-full max-md:flex max-md:min-h-[44px] max-md:flex-1 max-md:items-center max-md:justify-center max-md:px-2 px-3.5 py-1.5 font-heading text-[11.5px] font-bold tracking-[-0.005em] transition-colors duration-150",
                 !custom && r.key === range ? "bg-[#3457d5] text-white" : "text-muted-foreground hover:bg-[#f1f4f9] hover:text-foreground",
               )}
             >
@@ -156,8 +160,8 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
           ))}
         </div>
         <PeriodPicker from={custom?.from} to={custom?.to} active={Boolean(custom)} />
-        <QuickCreate clients={clients} />
-        <ViewPrefs storageKey="ln.dashboard.v1" items={DASHBOARD_BLOCKS} />
+        <div className="max-md:hidden"><QuickCreate clients={clients} /></div>
+        <ViewPrefs mobileIcon storageKey="ln.dashboard.v1" items={DASHBOARD_BLOCKS} />
       </DashboardHero>
 
       {/* zones 1 and 2: what needs a decision, and how today is laid out */}
@@ -173,9 +177,11 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
         counts={{ unassigned: s.unassignedCount, overdue: s.overdueCount, review: s.awaitingClosureCount, visits: s.todayTotal, completedToday }}
       />
 
+      <DashboardRings key={JSON.stringify([range, custom])} counts={s.counts} timeliness={timeliness} period={periodLabel} />
+
       {/* zone 3: how the work is trending */}
       <div className="grid gap-4 xl:grid-cols-[minmax(0,6fr)_minmax(0,3fr)_minmax(0,3fr)]">
-        <Reveal as="section" className="ln-card ln-lift min-w-0 p-6" ariaLabel="სამუშაოს ნაკადი" view="flow">
+        <Reveal as="section" className="ln-card ln-lift min-w-0 p-6 max-md:p-4" ariaLabel="სამუშაოს ნაკადი" view="flow">
           <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
             <h2 className="font-heading text-[15px]">{toMtavruli("სამუშაოს ნაკადი")}</h2>
             <span className="text-[11.5px] text-muted-foreground">ბოლო 7 დღე</span>
@@ -183,27 +189,26 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
           <WeeklyBars data={s.weekly} height={200} />
         </Reveal>
 
-        <Reveal as="section" className="ln-card ln-lift min-w-0 p-6" delay={80} ariaLabel="სისტემების მიხედვით" view="systems">
+        <Reveal as="section" className="ln-card ln-lift min-w-0 p-6 max-md:p-4" delay={80} ariaLabel="კატეგორიების მიხედვით" view="systems">
           <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
             <h2 className="flex items-center gap-2 font-heading text-[15px]">
-              <Layers className="size-4 text-muted-foreground [stroke-width:1.7]" /> {toMtavruli("სისტემები")}
+              <Layers className="size-4 text-muted-foreground [stroke-width:1.7]" /> {toMtavruli("კატეგორიები")}
             </h2>
             <span className="text-[11.5px] text-muted-foreground">{periodLabel}</span>
           </div>
-          <SystemBars rows={s.bySystem} />
+          <SystemBars rows={s.bySystem} labels={await systemLabels()} />
         </Reveal>
 
         <AgingCard aging={analytics.aging} />
       </div>
 
       {/* zone 4: where the business is heading */}
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,6fr)_minmax(0,3fr)_minmax(0,3fr)]">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <RevenueTrendCard trend={analytics.trend} />
         <CrewCard crew={analytics.crew} normHours={normHours} />
-        <ConversionCard c={analytics.conversion} />
       </div>
 
-      <Reveal as="section" className="ln-card ln-lift p-6" ariaLabel="აქტიური ობიექტები რუკაზე" view="map">
+      <Reveal as="section" className="ln-card ln-lift p-6 max-md:p-4" ariaLabel="აქტიური ობიექტები რუკაზე" view="map">
         <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
           <h2 className="flex items-center gap-2 font-heading text-[15px]">
             <MapPinned className="size-4 text-muted-foreground [stroke-width:1.7]" /> {toMtavruli("აქტიური ობიექტები")}

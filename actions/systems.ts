@@ -25,7 +25,7 @@ async function requireAdmin() {
 }
 
 function revalidateAll() {
-  for (const p of ["/settings/systems", "/orders", "/settings/services", "/", "/reports", "/maintenance"]) revalidatePath(p);
+  for (const p of ["/settings/services/categories", "/orders", "/settings/services", "/", "/reports", "/maintenance"]) revalidatePath(p);
 }
 
 export async function createSystem(fd: FormData): Promise<ActionResult> {
@@ -34,7 +34,7 @@ export async function createSystem(fd: FormData): Promise<ActionResult> {
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "არასწორი დასახელება" };
   const name = parsed.data;
   const existing = await db.select({ slug: systems.slug, name: systems.name }).from(systems);
-  if (existing.some((s) => s.name.toLowerCase() === name.toLowerCase())) return { ok: false, error: "ასეთი სისტემა უკვე არსებობს" };
+  if (existing.some((s) => s.name.toLowerCase() === name.toLowerCase())) return { ok: false, error: "ასეთი კატეგორია უკვე არსებობს" };
   let slug = slugify(name);
   while (existing.some((s) => s.slug === slug)) slug = `${slug}-2`;
   await db.insert(systems).values({ slug, name, sort: (existing.length + 1) * 10 });
@@ -63,7 +63,7 @@ export async function moveSystem(slug: string, direction: "up" | "down"): Promis
   if (!(await requireAdmin())) return { ok: false, error: "მხოლოდ ადმინს შეუძლია" };
   const rows = await db.select().from(systems).orderBy(systems.sort, systems.slug);
   const i = rows.findIndex((r) => r.slug === slug);
-  if (i === -1) return { ok: false, error: "სისტემა ვერ მოიძებნა" };
+  if (i === -1) return { ok: false, error: "კატეგორია ვერ მოიძებნა" };
   const j = direction === "up" ? i - 1 : i + 1;
   if (j < 0 || j >= rows.length) return { ok: true };
   await db.transaction(async (tx) => {

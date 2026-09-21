@@ -49,7 +49,7 @@ export function StatusDonut({ data, total }: { data: { name: string; value: numb
         {rows.map((d) => (
           <li key={d.name} className="flex items-center gap-2">
             <span className="size-2.5 rounded-full" style={{ background: d.color }} />
-            <span className="flex-1 text-neutral-700 dark:text-neutral-300">{d.name}</span>
+            <span className="flex-1 text-[#4a5e73] dark:text-neutral-300">{d.name}</span>
             <span className="font-medium">{d.value}</span>
             <span className="w-10 text-right text-xs text-muted-foreground">{Math.round((d.value / total) * 100)}%</span>
           </li>

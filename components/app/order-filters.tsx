@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
-import { PRIORITY_LABELS, STATUS_LABELS, STATUS_ORDER, SYSTEM_LABELS, SYSTEM_ORDER, TYPE_LABELS, t } from "@/lib/i18n";
+import { PRIORITY_LABELS, STATUS_LABELS, STATUS_ORDER, TYPE_LABELS, t } from "@/lib/i18n";
+import { useSystems } from "@/components/app/systems-provider";
 
 type Values = { q: string; status: string; type: string; priority: string; system: string; assignee: string; client: string; overdue: string; view: string; sort?: string };
 
@@ -18,13 +19,14 @@ export function OrderFilters({
   clients: { id: number; name: string }[];
   values: Values;
 }) {
+  const systemOptions = useSystems();
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const submit = () => formRef.current?.requestSubmit();
   const hasFilters = Boolean(values.q || values.type || values.priority || values.system || values.assignee || values.client || values.overdue || (values.status && values.status !== "active"));
 
   return (
-    <form ref={formRef} method="get" action="/orders" className="flex flex-wrap items-center gap-2 rounded-xl border border-[#e6ebf2] bg-white p-3 dark:bg-neutral-900">
+    <form ref={formRef} method="get" action="/orders" className="max-md:[&>div]:w-full max-md:[&>div]:max-w-none max-md:[&_select]:h-11 max-md:[&_input]:min-h-[44px] max-md:[&_button]:min-h-[44px] max-md:[&>label]:min-h-[44px] flex flex-wrap items-center gap-2 rounded-xl border border-[#e6ebf2] bg-white p-3 dark:bg-neutral-900">
       {values.view === "kanban" && <input type="hidden" name="view" value="kanban" />}
       {values.sort && <input type="hidden" name="sort" value={values.sort} />}
       <div className="relative min-w-[200px] flex-1">
@@ -57,9 +59,9 @@ export function OrderFilters({
       </NativeSelect>
       <NativeSelect name="system" defaultValue={values.system} onChange={submit} className="h-9 w-auto max-w-[220px] text-sm">
         <NativeSelectOption value="">{t.order.system}: {t.common.all}</NativeSelectOption>
-        {SYSTEM_ORDER.map((k) => (
-          <NativeSelectOption key={k} value={k}>
-            {SYSTEM_LABELS[k]}
+        {systemOptions.map((sys) => (
+          <NativeSelectOption key={sys.key} value={sys.key}>
+            {sys.name}
           </NativeSelectOption>
         ))}
       </NativeSelect>

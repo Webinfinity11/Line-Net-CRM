@@ -243,6 +243,10 @@ export async function listAllUsers() {
   return db.select().from(user).orderBy(asc(user.role), asc(user.name));
 }
 
+export async function listClientNames() {
+  return db.select({ id: clients.id, name: clients.name }).from(clients).orderBy(asc(clients.name));
+}
+
 export async function listClientsWithSites() {
   return db.query.clients.findMany({
     with: { sites: { orderBy: [asc(sites.name)] } },

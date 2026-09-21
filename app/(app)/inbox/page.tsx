@@ -1,5 +1,5 @@
 import { inArray } from "drizzle-orm";
-import { Inbox, Mail, Paperclip } from "lucide-react";
+import { Building2, Inbox, Mail, Paperclip } from "lucide-react";
 import Link from "next/link";
 import { setStatus } from "@/actions/orders";
 import { ConfirmButton } from "@/components/app/confirm-button";
@@ -30,7 +30,7 @@ export default async function InboxPage({ searchParams }: PageProps<"/inbox">) {
 
   return (
     <div className="space-y-4">
-      <PageHeader title={t.nav.inbox} subtitle={items.length ? `${items.length} დაუმუშავებელი წერილი` : "ელფოსტიდან შექმნილი შეკვეთები"} />
+      <PageHeader title={t.nav.inbox} subtitle={items.length ? `${items.length} დაუმუშავებელი მოთხოვნა` : "ელფოსტიდან და კლიენტის კაბინეტიდან შემოსული შეკვეთები"} />
 
       {outcome === "connected" && (
         <p role="status" className="ln-card p-4 text-[12.5px] text-[#25815a]">
@@ -48,22 +48,26 @@ export default async function InboxPage({ searchParams }: PageProps<"/inbox">) {
       {items.length === 0 ? (
         <EmptyState
           icon={Inbox}
-          message="დაუმუშავებელი წერილები არ არის. დაკავშირებული ფოსტიდან შემოსული მოთხოვნა აქ გამოჩნდება, სანამ მენეჯერი არ დაამუშავებს."
-          className="ln-card border-transparent py-16"
+          message="დაუმუშავებელი მოთხოვნები არ არის. ფოსტიდან და კლიენტის კაბინეტიდან შემოსული შეკვეთა აქ გამოჩნდება, სანამ მენეჯერი არ დაამუშავებს."
+          className="ln-card border-transparent py-16 max-md:py-8"
         />
       ) : (
         <ul className="ln-enter ln-enter-2 space-y-2">
-          {items.map((o) => (
+          {items.map((o) => {
+            const portal = o.source === "portal";
+            const SourceIcon = portal ? Building2 : Mail;
+            return (
             <li key={o.id} className="ln-card flex flex-wrap items-start gap-4 p-4">
-              <span className="grid size-10 shrink-0 place-items-center rounded-full bg-[#eef2ff] text-[#3457d5]">
-                <Mail className="size-[18px] [stroke-width:1.7]" />
+              <span className="grid size-10 shrink-0 place-items-center rounded-full bg-[#eef2ff] text-[#3457d5]" title={portal ? "კლიენტის კაბინეტიდან" : "ელფოსტიდან"}>
+                <SourceIcon className="size-[18px] [stroke-width:1.7]" />
               </span>
               <div className="min-w-0 flex-1">
-                <Link href={`/orders/${o.id}`} className="block truncate text-[14px] font-medium hover:text-[#3457d5]">
-                  {o.emailSubject ?? o.title}
+                <Link href={`/orders/${o.id}`} className="block truncate max-md:whitespace-normal max-md:break-words text-[14px] font-medium hover:text-[#3457d5]">
+                  {portal ? o.title : (o.emailSubject ?? o.title)}
                 </Link>
                 <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
-                  <span className="truncate">{o.emailFrom}</span>
+                  <span className="truncate max-md:whitespace-normal max-md:break-all">{portal ? `კაბინეტიდან · ${o.client?.name ?? ""}` : o.emailFrom}</span>
+                  {portal && o.priority === "urgent" && <span className="font-medium text-[#b13f32]">სასწრაფო</span>}
                   <span className="tabular">{formatDate(o.emailReceivedAt ?? o.createdAt, true)}</span>
                   {fileCount.get(o.id) ? (
                     <span className="flex items-center gap-1">
@@ -78,7 +82,7 @@ export default async function InboxPage({ searchParams }: PageProps<"/inbox">) {
                   დამუშავება
                 </Button>
                 <ConfirmButton
-                  title="წერილის გაუქმება"
+                  title={portal ? "მოთხოვნის გაუქმება" : "წერილის გაუქმება"}
                   description="შეკვეთა გადავა „გაუქმებული“ სტატუსში და შემოსულებიდან წაიშლება."
                   confirmLabel="გაუქმება"
                   variant="outline"
@@ -90,7 +94,8 @@ export default async function InboxPage({ searchParams }: PageProps<"/inbox">) {
                 </ConfirmButton>
               </div>
             </li>
-          ))}
+            );
+          })}
         </ul>
       )}
     </div>

@@ -162,7 +162,7 @@ export default async function MaintenancePage() {
               <thead className={tableCls.head}>
                 <tr>
                   <th className={tableCls.th}>გრაფიკი</th>
-                  <th className={cn(tableCls.th, "hidden lg:table-cell")}>სისტემა</th>
+                  <th className={cn(tableCls.th, "hidden lg:table-cell")}>კატეგორია</th>
                   <th className={cn(tableCls.th, "hidden md:table-cell")}>სიხშირე</th>
                   <th className={tableCls.th}>შემდეგი</th>
                   <th className={cn(tableCls.th, "hidden sm:table-cell")}>შემსრულებლები</th>

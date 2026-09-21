@@ -4,16 +4,17 @@ import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/db";
-import { orderItems, orders, services, systemTypeEnum } from "@/db/schema";
+import { orderItems, orders, services } from "@/db/schema";
 import { recomputeOrderAmount } from "@/lib/order-items";
 import { getSession, isStaff } from "@/lib/session";
+import { systemSlug } from "@/lib/systems";
 import type { ActionResult } from "./orders";
 
 const emptyToNull = (v: unknown) => (v === "" || v === undefined ? null : v);
 
 const serviceInput = z.object({
   name: z.string().trim().min(2, "დასახელება ძალიან მოკლეა").max(200),
-  systemType: z.preprocess(emptyToNull, z.enum(systemTypeEnum.enumValues).nullable()),
+  systemType: z.preprocess(emptyToNull, systemSlug.nullable()),
   unit: z.string().trim().min(1).max(30).default("ცალი"),
   price: z.coerce.number().min(0).max(99999999),
   description: z.preprocess(emptyToNull, z.string().max(1000).nullable()),
@@ -36,7 +37,7 @@ function revalidateAll(orderId?: number) {
 
 export async function createService(fd: FormData): Promise<ActionResult> {
   if (!(await requireStaff())) return { ok: false, error: "არ გაქვთ უფლება" };
-  const parsed = serviceInput.safeParse(Object.fromEntries([...fd.entries()].filter(([, v]) => typeof v === "string")));
+  const parsed = await serviceInput.safeParseAsync(Object.fromEntries([...fd.entries()].filter(([, v]) => typeof v === "string")));
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "არასწორი მონაცემები" };
   const v = parsed.data;
   await db.insert(services).values({ ...v, price: String(v.price) });
@@ -46,7 +47,7 @@ export async function createService(fd: FormData): Promise<ActionResult> {
 
 export async function updateService(id: number, fd: FormData): Promise<ActionResult> {
   if (!(await requireStaff())) return { ok: false, error: "არ გაქვთ უფლება" };
-  const parsed = serviceInput.safeParse(Object.fromEntries([...fd.entries()].filter(([, v]) => typeof v === "string")));
+  const parsed = await serviceInput.safeParseAsync(Object.fromEntries([...fd.entries()].filter(([, v]) => typeof v === "string")));
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "არასწორი მონაცემები" };
   const v = parsed.data;
   await db
