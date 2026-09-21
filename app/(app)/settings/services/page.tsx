@@ -26,11 +26,14 @@ export default async function ServicesPage({ searchParams }: PageProps<"/setting
   const order = new Map(systems.map((s, i) => [s.key, i]));
   const rank = (key: string) => (key === NONE ? 1000 : (order.get(key) ?? 999));
   const byKey = new Map<string, typeof rows>();
+  // a category without services yet is exactly where the first one gets added, so it keeps its group (not while searching)
+  if (!q) for (const s of systems) if (s.active && (!cat || cat === s.key)) byKey.set(s.key, []);
   for (const r of rows) byKey.set(keyOf(r), [...(byKey.get(keyOf(r)) ?? []), r]);
   const groups = [...byKey.entries()]
     .map(([key, items]) => ({ key, name: key === NONE ? "კატეგორიის გარეშე" : labels[key], items }))
     .sort((a, b) => rank(a.key) - rank(b.key));
   const counts = new Map<string, number>();
+  for (const s of systems) if (s.active) counts.set(s.key, 0);
   for (const r of all) counts.set(keyOf(r), (counts.get(keyOf(r)) ?? 0) + 1);
   const categories = [...counts.entries()]
     .map(([key, n]) => ({ key, n, name: key === NONE ? "კატეგორიის გარეშე" : labels[key] }))
@@ -73,7 +76,7 @@ export default async function ServicesPage({ searchParams }: PageProps<"/setting
         </Button>
       </form>
 
-      {rows.length === 0 ? (
+      {groups.length === 0 ? (
         <EmptyState
           icon={ReceiptText}
           message={q ? "ასეთი სერვისი ვერ მოიძებნა." : "სერვისების სია ცარიელია. დაამატეთ პირველი: მაგ. „კამერის მონტაჟი“, ფასი ერთეულზე."}
@@ -89,6 +92,7 @@ export default async function ServicesPage({ searchParams }: PageProps<"/setting
                 {g.key !== NONE && <NewServiceDialog compact defaultSystemType={g.key} />}
               </div>
               <div className="ln-card divide-y divide-[#eef1f6] px-4">
+                {g.items.length === 0 && <p className="py-4 text-[12.5px] text-muted-foreground">ამ კატეგორიაში სერვისი ჯერ არ არის.</p>}
                 {g.items.map((s) => (
                   <div key={s.id} className={`flex items-center gap-2 ${!s.active ? "opacity-60" : ""}`}>
                     <EditServiceDialog service={s} />

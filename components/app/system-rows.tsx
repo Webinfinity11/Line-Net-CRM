@@ -3,7 +3,7 @@
 import { ChevronDown, ChevronUp, Plus } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState, useTransition } from "react";
+import { useRef, useTransition } from "react";
 import { toast } from "sonner";
 import { createSystem, deleteSystem, moveSystem, renameSystem, setSystemActive } from "@/actions/systems";
 import { CatalogueActions } from "@/components/app/service-toggle";
@@ -39,12 +39,20 @@ export function NewSystemDialog() {
   );
 }
 
-/** One row of the catalogue: rename in place, move, hide, delete when unused. */
+/** The name as plain text inside the row's trigger, so FormDialog does not set it in Mtavruli. */
+function CategoryName({ name }: { name: string }) {
+  return <span className="block truncate">{name}</span>;
+}
+
+/**
+ * One row of the catalogue: the name opens a rename dialog, the menu moves, hides and deletes.
+ * The name used to be an always-editable field that saved on blur; people typed a new category
+ * into it and silently renamed an existing one.
+ */
 export function SystemRow({ row, first, last }: { row: SystemAdminRow; first: boolean; last: boolean }) {
   const usage = row.services + row.orders;
   const router = useRouter();
   const [pending, start] = useTransition();
-  const [name, setName] = useState(row.name);
   const busy = useRef(false);
 
   function run(fn: () => Promise<{ ok: boolean; error?: string }>, okMsg?: string) {
@@ -65,16 +73,27 @@ export function SystemRow({ row, first, last }: { row: SystemAdminRow; first: bo
   return (
     <div className={cn("flex items-center gap-2 border-t border-[#eef1f6] py-3 first:border-t-0 sm:py-[6px]", !row.active && "opacity-60")}>
       <div className="min-w-0 flex-1 sm:flex sm:items-center sm:gap-4">
-        <Input
-          value={name}
-          maxLength={60}
-          disabled={pending}
-          onChange={(e) => setName(e.target.value)}
-          onBlur={() => name.trim() !== row.name && name.trim().length >= 2 && run(() => renameSystem(row.slug, name.trim()), "შენახულია")}
-          aria-label={`${row.name} დასახელება`}
-          className="h-11 w-full min-w-0 border-transparent bg-transparent px-2 text-[16px] shadow-none hover:border-[#dbe1ec] hover:bg-[#f8faff] focus:border-[#dbe1ec] focus:bg-[#f8faff] focus-visible:border-[#dbe1ec] focus-visible:ring-2 focus-visible:ring-[#3457d5]/30 sm:flex-1 sm:text-[14px]"
-        />
-        <div className="flex flex-wrap gap-x-2 px-2 text-[11.5px] text-muted-foreground sm:w-[260px] sm:shrink-0 sm:flex-nowrap sm:px-0">
+        <FormDialog
+          trigger={
+            <button
+              type="button"
+              disabled={pending}
+              aria-label={`${row.name} — სახელის შეცვლა`}
+              className="flex h-11 w-full min-w-0 items-center rounded-lg px-2 text-left text-[16px] outline-none hover:text-[#3457d5] focus-visible:ring-2 focus-visible:ring-[#3457d5] sm:flex-1 sm:text-[14px]"
+            />
+          }
+          triggerLabel={<CategoryName name={row.name} />}
+          title="კატეგორიის სახელი"
+          action={(fd) => renameSystem(row.slug, String(fd.get("name") ?? "").trim())}
+          submitLabel="შენახვა"
+          successMessage="შენახულია"
+        >
+          <div className="space-y-1.5">
+            <Label htmlFor={`sys-${row.slug}`}>დასახელება</Label>
+            <Input id={`sys-${row.slug}`} name="name" required minLength={2} maxLength={60} defaultValue={row.name} className="h-11 text-[16px] sm:h-9 sm:text-[13px]" />
+          </div>
+        </FormDialog>
+        <div className="flex flex-wrap items-center gap-x-2 px-2 text-[11.5px] text-muted-foreground sm:w-[260px] sm:shrink-0 sm:flex-nowrap sm:px-0">
           {usage > 0 ? (
             <span className="flex items-center gap-x-1 whitespace-nowrap">
               <Link href={`/settings/services?cat=${encodeURIComponent(row.slug)}`} className="inline-flex min-h-11 items-center text-[#3457d5] hover:underline sm:min-h-0">

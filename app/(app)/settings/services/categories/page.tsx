@@ -44,7 +44,7 @@ export default async function SystemsPage() {
           <SystemRow key={s.key} row={{ slug: s.key, name: s.name, sort: s.sort, active: s.active, services: serviceCounts.get(s.key) ?? 0, orders: orderCounts.get(s.key) ?? 0 }} first={i === 0} last={i === rows.length - 1} />
         ))}
         <p className="mt-4 border-t border-[#eef1f6] pt-3 text-[11.5px] leading-relaxed text-muted-foreground">
-          სახელი აქვე შეცვალეთ. რიგის შეცვლა, გამორთვა და წაშლა — ⋯ მენიუში. გამორთული კატეგორია ძველ ჩანაწერებში რჩება.
+          სახელის შესაცვლელად დააჭირეთ კატეგორიას, ახალს კი „ახალი კატეგორია“ ამატებს. რიგი, გამორთვა და წაშლა — ⋯ მენიუში. გამორთული კატეგორია ძველ ჩანაწერებში რჩება.
         </p>
       </SectionCard>
     </div>
