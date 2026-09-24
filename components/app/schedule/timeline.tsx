@@ -31,6 +31,25 @@ export type TimelineLane = {
 const HOUR_PX = 56;
 
 /**
+ * Blocks that overlap in time, as runs. Side-by-side columns made each block a sliver with
+ * a clipped title, so a run of two or more is drawn as one block that lists its jobs instead.
+ */
+function clusters(blocks: TimelineBlock[]): TimelineBlock[][] {
+  const out: TimelineBlock[][] = [];
+  let end = -Infinity;
+  for (const b of [...blocks].sort((a, z) => a.startMin - z.startMin || a.endMin - z.endMin)) {
+    if (out.length > 0 && b.startMin < end) {
+      out[out.length - 1].push(b);
+      end = Math.max(end, b.endMin);
+    } else {
+      out.push([b]);
+      end = b.endMin;
+    }
+  }
+  return out;
+}
+
+/**
  * Technician lanes on one vertical time axis. Server component: positions are computed
  * from minutes since local midnight; hours × HOUR_PX gives the canvas height.
  */
@@ -170,7 +189,48 @@ export function Timeline({
               {lane.blocks.length === 0 && (
                 <div className="absolute inset-x-0 top-3 text-center text-[11px] text-[#8b98a9]">თავისუფალია</div>
               )}
-              {lane.blocks.map((b) => {
+              {clusters(lane.blocks).map((group) => {
+                if (group.length > 1) {
+                  const start = Math.min(...group.map((g) => g.startMin));
+                  const end = Math.max(...group.map((g) => g.endMin));
+                  return (
+                    <div
+                      key={`c-${group[0].id}`}
+                      className="ln-pop absolute overflow-hidden rounded-[6px] border border-[#f0d9a8] bg-[#fff4df] p-2 text-[11px] leading-[1.45]"
+                      style={{
+                        top: y(start) + 1,
+                        // tall enough for every line even when the jobs are short
+                        height: Math.max(((end - start) / 60) * HOUR_PX - 2, 26 + group.length * 22),
+                        left: 4,
+                        right: 2,
+                        zIndex: 1,
+                      }}
+                    >
+                      <div className="mb-1 flex items-center gap-1 font-medium text-[#96610b]">
+                        <AlertTriangle className="size-3 shrink-0" />
+                        <span className="tabular truncate">
+                          {formatMinutes(start)}–{formatMinutes(end)} · {group.length} ერთდროული
+                        </span>
+                      </div>
+                      <ul className="space-y-0.5">
+                        {group.map((b) => (
+                          <li key={b.id}>
+                            <Link
+                              href={`/orders/${b.id}`}
+                              title={`${b.number} · ${b.title}${b.client ? ` · ${b.client}` : ""}`}
+                              className="flex h-5 items-center gap-1.5 rounded-[4px] px-1 hover:bg-white/70 focus-visible:outline-2 focus-visible:outline-[#3457d5]"
+                            >
+                              <span className="size-1.5 shrink-0 rounded-full" style={{ background: STATUS_HEX[b.status] }} aria-hidden />
+                              <span className="tabular shrink-0 text-[#617084]">{formatMinutes(b.startMin)}</span>
+                              <span className="min-w-0 truncate font-medium text-foreground">{b.title}</span>
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  );
+                }
+                const b = group[0];
                 const clash = b.clashWith.length > 0;
                 return (
                   <Link
@@ -183,8 +243,8 @@ export function Timeline({
                     style={{
                       top: y(b.startMin) + 1,
                       height: Math.max(44, ((b.endMin - b.startMin) / 60) * HOUR_PX - 2),
-                      left: `calc(${(b.col / b.cols) * 100}% + 4px)`,
-                      width: `calc(${100 / b.cols}% - 6px)`,
+                      left: 4,
+                      right: 2,
                       borderLeft: `3px solid ${STATUS_HEX[b.status]}`,
                       background: clash ? "#fff8ea" : STATUS_TINT[b.status],
                     }}
