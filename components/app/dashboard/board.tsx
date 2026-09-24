@@ -7,6 +7,7 @@ import { UserAvatar } from "@/components/app/user-avatar";
 import { STATUS_HEX, STATUS_TINT } from "@/lib/i18n";
 import { toMtavruli } from "@/lib/mtavruli";
 import { cn } from "@/lib/utils";
+import { DashboardHero, type DashboardHeroData } from "./hero";
 import { OrderDrawer } from "./order-drawer";
 import type { BoardOrder, Executor, MailPeek, TodayBlock, WorkloadRow } from "./types";
 
@@ -67,6 +68,7 @@ export function DashboardBoard({
   today,
   mail,
   counts,
+  hero,
 }: {
   orders: BoardOrder[];
   blocks: TodayBlock[];
@@ -77,6 +79,8 @@ export function DashboardBoard({
   today: string;
   mail: MailPeek;
   counts: { unassigned: number; overdue: number; review: number; visits: number; completedToday: number };
+  /** The dashboard head; drawn here so its "needs a decision" column can open the shared drawer. */
+  hero?: DashboardHeroData & { controls: React.ReactNode };
 }) {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const selected = useMemo(() => orders.find((o) => o.id === selectedId) ?? null, [orders, selectedId]);
@@ -94,10 +98,19 @@ export function DashboardBoard({
 
   return (
     <div className="space-y-4">
-      {/* zone 1 — what needs a decision now */}
-      <section className="ln-card ln-enter flex flex-col gap-3 p-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-4" aria-label="მოქმედება სჭირდება">
-        <div className="grid grid-cols-2 gap-1 sm:flex sm:flex-wrap sm:items-center">
-          <span className="col-span-2 px-3 pb-1 text-[11px] font-medium tracking-[0.04em] text-muted-foreground sm:pb-0">{toMtavruli("მოქმედება სჭირდება")}</span>
+      {/* zone 1 — what needs a decision now: inside the head when there is one, its own bar otherwise */}
+      {(() => {
+        const inHead = Boolean(hero);
+        const bar = (
+      <section
+        className={cn(
+          "flex flex-col gap-3",
+          inHead ? "" : "ln-card ln-enter p-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-4",
+        )}
+        aria-label="მოქმედება სჭირდება"
+      >
+        <div className={cn("grid grid-cols-2 gap-1 sm:flex sm:flex-wrap sm:items-center", inHead && "sm:-ml-3")}>
+          <span className={cn("col-span-2 px-3 pb-1 text-[11px] font-medium tracking-[0.04em] text-muted-foreground sm:pb-0", inHead && "sm:basis-full sm:pb-1")}>{toMtavruli("მოქმედება სჭირდება")}</span>
           <Counter label="დაუნიშნავი" value={counts.unassigned} href="/schedule" alert />
           <Counter label="ვადაგადაცილებული" value={counts.overdue} href="/orders?overdue=1" alert />
           <Counter label="ჩასაბარებელი" value={counts.review} href="/orders?status=done" />
@@ -107,7 +120,7 @@ export function DashboardBoard({
             <CheckCircle2 className="size-4 [stroke-width:1.8]" /> ყველა შეკვეთა დანიშნულია
           </p>
         ) : focus ? (
-          <div className="flex min-w-0 flex-1 flex-col items-stretch gap-2 border-t border-[#eef1f6] pt-3 sm:flex-row sm:items-center sm:justify-end sm:border-0 sm:pt-0">
+          <div className={cn("flex min-w-0 flex-1 flex-col items-stretch gap-2 border-t border-[#eef1f6] pt-3 sm:flex-row sm:items-center sm:border-0 sm:pt-0", inHead ? "sm:justify-between" : "sm:justify-end")}>
             <span className="flex min-w-0 items-center gap-2 text-[12.5px]">
               <span className="size-2 shrink-0 rounded-full bg-[#b13f32] max-md:bg-[#93a0b0]" />
               <span className="truncate max-md:whitespace-normal max-md:break-words">
@@ -133,6 +146,15 @@ export function DashboardBoard({
           </Link>
         )}
       </section>
+        );
+        if (!hero) return bar;
+        const { controls, ...data } = hero;
+        return (
+          <DashboardHero {...data} aside={bar}>
+            {controls}
+          </DashboardHero>
+        );
+      })()}
 
       {/* zone 2 — the day */}
       <div className="ln-enter ln-enter-2 grid items-start gap-4 xl:grid-cols-[minmax(0,8fr)_minmax(0,4fr)]">

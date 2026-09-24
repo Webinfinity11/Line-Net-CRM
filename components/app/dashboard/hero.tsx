@@ -11,6 +11,15 @@ import { cn } from "@/lib/utils";
  * white on the page grey — because a dark slab here read as a piece of a different
  * product. The month's money is still the headline, with the last two weeks beside it.
  */
+export type DashboardHeroData = {
+  greeting: string;
+  dateLine: string;
+  revenue: number;
+  changePct: number | null;
+  lastMonth: number;
+  cash: { day: string; amount: number }[];
+};
+
 export function DashboardHero({
   greeting,
   dateLine,
@@ -19,14 +28,11 @@ export function DashboardHero({
   lastMonth,
   cash,
   children,
-}: {
-  greeting: string;
-  dateLine: string;
-  revenue: number;
-  changePct: number | null;
-  lastMonth: number;
-  cash: { day: string; amount: number }[];
+  aside,
+}: DashboardHeroData & {
   children?: React.ReactNode;
+  /** A third column beside the money and the line: what needs a decision. Without it the row stretched into empty space on wide screens. */
+  aside?: React.ReactNode;
 }) {
   const up = (changePct ?? 0) > 0;
   const flat = changePct === 0;
@@ -42,7 +48,14 @@ export function DashboardHero({
         <div className="flex flex-wrap items-center gap-2 max-md:w-full max-md:flex-nowrap max-md:gap-1">{children}</div>
       </div>
 
-      <div className="mt-5 flex flex-wrap items-end justify-between gap-x-8 gap-y-4 border-t border-[#eef1f6] pt-5">
+      <div
+        className={cn(
+          "mt-5 border-t border-[#eef1f6] pt-5",
+          aside
+            ? "grid gap-x-8 gap-y-5 sm:grid-cols-[auto_minmax(200px,380px)] sm:items-end sm:justify-between xl:grid-cols-[auto_minmax(200px,380px)_auto] xl:items-center"
+            : "flex flex-wrap items-end justify-between gap-x-8 gap-y-4",
+        )}
+      >
         <div className="min-w-0">
           <div className="text-[11.5px] text-muted-foreground">ამ თვეში მიღებული</div>
           <div className="mt-1.5 flex flex-wrap items-center gap-2.5">
@@ -60,13 +73,15 @@ export function DashboardHero({
           <p className="mt-2 text-[12px] text-muted-foreground">გასულ თვეს იმავე დღისთვის {formatMoney(lastMonth)}</p>
         </div>
 
-        <div className="min-w-0 flex-1 sm:max-w-[380px] max-md:w-full max-md:flex-none max-md:max-w-none">
+        <div className={cn("min-w-0", !aside && "flex-1 sm:max-w-[380px] max-md:w-full max-md:flex-none max-md:max-w-none")}>
           <div className="mb-1 flex items-center justify-between text-[11.5px] text-muted-foreground">
             <span>ბოლო 14 დღე</span>
             <span className="tabular">{formatMoney(cash.reduce((s, c) => s + c.amount, 0))}</span>
           </div>
           <DrawnArea points={cash.map((c) => c.amount)} height={56} stroke="#3457d5" fill="#3457d5" />
         </div>
+
+        {aside && <div className="min-w-0 border-t border-[#eef1f6] pt-4 sm:col-span-2 xl:col-span-1 xl:border-t-0 xl:border-l xl:pl-6 xl:pt-0">{aside}</div>}
       </div>
     </section>
   );

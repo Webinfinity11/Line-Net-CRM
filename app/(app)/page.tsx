@@ -5,7 +5,6 @@ import { WeeklyBars } from "@/components/app/dashboard-charts";
 import { AgingCard, CrewCard, RevenueTrendCard } from "@/components/app/dashboard/analytics";
 import { DashboardRings } from "@/components/app/dashboard/rings";
 import { DashboardBoard } from "@/components/app/dashboard/board";
-import { DashboardHero } from "@/components/app/dashboard/hero";
 import { SystemBars } from "@/components/app/dashboard/mini-charts";
 import { PeriodPicker } from "@/components/app/dashboard/period-picker";
 import { QuickCreate } from "@/components/app/dashboard/quick-create";
@@ -136,34 +135,6 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
 
   return (
     <div className="space-y-4">
-      <DashboardHero
-        greeting={`გამარჯობა, ${firstName}!`}
-        dateLine={dateLine(tbilisiToday())}
-        revenue={analytics.trend.thisMonth}
-        changePct={analytics.trend.changePct}
-        lastMonth={analytics.trend.lastMonth}
-        cash={cash}
-      >
-        <div className="inline-flex max-md:min-w-0 max-md:flex-1 rounded-full border border-[#e6ebf2] bg-white p-1" role="group" aria-label="პერიოდი">
-          {RANGES.map((r) => (
-            <Link
-              key={r.key}
-              href={`/?range=${r.key}`}
-              aria-current={!custom && r.key === range ? "page" : undefined}
-              className={cn(
-                "rounded-full max-md:flex max-md:min-h-[44px] max-md:flex-1 max-md:items-center max-md:justify-center max-md:px-2 px-3.5 py-1.5 font-heading text-[11.5px] font-bold tracking-[-0.005em] transition-colors duration-150",
-                !custom && r.key === range ? "bg-[#3457d5] text-white" : "text-muted-foreground hover:bg-[#f1f4f9] hover:text-foreground",
-              )}
-            >
-              {toMtavruli(r.label)}
-            </Link>
-          ))}
-        </div>
-        <PeriodPicker from={custom?.from} to={custom?.to} active={Boolean(custom)} />
-        <div className="max-md:hidden"><QuickCreate clients={clients} /></div>
-        <ViewPrefs mobileIcon storageKey="ln.dashboard.v1" items={DASHBOARD_BLOCKS} />
-      </DashboardHero>
-
       {/* zones 1 and 2: what needs a decision, and how today is laid out */}
       <DashboardBoard
         orders={board}
@@ -175,6 +146,36 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
         today={tbilisiToday()}
         mail={{ configured: mail.configured, count: s.inbox.length, connectHref: "/inbox" }}
         counts={{ unassigned: s.unassignedCount, overdue: s.overdueCount, review: s.awaitingClosureCount, visits: s.todayTotal, completedToday }}
+        hero={{
+          greeting: `გამარჯობა, ${firstName}!`,
+          dateLine: dateLine(tbilisiToday()),
+          revenue: analytics.trend.thisMonth,
+          changePct: analytics.trend.changePct,
+          lastMonth: analytics.trend.lastMonth,
+          cash: cash,
+          controls: (
+            <>
+            <div className="inline-flex max-md:min-w-0 max-md:flex-1 rounded-full border border-[#e6ebf2] bg-white p-1" role="group" aria-label="პერიოდი">
+              {RANGES.map((r) => (
+                <Link
+                  key={r.key}
+                  href={`/?range=${r.key}`}
+                  aria-current={!custom && r.key === range ? "page" : undefined}
+                  className={cn(
+                    "rounded-full max-md:flex max-md:min-h-[44px] max-md:flex-1 max-md:items-center max-md:justify-center max-md:px-2 px-3.5 py-1.5 font-heading text-[11.5px] font-bold tracking-[-0.005em] transition-colors duration-150",
+                    !custom && r.key === range ? "bg-[#3457d5] text-white" : "text-muted-foreground hover:bg-[#f1f4f9] hover:text-foreground",
+                  )}
+                >
+                  {toMtavruli(r.label)}
+                </Link>
+              ))}
+            </div>
+            <PeriodPicker from={custom?.from} to={custom?.to} active={Boolean(custom)} />
+            <div className="max-md:hidden"><QuickCreate clients={clients} /></div>
+            <ViewPrefs mobileIcon storageKey="ln.dashboard.v1" items={DASHBOARD_BLOCKS} />
+            </>
+          ),
+        }}
       />
 
       <DashboardRings key={JSON.stringify([range, custom])} counts={s.counts} timeliness={timeliness} period={periodLabel} />
