@@ -10,7 +10,7 @@ import { NewSystemDialog, SystemRow } from "@/components/app/system-rows";
 import { requireUser } from "@/lib/session";
 import { listSystems } from "@/lib/systems";
 
-export const metadata = { title: "კატეგორიები" };
+export const metadata = { title: "ჯგუფები" };
 
 export default async function SystemsPage() {
   await requireUser(["admin"]);
@@ -27,7 +27,7 @@ export default async function SystemsPage() {
     <div className="space-y-4">
       <PageHeader
         kicker="სერვისები"
-        title="კატეგორიები"
+        title="ჯგუფები"
         subtitle="სერვისების დაჯგუფება. იგივე სია ჩნდება შეკვეთაზე, ფილტრებსა და ანგარიშებში."
         actions={
           <>
@@ -39,12 +39,12 @@ export default async function SystemsPage() {
         }
       />
 
-      <SectionCard title="კატეგორიების სია" icon={Layers} aside={`${active} აქტიური · ${rows.length} სულ`}>
+      <SectionCard title="ჯგუფების სია" icon={Layers} aside={`${active} აქტიური · ${rows.length} სულ`}>
         {rows.map((s, i) => (
           <SystemRow key={s.key} row={{ slug: s.key, name: s.name, sort: s.sort, active: s.active, services: serviceCounts.get(s.key) ?? 0, orders: orderCounts.get(s.key) ?? 0 }} first={i === 0} last={i === rows.length - 1} />
         ))}
         <p className="mt-4 border-t border-[#eef1f6] pt-3 text-[11.5px] leading-relaxed text-muted-foreground">
-          სახელის შესაცვლელად დააჭირეთ კატეგორიას, ახალს კი „ახალი კატეგორია“ ამატებს. რიგი, გამორთვა და წაშლა — ⋯ მენიუში. გამორთული კატეგორია ძველ ჩანაწერებში რჩება.
+          სახელის შესაცვლელად დააჭირეთ ჯგუფს, ახალს კი „ახალი ჯგუფი“ ამატებს. რიგი, გამორთვა და წაშლა — ⋯ მენიუში. გამორთული ჯგუფი ძველ ჩანაწერებში რჩება.
         </p>
       </SectionCard>
     </div>

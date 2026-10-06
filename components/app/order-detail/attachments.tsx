@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { deleteAttachment, uploadAttachment } from "@/actions/orders";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { UPLOAD_LIMIT_BYTES, compressImage } from "@/lib/compress-image";
 import { formatDate, t } from "@/lib/i18n";
 
 type Attachment = { id: number; fileName: string; mimeType: string | null; size: number; createdAt: Date };
@@ -25,14 +26,25 @@ export function Attachments({ orderId, attachments, canDelete }: { orderId: numb
   function onFiles(files: FileList | null) {
     if (!files || files.length === 0) return;
     start(async () => {
-      for (const file of Array.from(files)) {
+      let uploaded = 0;
+      for (const original of Array.from(files)) {
+        const file = await compressImage(original);
+        if (file.size > UPLOAD_LIMIT_BYTES) {
+          toast.error(`${original.name}: ფაილი 4 MB-ზე დიდია`);
+          continue;
+        }
         const fd = new FormData();
         fd.set("file", file);
-        const res = await uploadAttachment(orderId, fd);
-        if (!res.ok) toast.error(`${file.name}: ${res.error}`);
+        try {
+          const res = await uploadAttachment(orderId, fd);
+          if (res.ok) uploaded++;
+          else toast.error(`${original.name}: ${res.error}`);
+        } catch {
+          toast.error(`${original.name}: ვერ აიტვირთა, სცადეთ თავიდან`);
+        }
       }
       if (input.current) input.current.value = "";
-      toast.success("ფაილი აიტვირთა");
+      if (uploaded) toast.success(uploaded > 1 ? `აიტვირთა ${uploaded} ფაილი` : "ფაილი აიტვირთა");
       router.refresh();
     });
   }
@@ -51,7 +63,7 @@ export function Attachments({ orderId, attachments, canDelete }: { orderId: numb
         <CardTitle className="text-base">
           {t.order.attachments} <span className="ml-1 text-sm font-normal text-muted-foreground">{attachments.length}</span>
         </CardTitle>
-        <Button variant="outline" size="sm" onClick={() => input.current?.click()} disabled={pending}>
+        <Button variant="outline" size="sm" className="max-md:h-11" onClick={() => input.current?.click()} disabled={pending}>
           <Upload className="size-3.5" /> {pending ? "იტვირთება…" : "ატვირთვა"}
         </Button>
         <input ref={input} type="file" multiple className="hidden" onChange={(e) => onFiles(e.target.files)} accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.dwg,.zip" />
@@ -62,7 +74,7 @@ export function Attachments({ orderId, attachments, canDelete }: { orderId: numb
             <Paperclip className="size-4" /> ფაილები არ არის. ფოტოები, PDF, ნახაზები.
           </p>
         ) : (
-          <ul className="grid gap-2 sm:grid-cols-2">
+          <ul className="grid gap-2 sm:grid-cols-2 [&>li]:min-w-0">
             {attachments.map((a) => {
               const img = a.mimeType?.startsWith("image/");
               return (
@@ -84,7 +96,7 @@ export function Attachments({ orderId, attachments, canDelete }: { orderId: numb
                     </span>
                   </a>
                   {canDelete && (
-                    <Button variant="ghost" size="icon-xs" onClick={() => remove(a.id)} disabled={pending} aria-label="წაშლა">
+                    <Button variant="ghost" size="icon-xs" className="max-md:size-11" onClick={() => remove(a.id)} disabled={pending} aria-label="წაშლა">
                       <Trash2 className="size-3.5 text-muted-foreground" />
                     </Button>
                   )}

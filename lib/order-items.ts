@@ -11,16 +11,17 @@ type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
  * matched against what the client actually owes. When an order has no lines the
  * manually entered amount is left alone, so orders created before the catalogue keep working.
  */
-export async function recomputeOrderAmount(tx: Tx, orderId: number) {
+export async function recomputeOrderAmount(tx: Tx, orderId: number, clearEmpty = false) {
   const [row] = await tx
     .select({ net: sql<string>`coalesce(sum(${orderItems.quantity} * ${orderItems.unitPrice}), 0)`, n: sql<number>`count(*)`.mapWith(Number) })
     .from(orderItems)
     .where(eq(orderItems.orderId, orderId));
-  if (!row || row.n === 0) return;
+  if (!row || (row.n === 0 && !clearEmpty)) return;
   const [order] = await tx.select({ vat: orders.vatPercent }).from(orders).where(eq(orders.id, orderId));
   const gross = grossFromNet(row.net, order?.vat);
   await tx.update(orders).set({ amount: gross, updatedAt: new Date() }).where(eq(orders.id, orderId));
   await recomputeOrderPayments(tx, orderId);
+  return gross;
 }
 
 /** Re-applies the total after the VAT rate itself changes. */

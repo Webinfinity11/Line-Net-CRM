@@ -8,9 +8,10 @@ import { cn } from "@/lib/utils";
 import { activeHref, navFor } from "./nav";
 
 const EXECUTOR_TABS = [
-  { key: "new", label: "ახალი", icon: ClipboardList },
+  { key: "board", label: "ყველა", icon: ClipboardList },
+  { key: "new", label: "დასაწყები", icon: ClipboardList },
   { key: "active", label: "მიმდინარე", icon: Play },
-  { key: "done", label: "ჩაბარდა", icon: CircleCheck },
+  { key: "done", label: "ჩაბარებული", icon: CircleCheck },
   { key: "closed", label: "დახურული", icon: Archive },
 ] as const;
 type ExecutorCounts = Record<(typeof EXECUTOR_TABS)[number]["key"], number>;
@@ -26,7 +27,7 @@ export function MobileNav({ user, inboxCount, unseenCount, executorCounts }: { u
     || (executorCounts.active > 0 ? "active" : "new");
   const all = navFor(user.role, { inbox: inboxCount, unseen: unseenCount });
   const items = executor
-    ? EXECUTOR_TABS.map((item) => ({ ...item, href: `/my?tab=${item.key}`, badge: executorCounts[item.key] }))
+    ? EXECUTOR_TABS.map((item) => ({ ...item, href: item.key === "board" ? "/my/board" : `/my?tab=${item.key}`, badge: executorCounts[item.key] }))
     : all.filter((i) => i.phone).slice(0, 4);
   if (items.length < 2) return null;
   return (
@@ -36,7 +37,7 @@ export function MobileNav({ user, inboxCount, unseenCount, executorCounts }: { u
     >
       {items.map((item) => {
         const active = executor
-          ? pathname === "/my" && item.href === `/my?tab=${tab}`
+          ? (pathname === "/my/board" ? item.href === "/my/board" : pathname === "/my" && item.href === `/my?tab=${tab}`)
           : item.href === activeHref(all, pathname);
         const create = client && item.href === "/portal/new";
         const Icon = item.icon;

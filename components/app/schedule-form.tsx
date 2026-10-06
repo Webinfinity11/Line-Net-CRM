@@ -1,5 +1,6 @@
 "use client";
 
+import { DateField } from "@/components/ui/date-field";
 import { useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -78,7 +79,7 @@ export function ScheduleFields({
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="s-next">შემდეგი თარიღი *</Label>
-        <Input id="s-next" name="nextDate" type="date" required defaultValue={initial?.nextDate ?? ""} />
+        <DateField id="s-next" name="nextDate" required defaultValue={initial?.nextDate ?? ""} />
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="s-lead">შეკვეთა შეიქმნას (დღით ადრე)</Label>

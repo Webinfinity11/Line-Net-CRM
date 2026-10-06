@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createHash } from "node:crypto";
 vi.mock("server-only", () => ({}));
-import { createOutlookAuthorization, decryptMailSecret, encryptMailSecret, graphJson, outlookConfig, requestOutlookToken, validateOutlookState } from "@/lib/outlook-oauth";
+import { outlookScopes, createOutlookAuthorization, decryptMailSecret, encryptMailSecret, graphJson, outlookConfig, requestOutlookToken, validateOutlookState } from "@/lib/outlook-oauth";
 
 beforeEach(() => {
   vi.stubEnv("OUTLOOK_CLIENT_ID", "test-client");
@@ -75,4 +75,11 @@ describe("Microsoft API failures", () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json({ error: "PRIVATE" }, { status: Number(status) })));
     await expect(graphJson("https://graph.microsoft.com/v1.0/me/messages", "token")).rejects.toMatchObject({ code });
   });
+});
+
+describe("optional sending scope", () => {
+ it("requests Mail.Send only with OUTLOOK_SEND=1", () => {
+  vi.stubEnv("OUTLOOK_SEND", "0"); expect(outlookScopes()).not.toContain("Mail.Send");
+  vi.stubEnv("OUTLOOK_SEND", "1"); expect(outlookScopes()).toContain("Mail.Send");
+ });
 });

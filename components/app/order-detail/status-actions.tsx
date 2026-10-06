@@ -2,13 +2,14 @@
 
 import { Lock, RotateCcw, XCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { setStatus } from "@/actions/orders";
 import { Button } from "@/components/ui/button";
 import type { OrderStatus, UserRole } from "@/db/schema";
 import { STATUS_LABELS } from "@/lib/i18n";
 import { ConfirmButton } from "../confirm-button";
+import { StartButton } from "../my-visit-controls";
 import { CompleteDialog } from "./complete-dialog";
 
 /**
@@ -16,27 +17,32 @@ import { CompleteDialog } from "./complete-dialog";
  * action is always one thumb away, whatever the scroll position; on desktop it sits in the flow.
  */
 export function StatusActions({
+  emailsEnabled = false,
+  doneByMe,
+  startedByMe = false,
   orderId,
   status,
   role,
   isAssignee,
   requiredLeft,
-  needsPhoto,
 }: {
+  emailsEnabled?: boolean;
+  doneByMe?: boolean;
+  startedByMe?: boolean;
   orderId: number;
   status: OrderStatus;
   role: UserRole;
   isAssignee: boolean;
   requiredLeft: number;
-  needsPhoto: boolean;
 }) {
+  const [sendReport, setSendReport] = useState(false);
   const router = useRouter();
   const [pending, start] = useTransition();
   const staff = role === "admin" || role === "manager";
 
   function run(to: OrderStatus) {
     start(async () => {
-      const res = await setStatus(orderId, to);
+      const res = await setStatus(orderId, to, to === "closed" && sendReport);
       if (!res.ok) {
         toast.error(res.error);
         return;
@@ -46,7 +52,10 @@ export function StatusActions({
     });
   }
 
+  if (!staff && doneByMe && status === "in_progress") return <p className="text-[13px]">ჩაბარებულია, ელოდება კოლეგას</p>;
   const canComplete = (staff || isAssignee) && (status === "assigned" || status === "in_progress");
+  // a technician opens the visit first ("დაწყება"), as on /my; only then is the handover offered
+  const needsStart = canComplete && !staff && !doneByMe && !startedByMe;
   const next =
     status === "new"
       ? "შემდეგი ნაბიჯი: შემსრულებლის დანიშვნა"
@@ -61,8 +70,8 @@ export function StatusActions({
               : "შეკვეთა გაუქმებულია";
 
   // on a phone the next action rides above the bottom navigation, always within thumb reach
-  const primary = "h-12 w-full md:h-9 md:w-auto";
-  const secondary = "h-11 flex-1 md:h-9 md:flex-none";
+  const primary = "h-11 w-full md:w-auto";
+  const secondary = "h-11 flex-1 md:flex-none";
 
   const hasActions =
     canComplete ||
@@ -88,10 +97,12 @@ export function StatusActions({
       aria-live="polite"
     >
       <span className="hidden text-muted-foreground md:mr-auto md:inline md:text-[12.5px]">{next}</span>
-      {canComplete && <CompleteDialog orderId={orderId} requiredLeft={requiredLeft} needsPhoto={needsPhoto} className={primary} />}
+      {needsStart && <StartButton orderId={orderId} stay className={primary} />}
+      {canComplete && !needsStart && <CompleteDialog orderId={orderId} requiredLeft={requiredLeft} className={primary} />}
+      {staff && status === "done" && <label className="w-full text-[12px]"><input type="checkbox" disabled={!emailsEnabled} checked={sendReport} onChange={e => setSendReport(e.target.checked)}/> კლიენტს გაეგზავნოს რეპორტი და ინვოისი{!emailsEnabled && <span className="block text-muted-foreground">კლიენტის მეილები გამორთულია</span>}</label>}
       {staff && status === "done" && (
         <Button size="default" className={primary} disabled={pending} onClick={() => run("closed")}>
-          <Lock className="size-4" /> შემოწმებულია, დახურვა
+          <Lock className="size-4" /> დადასტურება და დახურვა
         </Button>
       )}
       {(staff || isAssignee) && status === "done" && (

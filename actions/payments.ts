@@ -1,5 +1,7 @@
 "use server";
 
+import { claimManagerIfEmpty } from "@/lib/order-team";
+
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -35,6 +37,7 @@ export async function addPayment(orderId: number, fd: FormData): Promise<ActionR
   if (o.status === "cancelled") return { ok: false, error: "გაუქმებულ შეკვეთაზე გადახდა არ ემატება" };
 
   await db.transaction(async (tx) => {
+    await claimManagerIfEmpty(tx, orderId, s.user.id);
     await tx.insert(orderPayments).values({ orderId, amount: v.amount.toFixed(2), paidAt: v.paidAt ?? new Date(), method: v.method, note: v.note, createdBy: s.user.id });
     const r = await recomputeOrderPayments(tx, orderId);
     await tx.insert(orderEvents).values({

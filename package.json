@@ -16,7 +16,8 @@
     "e2e": "node scripts/e2e.mjs",
     "db:seed-services": "node scripts/seed-services.mjs",
     "db:setup": "node scripts/setup-db.mjs",
-    "db:demo": "node scripts/seed-demo.mjs"
+    "db:demo": "node scripts/seed-demo.mjs",
+    "test:integration": "node scripts/qa-integration.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

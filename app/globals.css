@@ -104,6 +104,7 @@
  *   warn      #96610b on #fff4df, border #f0d9a8
  *   status    each state keeps its own tint+ink pair in lib/i18n.ts
  */
+/* დაჭერადი ტექსტი = .ln-link (ან text-[#3457d5] hover:underline); მთლიანად დაჭერადი ბარათი/სტრიქონი = .ln-card-link / .ln-row-link (hover, active, ›); რაც არ იხსნება — ნეიტრალური ფერი, underline არა. */
 :root {
   --background: #f4f6fa;
   --foreground: #17212b;
@@ -256,7 +257,19 @@
     0 1px 2px rgba(16, 24, 40, 0.04),
     0 10px 26px rgba(16, 24, 40, 0.05);
 }
+.ln-link {
+  color: var(--primary);
+  cursor: pointer;
+  text-underline-offset: 3px;
+}
+.ln-link:hover,
+.ln-link:focus-visible {
+  text-decoration: underline;
+}
 .ln-card-link {
+  cursor: pointer;
+  position: relative;
+  padding-right: 36px;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 .ln-card-link:hover {
@@ -264,6 +277,53 @@
   box-shadow:
     0 2px 4px rgba(16, 24, 40, 0.05),
     0 16px 34px rgba(16, 24, 40, 0.09);
+}
+.ln-card-link:active {
+  background: #f8faff;
+}
+.ln-card-link:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+.ln-card-link::after,
+.ln-row-link::after {
+  content: '›';
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 20px;
+  line-height: 1;
+  color: #617084;
+  pointer-events: none;
+}
+.ln-card-link:hover::after,
+.ln-row-link:hover::after {
+  color: var(--primary);
+}
+.ln-row-link {
+  position: relative;
+  cursor: pointer;
+}
+.ln-row-link:hover {
+  background: #f8faff;
+}
+.ln-row-link:active {
+  background: #f1f4f9;
+}
+.ln-row-link::after {
+  right: 12px;
+}
+.ln-row-link-anchor::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ln-card-link,
+  .ln-card-link:hover {
+    transform: none;
+  }
 }
 .dark .ln-card {
   background: var(--card);
@@ -382,4 +442,26 @@ h1, h2, h3 {
 @media (prefers-reduced-motion: reduce) {
   .ln-lift { transition: none; }
   .ln-lift:hover { transform: none; }
+}
+
+/* A quiet activity cue; completed work shines once, active work repeats. */
+@keyframes workflow-progress-sheen {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(400%); }
+}
+.workflow-progress-fill::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 25%;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 50%), transparent);
+  animation: workflow-progress-sheen 1.2s ease-in-out both;
+  pointer-events: none;
+}
+.workflow-progress-running::after {
+  animation-duration: 3s;
+  animation-iteration-count: infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .workflow-progress-fill::after { animation: none; display: none; }
 }

@@ -15,6 +15,9 @@ export async function register() {
   const { pollMailbox, isGraphConfigured } = await import("@/lib/graph-mail");
   const { generateDueOrders } = await import("@/lib/schedules");
 
+  const { runReminders } = await import("@/lib/reminders");
+  const { tbilisiToday } = await import("@/lib/schedule-utils");
+  let lastReminderRun = "";
   let lastScheduleRun = "";
   const tick = async () => {
     try {
@@ -23,12 +26,17 @@ export async function register() {
         if (r.ok && r.created > 0) console.log(`[cron] mail: ${r.created} new orders`);
         if (!r.ok) console.error(`[cron] mail: ${r.error}`);
       }
-      const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Tbilisi" }).format(new Date());
+      const today = tbilisiToday();
       const hour = Number(new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Tbilisi", hour: "2-digit", hour12: false }).format(new Date()));
       if (lastScheduleRun !== today && hour >= 6) {
         const r = await generateDueOrders(null);
         lastScheduleRun = today;
         if (r.created > 0) console.log(`[cron] schedules: ${r.created} orders created`);
+      }
+      if (lastReminderRun !== today && hour >= 8) {
+        const r = await runReminders();
+        lastReminderRun = today;
+        if (r.total > 0) console.log(`[cron] reminders: ${r.total} notifications created`);
       }
     } catch (e) {
       console.error("[cron] tick failed", e);

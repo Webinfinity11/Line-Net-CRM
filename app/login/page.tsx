@@ -5,10 +5,17 @@ import { LoginForm } from "./login-form";
 
 export const metadata = { title: "შესვლა" };
 
+/** Only same-origin paths: "//host", "/\host" and schemes would leave the site. */
+function safeNext(value: string | string[] | undefined): string {
+  if (typeof value !== "string") return "/";
+  if (!value.startsWith("/") || value.startsWith("//") || value.includes("\\") || value.includes(":")) return "/";
+  return value;
+}
+
 export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   const session = await getSession();
   const params = await searchParams;
-  const next = typeof params.next === "string" && params.next.startsWith("/") ? params.next : "/";
+  const next = safeNext(params.next);
   if (session) redirect(next);
 
   return (

@@ -26,9 +26,10 @@ function evaluate(source: string, result: string, dependencies: Record<string, u
 
 const knownSystem = vi.fn(async (slug: string) => ["first", "second", "third"].includes(slug));
 const systemSlug = evaluate(declaration("lib/systems.ts", "systemSlug"), "systemSlug", { z, isKnownSystem: knownSystem });
+const subgroupBelongs = vi.fn(async (id: number, slug: string) => id === 7 && slug === "second");
 const serviceInput = evaluate(
   ["emptyToNull", "serviceInput"].map((name) => declaration("actions/services.ts", name)).join("\n"),
-  "serviceInput", { z, systemSlug },
+  "serviceInput", { z, systemSlug, subgroupBelongs },
 ) as z.ZodType;
 
 describe("service category validation (shared by create and update)", () => {
@@ -45,6 +46,24 @@ describe("service category validation (shared by create and update)", () => {
     expect(result.success).toBe(true);
     if (result.success) expect(result.data).toMatchObject({ systemType: "second" });
     expect(knownSystem).toHaveBeenCalledWith("second");
+  });
+  it.each([undefined, "", null])("keeps subgroup optional for %s", async subgroupId => {
+    const result = await serviceInput.safeParseAsync({ ...valid, subgroupId });
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data).toMatchObject({ subgroupId: null });
+  });
+  it("accepts a subgroup of the selected category", async () => {
+    const result = await serviceInput.safeParseAsync({ ...valid, subgroupId: "7" });
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data).toMatchObject({ subgroupId: 7 });
+  });
+  it.each(["8", "99"])("rejects missing or foreign subgroup %s", async subgroupId => {
+    const result = await serviceInput.safeParseAsync({ ...valid, subgroupId });
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.error.issues[0].message).toBe("ქვეჯგუფი სხვა კატეგორიისაა");
+  });
+  it.each(["0", "-1", "1.5", "abc"])("rejects invalid subgroup id %s", async subgroupId => {
+    expect((await serviceInput.safeParseAsync({ ...valid, subgroupId })).success).toBe(false);
   });
   it("rejects unknown categories", async () => {
     const result = await serviceInput.safeParseAsync({ ...valid, systemType: "missing" });

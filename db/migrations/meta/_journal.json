@@ -78,6 +78,20 @@
       "when": 1790150400000,
       "tag": "0010_client_portal",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1790150400001,
+      "tag": "0011_team_flow",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1790150400002,
+      "tag": "0012_service_subgroups",
+      "breakpoints": true
     }
   ]
 }

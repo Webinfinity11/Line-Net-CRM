@@ -47,7 +47,7 @@ export function AssigneesEditor({
       }}
     >
       <DialogTrigger render={<Button variant="ghost" size="xs" />}>
-        <Pencil className="size-3" /> {t.common.edit}
+        <Pencil className="size-3" /> შეცვლა
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
@@ -75,10 +75,10 @@ export function AssigneesEditor({
           })}
         </div>
         <div className="flex justify-end gap-2">
-          <Button variant="outline" onClick={() => setOpen(false)}>
+          <Button variant="outline" className="h-11" onClick={() => setOpen(false)}>
             {t.common.cancel}
           </Button>
-          <Button onClick={save} disabled={pending}>
+          <Button className="h-11" onClick={save} disabled={pending}>
             {pending ? "ინახება…" : t.common.save}
           </Button>
         </div>

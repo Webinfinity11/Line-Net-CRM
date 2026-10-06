@@ -2,14 +2,23 @@ import type { OrderStatus } from "@/db/schema";
 
 export const FINISHED_STATUSES: OrderStatus[] = ["done", "closed", "cancelled"];
 
-export function todayIso(): string {
-  const d = new Date();
-  const tz = d.getTimezoneOffset() * 60000;
-  return new Date(d.getTime() - tz).toISOString().slice(0, 10);
+const TBILISI_PARTS = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Asia/Tbilisi", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+});
+
+/** YYYY-MM-DDTHH:mm in Tbilisi, the same in Node (UTC on Vercel) and in any browser */
+function tbilisiLocal(d: Date): string {
+  const p = Object.fromEntries(TBILISI_PARTS.formatToParts(d).map((x) => [x.type, x.value]));
+  return `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}`;
 }
 
-export function isOverdue(o: { dueDate: string | null; status: OrderStatus }) {
-  return Boolean(o.dueDate && o.dueDate < todayIso() && !FINISHED_STATUSES.includes(o.status));
+/** Today's date in Tbilisi (YYYY-MM-DD), whatever the server or browser timezone */
+export function todayIso(now = new Date()): string {
+  return tbilisiLocal(now).slice(0, 10);
+}
+
+export function isOverdue(o: { dueDate: string | null; status: OrderStatus }, now = new Date()) {
+  return Boolean(o.dueDate && o.dueDate < todayIso(now) && !FINISHED_STATUSES.includes(o.status));
 }
 
 /** Adds months to a date and returns YYYY-MM-DD (Tbilisi) */
@@ -19,12 +28,12 @@ export function addMonthsIso(from: Date | string, months: number): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Tbilisi", year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
 }
 
-/** Date → value for <input type="datetime-local"> in the browser's local time */
+/** Date → YYYY-MM-DDTHH:mm field value in Tbilisi time, identical on the server and in the browser */
 export function toLocalInput(d: Date | string | null | undefined): string {
   if (!d) return "";
   const x = new Date(d);
   if (Number.isNaN(x.getTime())) return "";
-  return new Date(x.getTime() - x.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  return tbilisiLocal(x);
 }
 
 type ContactSource = {
@@ -57,4 +66,15 @@ export function minutesBetween(a: Date | string | null | undefined, b: Date | st
   if (!a || !b) return null;
   const ms = new Date(b).getTime() - new Date(a).getTime();
   return ms > 0 ? Math.round(ms / 60000) : null;
+}
+
+/**
+ * Name order for lists rendered on the server and hydrated in the browser. `localeCompare(…, "ka")`
+ * sorts differently in Node's ICU and in Chrome, which reordered the executor list and broke
+ * hydration; plain code points are identical everywhere, and Mkhedruli is already in alphabet order.
+ */
+export function compareNames(a: string, b: string): number {
+  const x = a.toLowerCase();
+  const y = b.toLowerCase();
+  return x < y ? -1 : x > y ? 1 : 0;
 }

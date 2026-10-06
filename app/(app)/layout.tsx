@@ -1,13 +1,16 @@
+import { executorBucket } from "@/lib/workflow-view";
 import { Suspense } from "react";
-import { and, asc, desc, eq, sql } from "drizzle-orm";
+import { and, eq, inArray, count } from "drizzle-orm";
 import { db } from "@/db";
 import { orders } from "@/db/schema";
 import { MobileNav } from "@/components/app/mobile-nav";
+import { LiveOrderSync } from "@/components/app/live-order-sync";
 import { Sidebar } from "@/components/app/sidebar";
 import { SystemsProvider } from "@/components/app/systems-provider";
 import { Topbar } from "@/components/app/topbar";
+import { notificationLink } from "@/lib/notification-link";
 import { getUnreadCount, listNotifications } from "@/lib/notify";
-import { getInboxCount, getUnseenAssignmentCount } from "@/lib/orders";
+import { getInboxCount, getUnseenAssignmentCount, listMyOrders } from "@/lib/orders";
 import { isStaff, requireUser } from "@/lib/session";
 import { listSystems } from "@/lib/systems";
 
@@ -21,22 +24,22 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
     listNotifications(user.id, 8),
     listSystems(),
     user.role === "executor"
-      ? db.select({ status: orders.status }).from(orders).where(and(
-          eq(orders.triaged, true),
-          sql`exists (select 1 from order_assignees oa where oa.order_id = ${orders.id} and oa.user_id = ${user.id})`,
-        )).orderBy(asc(orders.scheduledAt), desc(orders.createdAt)).limit(300)
+      ? listMyOrders(user.id)
       : Promise.resolve([]),
   ]);
 
+  const [boardCount] = user.role === "executor" ? await db.select({ n: count() }).from(orders).where(and(eq(orders.triaged, true), inArray(orders.status, ["new", "assigned", "in_progress", "done"]))) : [{ n: 0 }];
   const executorCounts = {
-    new: myStatuses.filter((o) => o.status === "new" || o.status === "assigned").length,
-    active: myStatuses.filter((o) => o.status === "in_progress").length,
-    done: myStatuses.filter((o) => o.status === "done").length,
-    closed: Math.min(20, myStatuses.filter((o) => o.status === "closed" || o.status === "cancelled").length),
+    board: boardCount.n,
+    new: myStatuses.filter((o) => executorBucket(o, user.id) === "new").length,
+    active: myStatuses.filter((o) => executorBucket(o, user.id) === "active").length,
+    done: myStatuses.filter((o) => executorBucket(o, user.id) === "done").length,
+    closed: Math.min(20, myStatuses.filter((o) => executorBucket(o, user.id) === "closed").length),
   };
 
   return (
     <SystemsProvider systems={systems}>
+    <Suspense fallback={null}><LiveOrderSync /></Suspense>
     <div className="flex min-h-screen bg-background dark:bg-neutral-950">
       <Sidebar user={user} inboxCount={inboxCount} unseenCount={unseenCount} />
       <div className="flex min-w-0 flex-1 flex-col">
@@ -45,7 +48,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
           inboxCount={inboxCount}
           unseenCount={unseenCount}
           unread={unread}
-          bellItems={bellItems.map((n) => ({ id: n.id, title: n.title, body: n.body, readAt: n.readAt, createdAt: n.createdAt, orderId: n.orderId }))}
+          bellItems={bellItems.map((n) => ({ id: n.id, type: n.type, title: n.title, body: n.body, readAt: n.readAt, createdAt: n.createdAt, orderId: n.orderId, href: notificationLink(user.role, n) }))}
         />
         {/* a client's bar lifts its round "new" button 22px above the bar, so the page ends that much higher */}
         <main

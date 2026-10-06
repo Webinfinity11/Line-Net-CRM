@@ -30,6 +30,20 @@ export async function markAllNotificationsRead(): Promise<ActionResult> {
   return { ok: true };
 }
 
+/** Opening an order's conversation clears that order's comment notifications for the reader. */
+export async function markOrderCommentsRead(orderId: number): Promise<ActionResult<{ marked: number }>> {
+  const s = await getSession();
+  if (!s) return { ok: false, error: "ავტორიზაცია საჭიროა" };
+  if (!Number.isSafeInteger(orderId) || orderId <= 0) return { ok: false, error: "შეკვეთა ვერ მოიძებნა" };
+  const rows = await db
+    .update(notifications)
+    .set({ readAt: new Date() })
+    .where(and(eq(notifications.userId, s.user.id), eq(notifications.orderId, orderId), eq(notifications.type, "comment"), isNull(notifications.readAt)))
+    .returning({ id: notifications.id });
+  if (rows.length > 0) revalidatePath("/", "layout");
+  return { ok: true, data: { marked: rows.length } };
+}
+
 const profileInput = z.object({
   name: z.string().trim().min(2, "სახელი ძალიან მოკლეა").max(120),
   phone: z.string().trim().max(60).optional().or(z.literal("")),

@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { db } from "@/db";
 import { clients, orders, sites } from "@/db/schema";
 import { t } from "@/lib/i18n";
+import { telHref } from "@/lib/order-utils";
 import { requireUser } from "@/lib/session";
 import { cn } from "@/lib/utils";
 
@@ -100,7 +101,12 @@ export default async function ClientsPage({ searchParams }: PageProps<"/clients"
                 title={c.name}
                 meta={
                   <>
-                    <div>{[c.idCode && `ს/კ ${c.idCode}`, c.phone].filter(Boolean).join(" · ") || "—"}</div>
+                    <div>
+                      {c.idCode && `ს/კ ${c.idCode}`}
+                      {c.idCode && c.phone && " · "}
+                      {c.phone && <a href={telHref(c.phone) ?? undefined} className="relative z-10 ln-link whitespace-nowrap">{c.phone}</a>}
+                      {!c.idCode && !c.phone && "—"}
+                    </div>
                     <div>
                       {c.siteCount} ობიექტი · {c.orderCount} შეკვეთა
                     </div>
@@ -126,17 +132,18 @@ export default async function ClientsPage({ searchParams }: PageProps<"/clients"
                 {rows.map((c) => (
                   <tr key={c.id} className={tableCls.row}>
                     <td className={tableCls.td}>
-                      <Link href={`/clients/${c.id}`} className="block">
-                        <span className="block font-medium text-foreground hover:text-[#3457d5]">{c.name}</span>
-                        <span className="mt-0.5 block text-[11px] text-muted-foreground md:hidden">
-                          {[c.idCode, c.phone].filter(Boolean).join(" · ") || "—"}
-                        </span>
-                      </Link>
+                      <Link href={`/clients/${c.id}`} className="ln-link block font-medium">{c.name}</Link>
+                      <span className="mt-0.5 block text-[11px] text-muted-foreground md:hidden">
+                        {c.idCode}
+                        {c.idCode && c.phone && " · "}
+                        {c.phone && <a href={telHref(c.phone) ?? undefined} className="ln-link whitespace-nowrap">{c.phone}</a>}
+                        {!c.idCode && !c.phone && "—"}
+                      </span>
                     </td>
                     <td className={cn(tableCls.td, "hidden font-mono text-[11px] text-muted-foreground md:table-cell")}>{c.idCode ?? "—"}</td>
                     <td className={cn(tableCls.td, "hidden lg:table-cell")}>
                       <span className="block">{c.contactName ?? "—"}</span>
-                      <span className="block text-[11px] text-muted-foreground">{c.phone ?? ""}</span>
+                      <span className="block text-[11px] text-muted-foreground">{c.phone && <a href={telHref(c.phone) ?? undefined} className="ln-link whitespace-nowrap">{c.phone}</a>}</span>
                     </td>
                     <td className={cn(tableCls.tdRight, "hidden text-muted-foreground sm:table-cell")}>{c.siteCount}</td>
                     <td className={cn(tableCls.tdRight, "hidden text-muted-foreground sm:table-cell")}>{c.orderCount}</td>

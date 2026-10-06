@@ -55,10 +55,10 @@ export const PRIORITY_LABELS: Record<OrderPriority, string> = {
 };
 
 export const PRIORITY_COLORS: Record<OrderPriority, string> = {
-  low: "text-[#8b98a9]",
-  normal: "text-[#617084] dark:text-neutral-300",
-  high: "text-[#96610b] font-medium",
-  urgent: "text-[#b13f32] font-semibold",
+  low: "bg-[#f1f4f9] text-[#617084]",
+  normal: "bg-[#f1f4f9] text-[#617084]",
+  high: "bg-[#fff4df] text-[#96610b] border border-[#f0d9a8]",
+  urgent: "bg-[#faeeee] text-[#b13f32]",
 };
 
 export const PAYMENT_LABELS: Record<PaymentStatus, string> = {
@@ -110,7 +110,7 @@ export const PORTAL_STATUS_LABELS: Record<OrderStatus, string> = {
   new: "მიღებულია",
   assigned: "დაგეგმილია",
   in_progress: "მიმდინარეობს",
-  done: "შესრულებულია",
+  done: "შემოწმებას ელოდება",
   closed: "შესრულებულია",
   cancelled: "გაუქმებულია",
 };
@@ -127,6 +127,10 @@ export const ROLE_LABELS: Record<UserRole, string> = {
 };
 
 export const EVENT_LABELS: Record<string, string> = {
+  self_assigned: "აიღო",
+  assignee_done: "შემსრულებელმა ჩააბარა",
+  request_approved: "დანიშვნის მოთხოვნა დადასტურდა",
+  request_declined: "დანიშვნის მოთხოვნა უარყოფილია",
   created: "შეკვეთა შეიქმნა",
   created_from_email: "შეიქმნა ელფოსტიდან",
   status_changed: "სტატუსი შეიცვალა",
@@ -202,7 +206,7 @@ export const t = {
     paymentStatus: "გადახდის სტატუსი",
     assignees: "შემსრულებლები",
     attachments: "დანართები",
-    comments: "კომენტარები",
+    comments: "შეტყობინებები",
     history: "ისტორია",
     createdAt: "შეიქმნა",
     createdBy: "შემქმნელი",

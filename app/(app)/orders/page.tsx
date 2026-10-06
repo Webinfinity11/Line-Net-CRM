@@ -5,12 +5,13 @@ import { OrderFilters } from "@/components/app/order-filters";
 import { FilterChips } from "@/components/app/orders/filter-chips";
 import { OrdersTable, type OrderRow } from "@/components/app/orders/orders-table";
 import { StatusCards } from "@/components/app/orders/status-cards";
-import { OrdersToolbar } from "@/components/app/orders/toolbar";
+import { ManagerFilter, OrdersToolbar } from "@/components/app/orders/toolbar";
 import { PageHeader } from "@/components/app/page-header";
 import { Button } from "@/components/ui/button";
 import type { OrderPriority, OrderStatus, OrderType, SystemType } from "@/db/schema";
 import { orderPriorityEnum, orderStatusEnum, orderTypeEnum, systemTypeEnum } from "@/db/schema";
 import { formatDate, t } from "@/lib/i18n";
+import { unreadCommentOrderIds } from "@/lib/notify";
 import { isOverdue } from "@/lib/order-utils";
 import {
   PAGE_SIZE,
@@ -40,7 +41,7 @@ function str(v: string | string[] | undefined) {
 const dayIso = (d: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Tbilisi", year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
 
 export default async function OrdersPage({ searchParams }: PageProps<"/orders">) {
-  await requireUser(["admin", "manager"]);
+  const me = await requireUser(["admin", "manager"]);
   const sp = await searchParams;
   const view = str(sp.view) === "kanban" ? "kanban" : "list";
   const status = str(sp.status);
@@ -48,14 +49,17 @@ export default async function OrdersPage({ searchParams }: PageProps<"/orders">)
   const priority = str(sp.priority);
   const system = str(sp.system);
   const sortParam = str(sp.sort);
-  const sort = (SORTS.has(sortParam ?? "") ? sortParam : "created") as OrderSort;
+  const sort = (SORTS.has(sortParam ?? "") ? sortParam : undefined) as OrderSort | undefined;
 
+  const payment = str(sp.payment) === "unpaid" ? "unpaid" : undefined;
   const filters: Filters = {
+    payment,
     q: str(sp.q),
+    manager: str(sp.manager) === "mine" ? me.id : str(sp.manager),
     status:
       status === "active" || status === "all" || (status && orderStatusEnum.enumValues.includes(status as OrderStatus))
         ? (status as Filters["status"])
-        : view === "kanban"
+        : view === "kanban" || payment === "unpaid"
           ? "all"
           : "active",
     type: type && orderTypeEnum.enumValues.includes(type as OrderType) ? (type as OrderType) : undefined,
@@ -70,7 +74,7 @@ export default async function OrdersPage({ searchParams }: PageProps<"/orders">)
 
   const page = Math.max(1, Number(str(sp.page)) || 1);
   const today = tbilisiToday();
-  const [pageData, users, clients, summary, plannedToday, normHours] = await Promise.all([
+  const [pageData, users, clients, summary, plannedToday, normHours, unreadChat] = await Promise.all([
     view === "kanban"
       ? listOrders(filters, { limit: 500 }).then((rows) => ({ rows, total: rows.length, page: 1, pages: 1, pageSize: rows.length }))
       : listOrdersPage(filters, page, PAGE_SIZE, sort),
@@ -79,6 +83,7 @@ export default async function OrdersPage({ searchParams }: PageProps<"/orders">)
     getStatusSummary(),
     plannedMinutesByUser(today),
     getWorkHoursPerDay(),
+    unreadCommentOrderIds(me.id),
   ]);
 
   const executors = users
@@ -102,11 +107,25 @@ export default async function OrdersPage({ searchParams }: PageProps<"/orders">)
     scheduledDate: o.scheduledAt ? dayIso(o.scheduledAt) : null,
     scheduledTime: o.scheduledAt ? tbilisiTime(o.scheduledAt) : null,
     plannedMinutes: o.plannedMinutes,
+    unreadChat: unreadChat.has(o.id),
   }));
 
   // links keep every active param except the one being changed
   const params = new URLSearchParams();
   for (const [k, v] of Object.entries(sp)) if (typeof v === "string" && v && k !== "page") params.set(k, v);
+  const filterValues = {
+    q: filters.q ?? "",
+    status: view === "kanban" ? "" : (filters.status ?? "active"),
+    type: filters.type ?? "",
+    priority: filters.priority ?? "",
+    system: filters.system ?? "",
+    assignee: filters.assignee ?? "",
+    client: filters.clientId ? String(filters.clientId) : "",
+    overdue: filters.overdue ? "1" : "",
+    view,
+    sort,
+    
+  };
   const hrefWith = (patch: Record<string, string | null>) => {
     const q = new URLSearchParams(params);
     for (const [k, v] of Object.entries(patch)) {
@@ -124,11 +143,12 @@ export default async function OrdersPage({ searchParams }: PageProps<"/orders">)
     return s ? `/orders?${s}` : "/orders";
   };
   const hiddenForSearch = Object.fromEntries([...params.entries()].filter(([k]) => k !== "q" && k !== "sort"));
-  const activeCount = ["q", "type", "system", "priority", "assignee", "client", "overdue"].filter((k) => params.get(k)).length;
+  const activeCount = ["type", "system", "priority", "assignee", "client", "overdue"].filter((k) => params.get(k)).length + (view !== "kanban" && status && status !== "active" ? 1 : 0);
 
   return (
     <div className="space-y-4">
       <div className="max-md:[&>div]:gap-2 max-md:[&>div]:flex-nowrap max-md:[&_h1]:text-[20px]">
+
       <PageHeader
         title={t.order.many}
         subtitle={`სულ ${pageData.total} შეკვეთა`}
@@ -158,33 +178,27 @@ export default async function OrdersPage({ searchParams }: PageProps<"/orders">)
       />
 
       </div>
+      <ManagerFilter value={str(sp.manager) ?? ""} users={users.filter(u => u.role !== "executor")} />
       <StatusCards counts={summary.counts} flow={summary.flow} activeStatus={CARD_STATUSES.includes(status as OrderStatus) ? status : undefined} hrefFor={(s) => hrefWith({ status: s, view: null })} />
 
       <OrdersToolbar
         q={filters.q ?? ""}
-        sort={sort}
+        sort={sort ?? ""}
         total={pageData.total}
         hidden={hiddenForSearch}
         activeCount={activeCount}
         excelHref="/api/export?type=orders&all=1"
       >
         <OrderFilters
+          // a removed chip or reset changes the URL, and the uncontrolled fields must start over from it
+          key={JSON.stringify(filterValues)}
           users={users}
           clients={clients.map((c) => ({ id: c.id, name: c.name }))}
-          values={{
-            q: filters.q ?? "",
-            status: view === "kanban" ? "" : (filters.status ?? "active"),
-            type: filters.type ?? "",
-            priority: filters.priority ?? "",
-            system: filters.system ?? "",
-            assignee: filters.assignee ?? "",
-            client: filters.clientId ? String(filters.clientId) : "",
-            overdue: filters.overdue ? "1" : "",
-            view,
-            sort,
-          }}
+          values={filterValues}
         />
       </OrdersToolbar>
+
+      {payment && <Link href={hrefWith({ payment: null })} aria-label="გადაუხდელის ფილტრის მოხსნა" className="inline-flex min-h-[44px] items-center gap-2 rounded-full bg-[#faeeee] px-3 text-[12px] text-[#b13f32]">გადაუხდელი <span aria-hidden="true">×</span></Link>}
 
       <FilterChips sp={sp} users={users} clients={clients.map((c) => ({ id: c.id, name: c.name }))} />
 

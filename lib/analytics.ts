@@ -177,3 +177,19 @@ export async function dashboardTimeliness(range: DateRange, custom?: CustomPerio
   ));
   return row;
 }
+
+/** Money received in [start, end) and in the same window moved back by `shiftMs` (yesterday up to this hour, the week before), for the hero. */
+export async function periodCash(start: Date, end: Date, shiftMs = end.getTime() - start.getTime()) {
+  const prevStart = new Date(start.getTime() - shiftMs);
+  const prevEnd = new Date(end.getTime() - shiftMs);
+  const [row] = await db
+    .select({
+      now: sql<string>`coalesce(sum(${orderPayments.amount}) filter (where ${orderPayments.paidAt} >= ${start}), 0)`,
+      before: sql<string>`coalesce(sum(${orderPayments.amount}) filter (where ${orderPayments.paidAt} < ${prevEnd}), 0)`,
+    })
+    .from(orderPayments)
+    .where(and(gte(orderPayments.paidAt, prevStart), lt(orderPayments.paidAt, end)));
+  const revenue = num(row?.now);
+  const previous = num(row?.before);
+  return { revenue, previous, changePct: previous > 0 ? Math.round(((revenue - previous) / previous) * 100) : null };
+}

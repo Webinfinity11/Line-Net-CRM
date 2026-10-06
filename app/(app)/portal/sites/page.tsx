@@ -1,3 +1,4 @@
+import { SiteContacts } from "@/components/app/site-contacts";
 import { redirect } from "next/navigation";
 import { MapPin, UserRound } from "lucide-react";
 import { PageHeader } from "@/components/app/page-header";
@@ -16,12 +17,13 @@ export default async function PortalSitesPage() {
       {sites.length ? (
         <div className="ln-card divide-y divide-border px-4 sm:px-6">
           {sites.map((site) => (
-            <article key={site.id} aria-label={site.name} className="flex flex-col gap-3 py-5 sm:flex-row sm:items-center sm:justify-between">
+            <article key={site.id} aria-label={site.name} className="flex flex-col gap-3 py-5 ">
               <div className="min-w-0 space-y-2 break-words">
                 <p className="text-[15px] font-medium">{site.name}</p>
                 <p className="flex items-start gap-2 text-[13px] text-muted-foreground"><MapPin className="mt-0.5 size-4 shrink-0" /><span className="min-w-0 break-words">{site.address || "მისამართი არ არის მითითებული"}</span></p>
                 <p className="flex items-start gap-2 text-[13px] text-muted-foreground"><UserRound className="mt-0.5 size-4 shrink-0" /><span className="min-w-0 break-words">{[site.contactName, site.contactPhone].filter(Boolean).join(" · ") || "საკონტაქტო პირი არ არის მითითებული"}</span></p>
               </div>
+              <SiteContacts siteId={site.id} staff={false} />
               <div className="shrink-0"><PortalSiteDialog site={site} /></div>
             </article>
           ))}

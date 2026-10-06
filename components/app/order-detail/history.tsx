@@ -32,7 +32,7 @@ export function OrderHistory({ entries }: { entries: HistoryEntry[] }) {
         <button
           type="button"
           onClick={() => setAll((v) => !v)}
-          className="mt-3 text-[11.5px] font-medium text-[#3457d5] transition-colors hover:underline"
+          className="ln-link mt-3 text-[11.5px] font-medium transition-colors"
         >
           {all ? "მოკლედ ჩვენება" : `ყველას ჩვენება (${entries.length})`}
         </button>

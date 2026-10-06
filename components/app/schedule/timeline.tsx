@@ -99,7 +99,7 @@ export function Timeline({
                 <li key={b.id}>
                   <Link
                     href={`/orders/${b.id}`}
-                    className="flex min-h-[56px] items-center gap-3 rounded-[12px] px-3 py-2.5"
+                    className="flex min-h-[56px] cursor-pointer items-center gap-3 rounded-[12px] px-3 py-2.5 transition-[filter] hover:brightness-95 active:brightness-90"
                     style={{ background: STATUS_TINT[b.status], borderLeft: `3px solid ${STATUS_HEX[b.status]}` }}
                   >
                     <span className="tabular w-[92px] shrink-0 text-[12px] font-medium text-[#4a5e73]">
@@ -114,6 +114,7 @@ export function Timeline({
                         </span>
                       )}
                     </span>
+                    <span aria-hidden="true" className="shrink-0 text-[20px] text-[#3457d5]">›</span>
                   </Link>
                 </li>
               ))}
@@ -218,11 +219,11 @@ export function Timeline({
                             <Link
                               href={`/orders/${b.id}`}
                               title={`${b.number} · ${b.title}${b.client ? ` · ${b.client}` : ""}`}
-                              className="flex h-5 items-center gap-1.5 rounded-[4px] px-1 hover:bg-white/70 focus-visible:outline-2 focus-visible:outline-[#3457d5]"
+                              className="group flex h-5 cursor-pointer items-center gap-1.5 rounded-[4px] px-1 hover:bg-white/70 active:bg-white focus-visible:outline-2 focus-visible:outline-[#3457d5]"
                             >
                               <span className="size-1.5 shrink-0 rounded-full" style={{ background: STATUS_HEX[b.status] }} aria-hidden />
                               <span className="tabular shrink-0 text-[#617084]">{formatMinutes(b.startMin)}</span>
-                              <span className="min-w-0 truncate font-medium text-foreground">{b.title}</span>
+                              <span className="min-w-0 truncate font-medium text-[#3457d5] group-hover:underline">{b.title}</span>
                             </Link>
                           </li>
                         ))}
@@ -237,7 +238,7 @@ export function Timeline({
                     key={b.id}
                     href={`/orders/${b.id}`}
                     className={cn(
-                      "ln-pop absolute overflow-hidden rounded-[6px] p-2 text-[11px] leading-[1.45] text-foreground transition-[transform,box-shadow] duration-150 hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(38,57,104,0.12)] focus-visible:outline-2 focus-visible:outline-[#3457d5]",
+                      "ln-pop absolute cursor-pointer overflow-hidden rounded-[6px] p-2 pr-6 text-[11px] leading-[1.45] text-foreground transition-[transform,box-shadow] duration-150 hover:-translate-y-px hover:brightness-95 active:brightness-90 hover:shadow-[0_4px_12px_rgba(38,57,104,0.12)] focus-visible:outline-2 focus-visible:outline-[#3457d5]",
                       clash ? "border border-[#f0c36a]" : "border border-transparent",
                     )}
                     style={{
@@ -250,6 +251,7 @@ export function Timeline({
                     }}
                     title={`${b.number} · ${b.title}`}
                   >
+                    <span aria-hidden="true" className="absolute right-2 top-2 text-[20px] text-[#3457d5]">›</span>
                     <div className="tabular font-medium text-[#4a5e73]">
                       {formatMinutes(b.startMin)}–{formatMinutes(b.endMin)}
                     </div>

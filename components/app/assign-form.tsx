@@ -1,5 +1,6 @@
 "use client";
 
+import { DateField, TimeField } from "@/components/ui/date-field";
 import { UserPlus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useRef, useState, useTransition } from "react";
@@ -7,11 +8,11 @@ import { toast } from "sonner";
 import { assignOrder } from "@/actions/plan";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import type { SystemType } from "@/db/schema";
 import { useSystemLabel } from "@/components/app/systems-provider";
+import { compareNames } from "@/lib/order-utils";
 
 export type ExecutorOption = { id: string; name: string; image?: string | null; specializations?: string[]; hours?: number };
 
@@ -42,7 +43,7 @@ export function AssignForm({ orderId, systemType, executors, normHours, defaultA
   const [pending, start] = useTransition();
   const sorted = useMemo(() => {
     const match = (u: ExecutorOption) => Boolean(systemType && u.specializations?.includes(systemType));
-    return [...executors].sort((a, b) => Number(match(b)) - Number(match(a)) || (a.hours ?? 0) - (b.hours ?? 0) || a.name.localeCompare(b.name, "ka"));
+    return [...executors].sort((a, b) => Number(match(b)) - Number(match(a)) || (a.hours ?? 0) - (b.hours ?? 0) || compareNames(a.name, b.name));
   }, [executors, systemType]);
   const [assignee, setAssignee] = useState(defaultAssigneeId || sorted[0]?.id || "");
   const [date, setDate] = useState(defaultDate);
@@ -78,12 +79,12 @@ export function AssignForm({ orderId, systemType, executors, normHours, defaultA
   }
 
   return (
-    <form onSubmit={submit} className="space-y-3">
-      <div className="space-y-1.5">
+    <form onSubmit={submit} className="min-w-0 space-y-4 [overflow-wrap:anywhere]">
+      <div className="min-w-0 space-y-1.5">
         <Label htmlFor={`as-who-${orderId}`} className="text-[12px] text-[#4a5e73]">
           ვინ
         </Label>
-        <NativeSelect id={`as-who-${orderId}`} className="w-full" value={assignee} onChange={(e) => setAssignee(e.target.value)} required>
+        <NativeSelect id={`as-who-${orderId}`} className="w-full min-w-0 [&>select]:min-h-[44px]" value={assignee} onChange={(e) => setAssignee(e.target.value)} required>
           <NativeSelectOption value="">აირჩიეთ შემსრულებელი</NativeSelectOption>
           {sorted.map((u) => (
             <NativeSelectOption key={u.id} value={u.id}>
@@ -93,24 +94,24 @@ export function AssignForm({ orderId, systemType, executors, normHours, defaultA
         </NativeSelect>
         <p className="text-[11px] text-muted-foreground">დაგეგმილი საათები · შესაბამისი სპეციალიზაციის შემსრულებლები სიის თავშია</p>
       </div>
-      <div className="grid grid-cols-[1fr_auto_auto] gap-2">
-        <div className="space-y-1.5">
+      <div className="grid grid-cols-2 gap-4">
+        <div className="col-span-2 min-w-0 space-y-1.5">
           <Label htmlFor={`as-date-${orderId}`} className="text-[12px] text-[#4a5e73]">
             როდის
           </Label>
-          <Input id={`as-date-${orderId}`} type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+          <DateField id={`as-date-${orderId}`} className="min-h-[44px] w-full max-w-full" value={date} onChange={setDate} />
         </div>
-        <div className="space-y-1.5">
+        <div className="min-w-0 space-y-1.5">
           <Label htmlFor={`as-time-${orderId}`} className="text-[12px] text-[#4a5e73]">
             დრო
           </Label>
-          <Input id={`as-time-${orderId}`} type="time" value={time} onChange={(e) => setTime(e.target.value)} className="w-[110px]" />
+          <TimeField id={`as-time-${orderId}`} value={time} onChange={setTime} className="min-h-[44px] w-full max-w-full" />
         </div>
-        <div className="space-y-1.5">
+        <div className="min-w-0 space-y-1.5">
           <Label htmlFor={`as-min-${orderId}`} className="text-[12px] text-[#4a5e73]">
             რამდენ ხანს
           </Label>
-          <NativeSelect id={`as-min-${orderId}`} value={minutes} onChange={(e) => setMinutes(e.target.value)} className="w-[96px]">
+          <NativeSelect id={`as-min-${orderId}`} value={minutes} onChange={(e) => setMinutes(e.target.value)} className="w-full min-w-0 [&>select]:min-h-[44px]">
             {DURATIONS.map((m) => (
               <NativeSelectOption key={m} value={String(m)}>
                 {m < 60 ? `${m} წთ` : `${m / 60} სთ`}
@@ -125,7 +126,7 @@ export function AssignForm({ orderId, systemType, executors, normHours, defaultA
         </p>
       )}
       <div className="flex flex-wrap items-center gap-3">
-        <Button type="submit" disabled={pending || !assignee}>
+        <Button type="submit" className="min-h-[44px] w-full sm:w-auto" disabled={pending || !assignee}>
           <UserPlus className="size-4" /> {pending ? "ინახება…" : "დანიშვნა"}
         </Button>
         <span className="text-[11px] text-muted-foreground">{time ? "შეინახება შემსრულებელი და დაგეგმილი დრო" : "დროის გარეშე მხოლოდ შემსრულებელი დაინიშნება"}</span>

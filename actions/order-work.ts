@@ -43,6 +43,10 @@ export async function startVisit(orderId: number): Promise<ActionResult<{ visitI
   try {
     const { user: me, status } = await requireOrderAccess(orderId);
     if (status === "done" || status === "closed") return { ok: false, error: "შეკვეთა უკვე ჩაბარებულია. ახალი ვიზიტისთვის მენეჯერმა უნდა დააბრუნოს „მიმდინარე“ სტატუსზე." };
+    if (!isStaff(me.role)) {
+      const mine = await db.query.orderAssignees.findFirst({ where: and(eq(orderAssignees.orderId, orderId), eq(orderAssignees.userId, me.id)) });
+      if (mine?.doneAt) return { ok: false, error: "თქვენი სამუშაო უკვე ჩაბარებულია" };
+    }
     const [open] = await db
       .select({ id: orderVisits.id })
       .from(orderVisits)
@@ -50,12 +54,18 @@ export async function startVisit(orderId: number): Promise<ActionResult<{ visitI
     if (open) return { ok: true, data: { visitId: open.id, resumed: true } };
     const now = new Date();
     const visitId = await db.transaction(async (tx) => {
+      const [current] = await tx.select().from(orders).where(eq(orders.id, orderId)).for("update");
+      if (!current || !["new", "assigned", "in_progress"].includes(current.status)) throw new Error("შეკვეთა უკვე ჩაბარებულია ან დახურულია");
+      if (!isStaff(me.role)) {
+        const mine = await tx.query.orderAssignees.findFirst({ where: and(eq(orderAssignees.orderId, orderId), eq(orderAssignees.userId, me.id)) });
+        if (!mine || mine.doneAt) throw new Error("თქვენი სამუშაო უკვე ჩაბარებულია ან დანიშვნა შეიცვალა");
+      }
       const [v] = await tx.insert(orderVisits).values({ orderId, userId: me.id, startedAt: now }).returning({ id: orderVisits.id });
       await tx
         .update(orders)
         .set({
           arrivedAt: now, // legacy "first arrival" mirror, kept for old reports
-          status: status === "assigned" || status === "new" ? "in_progress" : status,
+          status: current.status === "assigned" || current.status === "new" ? "in_progress" : current.status,
           updatedAt: now,
         })
         .where(eq(orders.id, orderId));
@@ -66,7 +76,9 @@ export async function startVisit(orderId: number): Promise<ActionResult<{ visitI
     return { ok: true, data: { visitId, resumed: false } };
   } catch (e) {
     // unique partial index: a concurrent double-click loses the race and simply resumes
-    if (e instanceof Error && /visits_active_unique/.test(e.message)) return { ok: true, data: { visitId: 0, resumed: true } };
+    // drizzle wraps the driver error, so the Postgres code sits on the cause
+    const code = (e as { code?: string; cause?: { code?: string } })?.cause?.code ?? (e as { code?: string })?.code;
+    if (code === "23505") return { ok: true, data: { visitId: 0, resumed: true } };
     return fail(e);
   }
 }

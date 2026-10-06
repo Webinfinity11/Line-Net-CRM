@@ -1,3 +1,4 @@
+import { comparePriority } from "@/lib/team-flow";
 import { Layers, MapPinned } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -12,12 +13,14 @@ import type { BoardOrder, TodayBlock } from "@/components/app/dashboard/types";
 import { MapView } from "@/components/app/map-switch";
 import { Reveal } from "@/components/app/motion";
 import { ViewPrefs } from "@/components/app/view-prefs";
-import { dashboardTimeliness, getDashboardAnalytics, recentCash } from "@/lib/analytics";
+import { dashboardTimeliness, getDashboardAnalytics } from "@/lib/analytics";
 import { getMailSyncState } from "@/lib/graph-mail";
 import { STATUS_HEX, STATUS_LABELS, formatDate, formatMoney, t } from "@/lib/i18n";
 import { toMtavruli } from "@/lib/mtavruli";
 import { isOverdue } from "@/lib/order-utils";
 import { getDashboardStats, listAssignableUsers, listClientsWithSites, type DateRange } from "@/lib/orders";
+import { dashboardHeroMetrics } from "@/lib/dashboard-hero";
+import { dashboardPeriod, validDashboardDay } from "@/lib/dashboard-period";
 import { tbilisiToday } from "@/lib/schedule-utils";
 import { isStaff, requireUser } from "@/lib/session";
 import { systemLabels } from "@/lib/systems";
@@ -26,9 +29,9 @@ import { cn } from "@/lib/utils";
 
 export const metadata = { title: "დაფა" };
 
-const RANGES: { key: DateRange; label: string; period: string }[] = [
+const RANGES: { key: "today" | "week" | "month"; label: string; period: string }[] = [
   { key: "today", label: t.common.today, period: "დღეს" },
-  { key: "week", label: t.common.week, period: "ამ კვირაში" },
+  { key: "week", label: t.common.week, period: "ბოლო 7 დღე" },
   { key: "month", label: t.common.month, period: "ამ თვეში" },
 ];
 
@@ -66,20 +69,21 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
   const user = await requireUser();
   if (!isStaff(user.role)) redirect(user.role === "client" ? "/portal" : "/my");
   const sp = await searchParams;
-  const isDay = (v: unknown): v is string => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v);
+  const isDay = validDashboardDay;
   const custom = isDay(sp.from) && isDay(sp.to) && sp.from <= sp.to ? { from: sp.from, to: sp.to } : undefined;
   const rangeDef = RANGES.find((r) => r.key === sp.range) ?? RANGES[1];
   const range = rangeDef.key;
   const periodLabel = custom ? `${formatDate(custom.from)} – ${formatDate(custom.to)}` : rangeDef.period;
 
+  const heroPeriod = dashboardPeriod(range, custom);
   const normHours = await getWorkHoursPerDay();
-  const [s, mail, users, clientRows, analytics, cash, timeliness] = await Promise.all([
-    getDashboardStats(range, custom),
+  const [s, mail, users, clientRows, analytics, heroMetrics, timeliness] = await Promise.all([
+    getDashboardStats(range, custom, true),
     getMailSyncState(),
     listAssignableUsers(),
     listClientsWithSites(),
     getDashboardAnalytics(normHours),
-    recentCash(14),
+    dashboardHeroMetrics(user, heroPeriod),
     dashboardTimeliness(range, custom),
   ]);
 
@@ -110,7 +114,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
       assignees: o.assignees.map((a) => ({ id: a.user.id, name: a.user.name, image: a.user.image })),
       overdue: isOverdue(o),
     }))
-    .sort((a, b) => rank(a) - rank(b));
+    .sort((a, b) => comparePriority(a, b) || rank(a) - rank(b));
 
   const workload = executors.map((u) => ({ id: u.id, name: u.name, image: u.image, hours: u.hours }));
   const lanes = executors.filter((u) => u.hours > 0 || s.today.some((o) => o.assignees.some((a) => a.userId === u.id))).map((u) => ({ id: u.id, name: u.name, image: u.image }));
@@ -149,10 +153,14 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
         hero={{
           greeting: `გამარჯობა, ${firstName}!`,
           dateLine: dateLine(tbilisiToday()),
-          revenue: analytics.trend.thisMonth,
-          changePct: analytics.trend.changePct,
-          lastMonth: analytics.trend.lastMonth,
-          cash: cash,
+          revenue: heroMetrics.received,
+          changePct: heroMetrics.changePct,
+          lastMonth: heroMetrics.previous,
+          revenueLabel: custom ? `მიღებული ${periodLabel}` : range === "today" ? "დღეს მიღებული" : range === "week" ? "ბოლო 7 დღეში მიღებული" : "ამ თვეში მიღებული",
+          compareLabel: custom ? "წინა ამდენივე დღეში" : range === "today" ? "გუშინ ამ დრომდე" : range === "week" ? "წინა 7 დღეში" : "გასულ თვეს იმავე დღისთვის",
+          cashLabel: heroPeriod.step < 86_400_000 ? "დღეს, საათებით" : periodLabel,
+          cash: heroMetrics.series.map((b) => ({ day: b.label, amount: b.amount })),
+          done: { count: heroMetrics.completed, amount: heroMetrics.amount, unpaid: heroMetrics.unpaid },
           controls: (
             <>
             <div className="inline-flex max-md:min-w-0 max-md:flex-1 rounded-full border border-[#e6ebf2] bg-white p-1" role="group" aria-label="პერიოდი">
@@ -162,7 +170,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
                   href={`/?range=${r.key}`}
                   aria-current={!custom && r.key === range ? "page" : undefined}
                   className={cn(
-                    "rounded-full max-md:flex max-md:min-h-[44px] max-md:flex-1 max-md:items-center max-md:justify-center max-md:px-2 px-3.5 py-1.5 font-heading text-[11.5px] font-bold tracking-[-0.005em] transition-colors duration-150",
+                    "whitespace-nowrap rounded-full max-md:flex max-md:min-h-[44px] max-md:flex-1 max-md:items-center max-md:justify-center max-md:px-2 px-3.5 py-1.5 font-heading text-[11.5px] font-bold tracking-[-0.005em] transition-colors duration-150",
                     !custom && r.key === range ? "bg-[#3457d5] text-white" : "text-muted-foreground hover:bg-[#f1f4f9] hover:text-foreground",
                   )}
                 >

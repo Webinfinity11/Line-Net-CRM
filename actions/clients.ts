@@ -145,8 +145,8 @@ export async function updateSite(id: number, fd: FormData): Promise<ActionResult
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "არასწორი მონაცემები" };
   const { clientId, ...rest } = parsed.data;
   const [prev] = await db.select({ address: sites.address, lat: sites.lat, lng: sites.lng }).from(sites).where(eq(sites.id, id));
-  let coords = await resolveCoords(rest, prev?.address);
-  if (coords.lat === null && prev?.lat && prev?.lng && rest.address === prev.address) coords = { lat: prev.lat, lng: prev.lng };
+  // the form always sends lat/lng, so empty ones mean the pin was cleared
+  const coords = await resolveCoords(rest, prev?.address);
   await db.update(sites).set({ ...rest, ...coords }).where(eq(sites.id, id));
   revalidatePath(`/clients/${clientId}`);
   return { ok: true };

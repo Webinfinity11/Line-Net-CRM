@@ -1,4 +1,4 @@
-import { and, asc, eq, gte, inArray, isNull, lt, notInArray } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, isNull, lt, notInArray } from "drizzle-orm";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { DateJump } from "@/components/app/date-jump";
@@ -47,7 +47,7 @@ export default async function SchedulePage({ searchParams }: PageProps<"/schedul
     db.query.orders.findMany({
       where: and(triaged, isNull(orders.scheduledAt), inArray(orders.status, ACTIVE_STATUSES)),
       with: { client: { columns: { id: true, name: true } }, assignees: { with: { user: { columns: { id: true, name: true, image: true } } } } },
-      orderBy: [asc(orders.priority), asc(orders.dueDate), asc(orders.createdAt)],
+      orderBy: [desc(orders.priority), asc(orders.dueDate), asc(orders.createdAt)],
       limit: 50,
     }),
     listAssignableUsers(),
@@ -223,7 +223,7 @@ export default async function SchedulePage({ searchParams }: PageProps<"/schedul
           <CardContent>
             {awaiting.length === 0 && <p className="py-4 text-center text-xs text-muted-foreground">ჩასაბარებელი შეკვეთა არ არის</p>}
             {awaiting.map((o) => (
-              <Link key={o.id} href={`/orders/${o.id}`} className="grid grid-cols-[1fr_auto] max-md:grid-cols-1 max-md:gap-1 items-center gap-3 border-t border-[#e6ebf2] py-2.5 text-xs first:border-t-0 hover:text-[#3457d5]">
+              <Link key={o.id} href={`/orders/${o.id}`} className="ln-card-link grid grid-cols-[1fr_auto] max-md:grid-cols-1 max-md:gap-1 items-center gap-3 border-t border-[#e6ebf2] py-2.5 text-xs first:border-t-0">
                 <span className="min-w-0">
                   <span className="block truncate max-md:whitespace-normal max-md:break-words text-[13px] font-medium text-foreground">{o.title}</span>
                   <span className="block truncate max-md:whitespace-normal max-md:break-words text-muted-foreground">
@@ -244,14 +244,14 @@ export default async function SchedulePage({ searchParams }: PageProps<"/schedul
           <CardContent>
             {overdue.length === 0 && <p className="py-4 text-center text-xs text-muted-foreground">ვადაგადაცილებული შეკვეთა არ არის</p>}
             {overdue.map((o) => (
-              <Link key={o.id} href={`/orders/${o.id}`} className="grid grid-cols-[1fr_auto] max-md:grid-cols-1 max-md:gap-1 items-center gap-3 border-t border-[#e6ebf2] py-2.5 text-xs first:border-t-0 hover:text-[#3457d5]">
+              <Link key={o.id} href={`/orders/${o.id}`} className="ln-card-link grid grid-cols-[1fr_auto] max-md:grid-cols-1 max-md:gap-1 items-center gap-3 border-t border-[#e6ebf2] py-2.5 text-xs first:border-t-0">
                 <span className="min-w-0">
                   <span className="block truncate max-md:whitespace-normal max-md:break-words text-[13px] font-medium text-foreground">{o.title}</span>
                   <span className="block truncate max-md:whitespace-normal max-md:break-words text-muted-foreground">
                     {o.number} · {o.client?.name ?? "—"}
                   </span>
                 </span>
-                <span className="font-medium text-[#b13f32] tabular">{formatDate(o.dueDate)}</span>
+                <span className="text-muted-foreground tabular">{formatDate(o.dueDate)}</span>
               </Link>
             ))}
           </CardContent>

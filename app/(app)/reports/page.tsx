@@ -1,3 +1,4 @@
+import { DateField } from "@/components/ui/date-field";
 import { Building2, Download, HardHat, Layers, TrendingUp } from "lucide-react";
 import { SystemBadge } from "@/components/app/badges";
 import { PageHeader } from "@/components/app/page-header";
@@ -48,13 +49,13 @@ export default async function ReportsPage({ searchParams }: PageProps<"/reports"
             <label htmlFor="from" className="block text-[11px] text-muted-foreground">
               დაწყება
             </label>
-            <input id="from" type="date" name="from" defaultValue={p.from} className="h-11 w-full rounded-lg border border-[#e6ebf2] bg-white px-3 text-[16px] outline-none focus:border-[#7f97e6] sm:h-9 sm:w-auto sm:text-[13px]" />
+            <DateField id="from" name="from" defaultValue={p.from} className="w-full sm:w-[160px]" />
           </div>
           <div className="space-y-1.5">
             <label htmlFor="to" className="block text-[11px] text-muted-foreground">
               დასრულება
             </label>
-            <input id="to" type="date" name="to" defaultValue={p.to} className="h-11 w-full rounded-lg border border-[#e6ebf2] bg-white px-3 text-[16px] outline-none focus:border-[#7f97e6] sm:h-9 sm:w-auto sm:text-[13px]" />
+            <DateField id="to" name="to" defaultValue={p.to} className="w-full sm:w-[160px]" />
           </div>
         </div>
         <Button type="submit" size="sm" className="h-11 w-full sm:h-8 sm:w-auto">

@@ -1,5 +1,9 @@
 "use server";
 
+import { validAssigneeIds, syncAssignees } from "@/lib/assignees";
+import { sendClientMail } from "@/lib/client-mail";
+import { claimManagerIfEmpty } from "@/lib/order-team";
+
 import { and, eq, gte, inArray, isNotNull, lt, ne } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -20,6 +24,13 @@ function dayIso(d: Date) {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Tbilisi", year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
 }
 
+/** A deadline that only mirrored the visit day follows the visit (same rule as updateOrder); one set on purpose stays. */
+function followVisitDueDate(dueDate: string | null, oldScheduledAt: Date | null, newScheduledAt: Date | null): string | null {
+  if (!newScheduledAt) return dueDate;
+  const mirrored = !dueDate || (oldScheduledAt !== null && dueDate === dayIso(oldScheduledAt));
+  return mirrored ? dayIso(newScheduledAt) : dueDate;
+}
+
 /**
  * The single "დანიშვნა" action used everywhere: one executor (replaces the current list),
  * optional time slot and duration. Returns an overlap warning instead of refusing.
@@ -32,10 +43,10 @@ export async function assignOrder(orderId: number, fd: FormData): Promise<Action
   const v = parsed.data;
   const existing = await db.query.orders.findFirst({ where: eq(orders.id, orderId), with: { assignees: true } });
   if (!existing) return { ok: false, error: "შეკვეთა ვერ მოიძებნა" };
+  if (!await validAssigneeIds([v.assigneeId], existing.assignees.map((a) => a.userId))) return { ok: false, error: "აირჩიეთ მოქმედი გუნდის წევრი" };
   if (existing.status === "closed" || existing.status === "cancelled") return { ok: false, error: "დახურული/გაუქმებული შეკვეთა არ ინიშნება" };
+  if (!existing.triaged) return { ok: false, error: "ჯერ დაამუშავეთ შეკვეთა („დამუშავება“)" };
 
-  const alreadyAssigned = existing.assignees.some((a) => a.userId === v.assigneeId);
-  const removed = existing.assignees.filter((a) => a.userId !== v.assigneeId).map((a) => a.userId);
   const now = new Date();
 
   // overlap check on the same day for this executor (planned slots only)
@@ -52,24 +63,27 @@ export async function assignOrder(orderId: number, fd: FormData): Promise<Action
     if (clash.length) warning = `დრო ემთხვევა: ${clash.map((o) => `${o.number} (${tbilisiTime(o.scheduledAt!)}–${tbilisiTime(plannedEnd(o.scheduledAt!, o.plannedMinutes))})`).join(", ")}`;
   }
 
-  await db.transaction(async (tx) => {
-    for (const userId of removed) await tx.delete(orderAssignees).where(and(eq(orderAssignees.orderId, orderId), eq(orderAssignees.userId, userId)));
-    if (!alreadyAssigned) await tx.insert(orderAssignees).values({ orderId, userId: v.assigneeId, assignedBy: s.user.id });
-    await tx
-      .update(orders)
-      .set({
-        status: existing.status === "new" ? "assigned" : existing.status,
-        scheduledAt: v.scheduledAt ?? existing.scheduledAt,
-        plannedMinutes: v.scheduledAt ? v.plannedMinutes : existing.plannedMinutes,
-        dueDate: existing.dueDate ?? (v.scheduledAt ? dayIso(v.scheduledAt) : null),
-        updatedAt: now,
-      })
-      .where(eq(orders.id, orderId));
-    if (!alreadyAssigned || removed.length) await tx.insert(orderEvents).values({ orderId, userId: s.user.id, type: "assigned", data: { users: [v.assigneeId], removed } });
-    if (v.scheduledAt) await tx.insert(orderEvents).values({ orderId, userId: s.user.id, type: "scheduled", data: { scheduledAt: v.scheduledAt.toISOString(), plannedMinutes: v.plannedMinutes } });
+  let newlyAssigned = false;
+  let scheduledChanged = false;
+  const saved = await db.transaction(async (tx) => {
+    const [current] = await tx.select().from(orders).where(eq(orders.id, orderId)).for("update");
+    if (!current || ["closed", "cancelled"].includes(current.status)) return false;
+    await claimManagerIfEmpty(tx, orderId, s.user.id);
+    const added = await syncAssignees(tx, orderId, [], [v.assigneeId], s.user.id);
+    newlyAssigned = added.length > 0;
+    scheduledChanged = Boolean(v.scheduledAt && v.scheduledAt.getTime() !== current.scheduledAt?.getTime());
+    await tx.update(orders).set({
+      status: current.status === "new" ? "assigned" : current.status === "done" && newlyAssigned ? "in_progress" : current.status,
+      scheduledAt: v.scheduledAt ?? current.scheduledAt,
+      plannedMinutes: v.scheduledAt ? v.plannedMinutes : current.plannedMinutes,
+      dueDate: followVisitDueDate(current.dueDate, current.scheduledAt, v.scheduledAt), updatedAt: now,
+    }).where(eq(orders.id, orderId));
+    if (scheduledChanged) await tx.insert(orderEvents).values({ orderId, userId: s.user.id, type: "scheduled", data: { scheduledAt: v.scheduledAt!.toISOString(), plannedMinutes: v.plannedMinutes } });
+    return true;
   });
-
-  if (!alreadyAssigned) {
+  if (!saved) return { ok: false, error: "შეკვეთა უკვე დახურული ან გაუქმებულია" };
+  if (scheduledChanged) await sendClientMail(orderId, "scheduled", s.user.id);
+  if (newlyAssigned) {
     await notifyUsers([v.assigneeId], { type: "assigned", title: `დაგენიშნათ შეკვეთა ${existing.number}`, body: v.scheduledAt ? `${existing.title} · ${dayIso(v.scheduledAt)} ${tbilisiTime(v.scheduledAt)}` : existing.title, orderId }, { excludeUserId: s.user.id });
   }
   for (const p of ["/", "/schedule", "/orders", `/orders/${orderId}`, "/my"]) revalidatePath(p);
@@ -89,35 +103,38 @@ export async function assignMany(orderIds: number[], fd: FormData): Promise<Acti
   const parsed = input.safeParse(Object.fromEntries([...fd.entries()].filter(([, v]) => typeof v === "string")));
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "არასწორი მონაცემები" };
   const v = parsed.data;
+  if (!await validAssigneeIds([v.assigneeId])) return { ok: false, error: "აირჩიეთ მოქმედი გუნდის წევრი" };
 
   const existing = await db.query.orders.findMany({ where: inArray(orders.id, ids), with: { assignees: true } });
-  const eligible = existing.filter((o) => o.status !== "closed" && o.status !== "cancelled");
-  if (eligible.length === 0) return { ok: false, error: "არჩეული შეკვეთები დახურული ან გაუქმებულია" };
+  // Untriaged inbox orders are skipped: they must be processed first or the executor never sees them.
+  const eligible = existing.filter((o) => o.status !== "closed" && o.status !== "cancelled" && o.triaged);
+  if (eligible.length === 0) return { ok: false, error: existing.some((o) => !o.triaged) ? "ჯერ დაამუშავეთ შეკვეთა („დამუშავება“)" : "არჩეული შეკვეთები დახურული ან გაუქმებულია" };
 
   const now = new Date();
   const notify: { id: number; number: string }[] = [];
+  const scheduledIds: number[] = [];
+  let assignedCount = 0;
   await db.transaction(async (tx) => {
-    for (const o of eligible) {
-      const alreadyAssigned = o.assignees.some((a) => a.userId === v.assigneeId);
-      const removed = o.assignees.filter((a) => a.userId !== v.assigneeId).map((a) => a.userId);
-      for (const userId of removed) await tx.delete(orderAssignees).where(and(eq(orderAssignees.orderId, o.id), eq(orderAssignees.userId, userId)));
-      if (!alreadyAssigned) await tx.insert(orderAssignees).values({ orderId: o.id, userId: v.assigneeId, assignedBy: s.user.id });
-      await tx
-        .update(orders)
-        .set({
-          status: o.status === "new" ? "assigned" : o.status,
-          scheduledAt: v.scheduledAt ?? o.scheduledAt,
-          plannedMinutes: v.scheduledAt ? v.plannedMinutes : o.plannedMinutes,
-          dueDate: o.dueDate ?? (v.scheduledAt ? dayIso(v.scheduledAt) : null),
-          updatedAt: now,
-        })
-        .where(eq(orders.id, o.id));
-      if (!alreadyAssigned || removed.length) await tx.insert(orderEvents).values({ orderId: o.id, userId: s.user.id, type: "assigned", data: { users: [v.assigneeId], removed } });
-      if (v.scheduledAt) await tx.insert(orderEvents).values({ orderId: o.id, userId: s.user.id, type: "scheduled", data: { scheduledAt: v.scheduledAt.toISOString(), plannedMinutes: v.plannedMinutes } });
-      if (!alreadyAssigned) notify.push({ id: o.id, number: o.number });
+    for (const o of [...eligible].sort((a,b) => a.id-b.id)) {
+      const [current] = await tx.select().from(orders).where(eq(orders.id, o.id)).for("update");
+      if (!current || ["closed", "cancelled"].includes(current.status) || !current.triaged) continue;
+      await claimManagerIfEmpty(tx, o.id, s.user.id);
+      const added = await syncAssignees(tx, o.id, [], [v.assigneeId], s.user.id);
+      await tx.update(orders).set({
+        status: current.status === "new" ? "assigned" : current.status === "done" && added.length ? "in_progress" : current.status,
+        scheduledAt: v.scheduledAt ?? current.scheduledAt,
+        plannedMinutes: v.scheduledAt ? v.plannedMinutes : current.plannedMinutes,
+        dueDate: followVisitDueDate(current.dueDate, current.scheduledAt, v.scheduledAt), updatedAt: now,
+      }).where(eq(orders.id, o.id));
+      if (v.scheduledAt && v.scheduledAt.getTime() !== current.scheduledAt?.getTime()) {
+        scheduledIds.push(o.id);
+        await tx.insert(orderEvents).values({ orderId: o.id, userId: s.user.id, type: "scheduled", data: { scheduledAt: v.scheduledAt.toISOString(), plannedMinutes: v.plannedMinutes } });
+      }
+      if (added.length) notify.push({ id: o.id, number: o.number });
+      assignedCount++;
     }
   });
-
+  for (const id of scheduledIds) await sendClientMail(id, "scheduled", s.user.id);
   if (notify.length > 0) {
     await notifyUsers(
       [v.assigneeId],
@@ -135,5 +152,5 @@ export async function assignMany(orderIds: number[], fd: FormData): Promise<Acti
   }
   for (const p of ["/", "/schedule", "/orders", "/my"]) revalidatePath(p);
   for (const o of eligible) revalidatePath(`/orders/${o.id}`);
-  return { ok: true, data: { assigned: eligible.length, skipped: ids.length - eligible.length } };
+  return { ok: true, data: { assigned: assignedCount, skipped: ids.length - assignedCount } };
 }

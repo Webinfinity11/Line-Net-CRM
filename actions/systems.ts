@@ -4,7 +4,7 @@ import { count, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/db";
-import { orders, services, systems } from "@/db/schema";
+import { orders, services, serviceSubgroups, systems } from "@/db/schema";
 import { getSession } from "@/lib/session";
 import type { ActionResult } from "./orders";
 
@@ -83,7 +83,8 @@ export async function deleteSystem(slug: string): Promise<ActionResult> {
   if (!(await requireAdmin())) return { ok: false, error: "მხოლოდ ადმინს შეუძლია" };
   const [o] = await db.select({ n: count() }).from(orders).where(eq(orders.systemType, slug));
   const [s] = await db.select({ n: count() }).from(services).where(eq(services.systemType, slug));
-  const used = (o?.n ?? 0) + (s?.n ?? 0);
+  const [sub] = await db.select({ n: count() }).from(serviceSubgroups).where(eq(serviceSubgroups.systemSlug, slug));
+  const used = (o?.n ?? 0) + (s?.n ?? 0) + (sub?.n ?? 0);
   if (used > 0) return { ok: false, error: `გამოიყენება ${used} ჩანაწერში. წაშლის ნაცვლად გამორთეთ.` };
   await db.delete(systems).where(eq(systems.slug, slug));
   revalidateAll();

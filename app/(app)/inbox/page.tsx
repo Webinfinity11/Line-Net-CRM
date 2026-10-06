@@ -1,3 +1,5 @@
+import { PriorityLabel } from "@/components/app/badges";
+import { OrderManager } from "@/components/app/order-detail/manager";
 import { inArray } from "drizzle-orm";
 import { Building2, Inbox, Mail, Paperclip } from "lucide-react";
 import Link from "next/link";
@@ -62,12 +64,12 @@ export default async function InboxPage({ searchParams }: PageProps<"/inbox">) {
                 <SourceIcon className="size-[18px] [stroke-width:1.7]" />
               </span>
               <div className="min-w-0 flex-1">
-                <Link href={`/orders/${o.id}`} className="block truncate max-md:whitespace-normal max-md:break-words text-[14px] font-medium hover:text-[#3457d5]">
+                <Link href={`/orders/${o.id}`} className="ln-link block truncate max-md:whitespace-normal max-md:break-words text-[14px] font-medium">
                   {portal ? o.title : (o.emailSubject ?? o.title)}
                 </Link>
                 <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
                   <span className="truncate max-md:whitespace-normal max-md:break-all">{portal ? `კაბინეტიდან · ${o.client?.name ?? ""}` : o.emailFrom}</span>
-                  {portal && o.priority === "urgent" && <span className="font-medium text-[#b13f32]">სასწრაფო</span>}
+                  <PriorityLabel priority={o.priority} />
                   <span className="tabular">{formatDate(o.emailReceivedAt ?? o.createdAt, true)}</span>
                   {fileCount.get(o.id) ? (
                     <span className="flex items-center gap-1">
@@ -76,6 +78,7 @@ export default async function InboxPage({ searchParams }: PageProps<"/inbox">) {
                   ) : null}
                 </div>
                 {o.description && <p className="mt-2 line-clamp-2 text-[12.5px] text-[#617084]">{o.description}</p>}
+                <div className="mt-2"><OrderManager id={o.id} manager={o.manager} at={o.managerAt} me={user.id} /></div>
               </div>
               <div className="flex w-full shrink-0 flex-wrap gap-2 sm:w-auto">
                 <Button render={<Link href={`/orders/${o.id}/edit`} />} size="sm" className="h-11 flex-1 sm:h-8 sm:flex-none">

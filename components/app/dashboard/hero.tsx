@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowDownRight, ArrowUpRight, Minus } from "lucide-react";
+import Link from "next/link";
 import { CountUp, DrawnArea } from "@/components/app/motion";
 import { formatMoney } from "@/lib/i18n";
 import { toMtavruli } from "@/lib/mtavruli";
@@ -9,7 +10,7 @@ import { cn } from "@/lib/utils";
 /**
  * The head of the dashboard. It belongs to the same family as every other card —
  * white on the page grey — because a dark slab here read as a piece of a different
- * product. The month's money is still the headline, with the last two weeks beside it.
+ * product. Money received in the picked period is the headline, with its line beside it.
  */
 export type DashboardHeroData = {
   greeting: string;
@@ -18,6 +19,12 @@ export type DashboardHeroData = {
   changePct: number | null;
   lastMonth: number;
   cash: { day: string; amount: number }[];
+  /** What the number counts, what it is compared with and what the line covers; they follow the period picked above. */
+  revenueLabel: string;
+  compareLabel: string;
+  cashLabel: string;
+  /** Orders handed over in the period: how many, their total, and what is still owed on them. */
+  done: { count: number; amount: number; unpaid: number };
 };
 
 export function DashboardHero({
@@ -27,6 +34,10 @@ export function DashboardHero({
   changePct,
   lastMonth,
   cash,
+  revenueLabel,
+  compareLabel,
+  cashLabel,
+  done,
   children,
   aside,
 }: DashboardHeroData & {
@@ -39,7 +50,7 @@ export function DashboardHero({
   const Icon = changePct === null || flat ? Minus : up ? ArrowUpRight : ArrowDownRight;
 
   return (
-    <section className="ln-card p-5 sm:p-6 max-md:p-4" aria-label="თვის შედეგი">
+    <section className="ln-card p-5 sm:p-6 max-md:p-4" aria-label="პერიოდის შედეგი">
       <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4">
         <div className="min-w-0">
           <h1 className="font-heading max-md:text-[21px] text-[24px] leading-[1.25] tracking-[-0.4px] sm:text-[26px]">{toMtavruli(greeting)}</h1>
@@ -57,7 +68,7 @@ export function DashboardHero({
         )}
       >
         <div className="min-w-0">
-          <div className="text-[11.5px] text-muted-foreground">ამ თვეში მიღებული</div>
+          <div className="text-[11.5px] text-muted-foreground">{revenueLabel}</div>
           <div className="mt-1.5 flex flex-wrap items-center gap-2.5">
             <CountUp value={revenue} format={formatMoney} className="font-heading text-[32px] font-bold leading-none tracking-[-0.9px] sm:text-[38px]" />
             <span
@@ -70,12 +81,21 @@ export function DashboardHero({
               {changePct === null ? "შედარება ვერ ითვლება" : flat ? "უცვლელი" : `${up ? "+" : ""}${changePct}%`}
             </span>
           </div>
-          <p className="mt-2 text-[12px] text-muted-foreground">გასულ თვეს იმავე დღისთვის {formatMoney(lastMonth)}</p>
+          <p className="mt-2 text-[12px] text-muted-foreground">{compareLabel} {formatMoney(lastMonth)}</p>
+          <p className="mt-1 text-[12px] text-muted-foreground">
+            შესრულდა {done.count} შეკვეთა · {formatMoney(done.amount)}
+            {done.unpaid > 0 && (
+              <>
+                {" · "}
+                <Link href="/orders?payment=unpaid" className="text-[#b13f32] hover:underline">გადაუხდელი {formatMoney(done.unpaid)}</Link>
+              </>
+            )}
+          </p>
         </div>
 
         <div className={cn("min-w-0", !aside && "flex-1 sm:max-w-[380px] max-md:w-full max-md:flex-none max-md:max-w-none")}>
           <div className="mb-1 flex items-center justify-between text-[11.5px] text-muted-foreground">
-            <span>ბოლო 14 დღე</span>
+            <span>{cashLabel}</span>
             <span className="tabular">{formatMoney(cash.reduce((s, c) => s + c.amount, 0))}</span>
           </div>
           <DrawnArea points={cash.map((c) => c.amount)} height={56} stroke="#3457d5" fill="#3457d5" />

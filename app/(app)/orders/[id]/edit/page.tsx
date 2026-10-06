@@ -28,6 +28,7 @@ export default async function EditOrderPage({ params }: PageProps<"/orders/[id]/
       clients={clients}
       users={users}
       compact={triage}
+      amountFromItems={order.items.length > 0}
       initial={{
         title: order.title,
         description: order.description,
@@ -40,7 +41,6 @@ export default async function EditOrderPage({ params }: PageProps<"/orders/[id]/
         amount: order.amount,
         systemType: order.systemType,
         plannedMinutes: order.plannedMinutes,
-        requiresPhoto: order.requiresPhoto,
         scheduledAt: order.scheduledAt,
         warrantyMonths: order.warrantyMonths,
         assigneeIds: order.assignees.map((a) => a.userId),

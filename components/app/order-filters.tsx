@@ -1,7 +1,7 @@
 "use client";
 
-import { Search, X } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { X } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
@@ -21,25 +21,26 @@ export function OrderFilters({
 }) {
   const systemOptions = useSystems();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const formRef = useRef<HTMLFormElement>(null);
   const submit = () => formRef.current?.requestSubmit();
-  const hasFilters = Boolean(values.q || values.type || values.priority || values.system || values.assignee || values.client || values.overdue || (values.status && values.status !== "active"));
+  const hasFilters = Boolean(values.type || values.priority || values.system || values.assignee || values.client || values.overdue || (values.status && values.status !== "active"));
 
   return (
-    <form ref={formRef} method="get" action="/orders" className="max-md:[&>div]:w-full max-md:[&>div]:max-w-none max-md:[&_select]:h-11 max-md:[&_input]:min-h-[44px] max-md:[&_button]:min-h-[44px] max-md:[&>label]:min-h-[44px] flex flex-wrap items-center gap-2 rounded-xl border border-[#e6ebf2] bg-white p-3 dark:bg-neutral-900">
+    <form ref={formRef} method="get" action="/orders" onSubmit={event => {
+      event.preventDefault();
+      const params = new URLSearchParams();
+      for (const [key, value] of new FormData(event.currentTarget)) {
+        if (typeof value === "string" && value) params.set(key, value);
+      }
+      router.push(`/orders${params.size ? `?${params}` : ""}`, { scroll: false });
+    }} className="max-md:[&>div]:w-full max-md:[&>div]:max-w-none max-md:[&_select]:h-11 max-md:[&_input]:min-h-[44px] max-md:[&_button]:min-h-[44px] max-md:[&>label]:min-h-[44px] flex flex-wrap items-center gap-2 rounded-xl border border-[#e6ebf2] bg-white p-3 dark:bg-neutral-900">
       {values.view === "kanban" && <input type="hidden" name="view" value="kanban" />}
       {values.sort && <input type="hidden" name="sort" value={values.sort} />}
-      <div className="relative min-w-[200px] flex-1">
-        <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-        <input
-          name="q"
-          defaultValue={values.q}
-          placeholder={t.common.search}
-          className="h-9 w-full rounded-lg border border-[#e6ebf2] bg-[#f8faff] pl-8 pr-3 text-[13px] outline-none focus:border-[#7f97e6] dark:bg-neutral-800"
-        />
-      </div>
+      <input type="hidden" name="q" value={values.q} />
+      {["manager", "payment"].map(key => searchParams.get(key) ? <input key={key} type="hidden" name={key} value={searchParams.get(key)!} /> : null)}
       {values.view !== "kanban" && (
-        <NativeSelect name="status" defaultValue={values.status} onChange={submit} className="h-9 w-auto text-sm">
+        <NativeSelect name="status" defaultValue={values.status} onChange={submit} className="h-11 w-auto text-sm">
           <NativeSelectOption value="active">აქტიური</NativeSelectOption>
           <NativeSelectOption value="all">{t.common.all}</NativeSelectOption>
           {STATUS_ORDER.map((s) => (
@@ -49,7 +50,7 @@ export function OrderFilters({
           ))}
         </NativeSelect>
       )}
-      <NativeSelect name="type" defaultValue={values.type} onChange={submit} className="h-9 w-auto text-sm">
+      <NativeSelect name="type" defaultValue={values.type} onChange={submit} className="h-11 w-auto text-sm">
         <NativeSelectOption value="">{t.order.type}: {t.common.all}</NativeSelectOption>
         {Object.entries(TYPE_LABELS).map(([k, v]) => (
           <NativeSelectOption key={k} value={k}>
@@ -57,7 +58,7 @@ export function OrderFilters({
           </NativeSelectOption>
         ))}
       </NativeSelect>
-      <NativeSelect name="system" defaultValue={values.system} onChange={submit} className="h-9 w-auto max-w-[220px] text-sm">
+      <NativeSelect name="system" defaultValue={values.system} onChange={submit} className="h-11 w-auto max-w-[220px] text-sm">
         <NativeSelectOption value="">{t.order.system}: {t.common.all}</NativeSelectOption>
         {systemOptions.map((sys) => (
           <NativeSelectOption key={sys.key} value={sys.key}>
@@ -65,7 +66,7 @@ export function OrderFilters({
           </NativeSelectOption>
         ))}
       </NativeSelect>
-      <NativeSelect name="priority" defaultValue={values.priority} onChange={submit} className="h-9 w-auto text-sm">
+      <NativeSelect name="priority" defaultValue={values.priority} onChange={submit} className="h-11 w-auto text-sm">
         <NativeSelectOption value="">{t.order.priority}: {t.common.all}</NativeSelectOption>
         {Object.entries(PRIORITY_LABELS).map(([k, v]) => (
           <NativeSelectOption key={k} value={k}>
@@ -73,7 +74,7 @@ export function OrderFilters({
           </NativeSelectOption>
         ))}
       </NativeSelect>
-      <NativeSelect name="assignee" defaultValue={values.assignee} onChange={submit} className="h-9 w-auto max-w-[200px] text-sm">
+      <NativeSelect name="assignee" defaultValue={values.assignee} onChange={submit} className="h-11 w-auto max-w-[200px] text-sm">
         <NativeSelectOption value="">{t.order.assignees}: {t.common.all}</NativeSelectOption>
         {users.map((u) => (
           <NativeSelectOption key={u.id} value={u.id}>
@@ -81,7 +82,7 @@ export function OrderFilters({
           </NativeSelectOption>
         ))}
       </NativeSelect>
-      <NativeSelect name="client" defaultValue={values.client} onChange={submit} className="h-9 w-auto max-w-[220px] text-sm">
+      <NativeSelect name="client" defaultValue={values.client} onChange={submit} className="h-11 w-auto max-w-[220px] text-sm">
         <NativeSelectOption value="">{t.order.client}: {t.common.all}</NativeSelectOption>
         {clients.map((c) => (
           <NativeSelectOption key={c.id} value={String(c.id)}>
@@ -89,15 +90,19 @@ export function OrderFilters({
           </NativeSelectOption>
         ))}
       </NativeSelect>
-      <label className="flex h-9 cursor-pointer items-center gap-1.5 rounded-lg border px-2.5 text-sm">
+      <label className="flex h-11 cursor-pointer items-center gap-1.5 rounded-lg border px-2.5 text-sm">
         <input type="checkbox" name="overdue" value="1" defaultChecked={values.overdue === "1"} onChange={submit} className="accent-[#b13f32]" />
         {t.order.overdue}
       </label>
-      <Button type="submit" size="sm" variant="secondary">
-        {t.common.search}
-      </Button>
       {hasFilters && (
-        <Button type="button" size="sm" variant="ghost" onClick={() => router.push(values.view === "kanban" ? "/orders?view=kanban" : "/orders")}>
+        <Button type="button" size="sm" variant="ghost" className="h-11" onClick={() => {
+          const params = new URLSearchParams();
+          for (const key of ["q", "sort", "view", "manager", "payment"]) {
+            const value = searchParams.get(key);
+            if (value) params.set(key, value);
+          }
+          router.push(`/orders${params.size ? `?${params}` : ""}`);
+        }}>
           <X className="size-3.5" /> გასუფთავება
         </Button>
       )}

@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Clock3 } from "lucide-react";
 import type { OrderPriority, OrderStatus, OrderType, PaymentStatus, SystemType } from "@/db/schema";
 import {
   PAYMENT_COLORS,
@@ -53,10 +53,10 @@ export function TypeBadge({ type, className }: { type: OrderType; className?: st
 }
 
 export function PriorityLabel({ priority, className }: { priority: OrderPriority; className?: string }) {
-  // only urgent earns a colour; the rest stay quiet so the row reads calmly
+  if (priority === "normal") return null;
   return (
-    <span className={cn("inline-flex items-center gap-1 text-[11.5px] whitespace-nowrap", PRIORITY_COLORS[priority], className)}>
-      {priority === "urgent" && <AlertTriangle className="size-3 shrink-0" />}
+    <span className={cn(base, PRIORITY_COLORS[priority], className)}>
+      {priority === "urgent" && <AlertTriangle className="size-3 shrink-0" aria-hidden />}
       {PRIORITY_LABELS[priority]}
     </span>
   );
@@ -64,8 +64,8 @@ export function PriorityLabel({ priority, className }: { priority: OrderPriority
 
 export function OverdueBadge({ className }: { className?: string }) {
   return (
-    <span className={cn(base, "bg-[#b13f32] text-white", className)}>
-      <AlertTriangle className="size-3" /> ვადაგადაცილებული
+    <span className={cn(base, "bg-[#faeeee] text-[#b13f32]", className)}>
+      <Clock3 className="size-3 shrink-0" aria-hidden /> ვადაგადაცილებული
     </span>
   );
 }

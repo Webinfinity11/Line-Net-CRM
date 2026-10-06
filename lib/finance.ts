@@ -55,9 +55,14 @@ export function itemsTotal(items: { quantity: string; unitPrice: string }[]): nu
 }
 
 /** Net / VAT / gross for a set of billable lines. A rate of 0 means the company does not charge VAT on this order. */
-export function vatBreakdown(items: { quantity: string; unitPrice: string }[], vatPercent: string | number | null | undefined) {
-  const net = itemsTotal(items);
+export function vatBreakdown(items: { quantity: string; unitPrice: string }[], vatPercent: string | number | null | undefined, fallbackGross?: string | number | null) {
   const rate = Number(vatPercent) || 0;
+  if (items.length === 0 && fallbackGross !== undefined && fallbackGross !== null) {
+    const gross = Math.round(Number(fallbackGross) * 100) / 100;
+    const net = Math.round(gross / (1 + rate / 100) * 100) / 100;
+    return { net, rate, vat: Math.round((gross - net) * 100) / 100, gross };
+  }
+  const net = itemsTotal(items);
   const vat = Math.round(((net * rate) / 100) * 100) / 100;
   return { net, rate, vat, gross: Math.round((net + vat) * 100) / 100 };
 }

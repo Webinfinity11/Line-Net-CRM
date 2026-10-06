@@ -41,8 +41,10 @@ function authorized(req: Request) {
   const secret = process.env.INBOUND_EMAIL_SECRET;
   if (!secret) return false;
   const header = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? new URL(req.url).searchParams.get("secret") ?? "";
-  if (header.length !== secret.length) return false;
-  return timingSafeEqual(Buffer.from(header), Buffer.from(secret));
+  const provided = Buffer.from(header);
+  const expected = Buffer.from(secret);
+  if (provided.length !== expected.length) return false;
+  return timingSafeEqual(provided, expected);
 }
 
 export async function POST(req: Request) {

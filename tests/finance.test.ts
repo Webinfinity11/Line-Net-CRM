@@ -59,3 +59,8 @@ describe("VAT", () => {
     expect(vatBreakdown([{ quantity: "3", unitPrice: "33.33" }], "18")).toEqual({ net: 99.99, rate: 18, vat: 18, gross: 117.99 });
   });
 });
+
+describe("manual gross invoice VAT", () => {
+ it("extracts VAT from a manually entered gross amount without lines", () => { expect(vatBreakdown([], "18", "118")).toEqual({net:100, rate:18, vat:18, gross:118}); });
+ it("does not override real line totals with a stale manual total", () => { expect(vatBreakdown([{quantity:"1", unitPrice:"100"}], "18", "999").gross).toBe(118); });
+});

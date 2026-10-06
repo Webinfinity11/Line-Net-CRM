@@ -1,6 +1,7 @@
 import { relations, sql } from "drizzle-orm";
 import {
   boolean,
+  check,
   date,
   index,
   uniqueIndex,
@@ -210,6 +211,9 @@ export const orders = pgTable(
     emailMessageId: text("email_message_id").unique(),
     emailReceivedAt: timestamp("email_received_at", { withTimezone: true }),
     createdBy: text("created_by").references(() => user.id, { onDelete: "set null" }),
+    /** Responsible manager: whoever first handled the order, or took it over deliberately. */
+    managerId: text("manager_id").references((): AnyPgColumn => user.id, { onDelete: "set null" }),
+    managerAt: timestamp("manager_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
     completedAt: timestamp("completed_at", { withTimezone: true }),
@@ -243,6 +247,15 @@ export const systems = pgTable(
   (t) => [index("systems_sort_idx2").on(t.sort)],
 );
 
+export const serviceSubgroups = pgTable("service_subgroups", {
+  id: serial("id").primaryKey(),
+  systemSlug: text("system_slug").notNull().references(() => systems.slug, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  sort: integer("sort").notNull().default(0),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("service_subgroups_system_sort_idx").on(t.systemSlug, t.sort)]);
+
 /**
  * Service catalogue: what the company sells, with a price per unit.
  * Managed from the admin panel; order lines copy the name/unit/price so a later
@@ -254,6 +267,7 @@ export const services = pgTable(
     id: serial("id").primaryKey(),
     name: text("name").notNull(),
     systemType: text("system_type"),
+    subgroupId: integer("subgroup_id").references(() => serviceSubgroups.id, { onDelete: "set null" }),
     unit: text("unit").notNull().default("ცალი"),
     price: numeric("price", { precision: 12, scale: 2 }).notNull().default("0"),
     description: text("description"),
@@ -501,8 +515,57 @@ export const orderAssignees = pgTable(
     assignedBy: text("assigned_by").references(() => user.id, { onDelete: "set null" }),
     assignedAt: timestamp("assigned_at", { withTimezone: true }).notNull().defaultNow(),
     seenAt: timestamp("seen_at", { withTimezone: true }),
+    /** this person handed over their part of the work */
+    doneAt: timestamp("done_at", { withTimezone: true }),
+    doneNote: text("done_note"),
   },
   (t) => [primaryKey({ columns: [t.orderId, t.userId] }), index("assignees_user_idx").on(t.userId)],
+);
+
+export type OrderRequestStatus = "pending" | "approved" | "declined";
+
+/** A technician asks to be put on an order (or to add a colleague); a manager decides. */
+export const orderRequests = pgTable(
+  "order_requests",
+  {
+    id: serial("id").primaryKey(),
+    orderId: integer("order_id")
+      .notNull()
+      .references(() => orders.id, { onDelete: "cascade" }),
+    /** the person to put on the order */
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    requestedBy: text("requested_by").references(() => user.id, { onDelete: "set null" }),
+    note: text("note"),
+    status: text("status").$type<OrderRequestStatus>().notNull().default("pending"),
+    decidedBy: text("decided_by").references(() => user.id, { onDelete: "set null" }),
+    decidedAt: timestamp("decided_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    check("order_requests_status_check", sql`${t.status} in ('pending', 'approved', 'declined')`),
+    index("order_requests_order_idx").on(t.orderId),
+    uniqueIndex("order_requests_pending_unique").on(t.orderId, t.userId).where(sql`${t.status} = 'pending'`),
+  ],
+);
+
+/** Contact people of one site: several per branch, some of them receive our e-mails. */
+export const siteContacts = pgTable(
+  "site_contacts",
+  {
+    id: serial("id").primaryKey(),
+    siteId: integer("site_id")
+      .notNull()
+      .references(() => sites.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    position: text("position"),
+    phone: text("phone"),
+    email: text("email"),
+    receivesEmail: boolean("receives_email").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("site_contacts_site_idx").on(t.siteId)],
 );
 
 export const orderComments = pgTable(
@@ -589,6 +652,18 @@ export const siteRelations = relations(sites, ({ one, many }) => ({
   client: one(clients, { fields: [sites.clientId], references: [clients.id] }),
   orders: many(orders),
   equipment: many(siteEquipment),
+  contacts: many(siteContacts),
+}));
+
+export const siteContactRelations = relations(siteContacts, ({ one }) => ({
+  site: one(sites, { fields: [siteContacts.siteId], references: [sites.id] }),
+}));
+
+export const orderRequestRelations = relations(orderRequests, ({ one }) => ({
+  order: one(orders, { fields: [orderRequests.orderId], references: [orders.id] }),
+  user: one(user, { fields: [orderRequests.userId], references: [user.id], relationName: "requestUser" }),
+  requester: one(user, { fields: [orderRequests.requestedBy], references: [user.id], relationName: "requestRequester" }),
+  decider: one(user, { fields: [orderRequests.decidedBy], references: [user.id], relationName: "requestDecider" }),
 }));
 
 export const orderRelations = relations(orders, ({ one, many }) => ({
@@ -596,7 +671,9 @@ export const orderRelations = relations(orders, ({ one, many }) => ({
   site: one(sites, { fields: [orders.siteId], references: [sites.id] }),
   creator: one(user, { fields: [orders.createdBy], references: [user.id], relationName: "creator" }),
   verifier: one(user, { fields: [orders.verifiedBy], references: [user.id], relationName: "verifier" }),
+  manager: one(user, { fields: [orders.managerId], references: [user.id], relationName: "manager" }),
   assignees: many(orderAssignees),
+  requests: many(orderRequests),
   comments: many(orderComments),
   attachments: many(orderAttachments),
   events: many(orderEvents),
@@ -631,6 +708,7 @@ export const quoteItemRelations = relations(quoteItems, ({ one }) => ({
 }));
 
 export const orderItemRelations = relations(orderItems, ({ one }) => ({
+  creator: one(user, { fields: [orderItems.createdBy], references: [user.id] }),
   order: one(orders, { fields: [orderItems.orderId], references: [orders.id] }),
   service: one(services, { fields: [orderItems.serviceId], references: [services.id] }),
 }));
@@ -693,9 +771,24 @@ export type ChecklistTemplate = typeof checklistTemplates.$inferSelect;
 
 export type Service = typeof services.$inferSelect;
 export type OrderItem = typeof orderItems.$inferSelect;
+export type OrderAssignee = typeof orderAssignees.$inferSelect;
+export type OrderRequest = typeof orderRequests.$inferSelect;
+export type SiteContact = typeof siteContacts.$inferSelect;
 
 export type SystemRow = typeof systems.$inferSelect;
 
 export type Quote = typeof quotes.$inferSelect;
 export type QuoteItem = typeof quoteItems.$inferSelect;
 export type QuoteStatus = (typeof quoteStatusEnum.enumValues)[number];
+
+
+export const systemsRelations = relations(systems, ({ many }) => ({
+  subgroups: many(serviceSubgroups),
+}));
+export const serviceSubgroupsRelations = relations(serviceSubgroups, ({ one, many }) => ({
+  system: one(systems, { fields: [serviceSubgroups.systemSlug], references: [systems.slug] }),
+  services: many(services),
+}));
+export const servicesRelations = relations(services, ({ one }) => ({
+  subgroup: one(serviceSubgroups, { fields: [services.subgroupId], references: [serviceSubgroups.id] }),
+}));

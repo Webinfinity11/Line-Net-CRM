@@ -1,11 +1,11 @@
 "use client";
 
 import { ArrowDownWideNarrow, Download, Search, SlidersHorizontal } from "lucide-react";
-import { useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ViewPrefs } from "@/components/app/view-prefs";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
-import { t } from "@/lib/i18n";
 
 /** Columns anyone can switch off; the title and status always stay. */
 const ORDER_COLUMNS = [
@@ -17,7 +17,7 @@ const ORDER_COLUMNS = [
 ];
 
 const SORTS: { key: string; label: string }[] = [
-  { key: "created", label: "შექმნის თარიღი" },
+  { key: "", label: "ახალი ზემოთ" },
   { key: "due", label: "ვადა" },
   { key: "priority", label: "პრიორიტეტი" },
   { key: "amount", label: "თანხა" },
@@ -43,36 +43,58 @@ export function OrdersToolbar({
 }) {
   const [open, setOpen] = useState(activeCount > 0);
   const formRef = useRef<HTMLFormElement>(null);
+  const router = useRouter();
+  const params = useSearchParams();
+  const urlQuery = params.get("q") ?? "";
+  const [query, setQuery] = useState(q);
+  useEffect(() => { setQuery(urlQuery); }, [urlQuery]);
 
   return (
     <div className="space-y-3">
-      <form ref={formRef} method="get" action="/orders" className="ln-card flex flex-wrap items-center gap-2 p-3 max-md:gap-1.5">
+      <form ref={formRef} method="get" action="/orders" onSubmit={event => {
+        event.preventDefault();
+        const next = new URLSearchParams();
+        for (const [key, value] of new FormData(event.currentTarget)) {
+          if (typeof value === "string" && value.trim()) next.set(key, value.trim());
+        }
+        router.push(`/orders${next.size ? `?${next}` : ""}`, { scroll: false });
+      }} className="ln-card flex flex-wrap items-center gap-2 p-3 max-md:gap-1.5">
         {Object.entries(hidden).map(([k, v]) => (
           <input key={k} type="hidden" name={k} value={v} />
         ))}
         <div className="relative w-full min-w-0 sm:w-[320px] max-md:w-auto max-md:flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <button type="submit" aria-label="ძიება" className="absolute inset-y-0 left-0 grid w-9 cursor-pointer place-items-center rounded-l-full text-muted-foreground hover:text-[#3457d5] focus-visible:outline-2 focus-visible:outline-[#3457d5]">
+            <Search className="size-4" />
+          </button>
           <input
             name="q"
-            defaultValue={q}
-            placeholder={t.common.search}
-            aria-label={t.common.search}
-            className="h-11 w-full rounded-lg border border-[#e6ebf2] bg-[#f8faff] pl-9 pr-3 text-[16px] outline-none transition focus:border-[#7f97e6] focus:bg-white sm:h-9 sm:text-[13px]"
+            value={query}
+            onChange={event => setQuery(event.target.value)}
+            placeholder="ძებნა: ნომერი, სათაური, მისამართი…"
+            aria-label="შეკვეთების ძიება"
+            onKeyDown={event => {
+              if (event.key === "Enter" && !event.nativeEvent.isComposing) {
+                event.preventDefault();
+                formRef.current?.requestSubmit();
+              }
+            }}
+            className="h-11 w-full rounded-full border border-[#e6ebf2] bg-[#f8faff] pl-9 pr-3 text-[16px] outline-none transition focus:border-[#7f97e6] focus:bg-white sm:text-[13px]"
           />
         </div>
         <span className="max-md:hidden shrink-0 text-[12px] text-muted-foreground">{total} შეკვეთა</span>
         <div className="flex w-full flex-wrap items-center gap-2 sm:ml-auto sm:w-auto max-md:w-auto max-md:gap-1.5">
-          <Button type="button" variant="outline" size="sm" className="h-10 sm:h-8 max-md:relative max-md:size-11 max-md:p-0" aria-label="ფილტრები" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
+          <Button type="button" variant="outline" size="sm" className="h-11 max-md:relative max-md:size-11 max-md:p-0" aria-label="ფილტრები" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
             <SlidersHorizontal className="size-3.5" /> <span className="max-md:hidden">ფილტრები</span>
             {activeCount > 0 && <span className="max-md:absolute max-md:-right-1 max-md:-top-1 ml-0.5 rounded-full bg-[#eef2ff] px-1.5 text-[10px] font-semibold text-[#3457d5]">{activeCount}</span>}
           </Button>
           <div className="relative max-md:size-11">
           <ArrowDownWideNarrow aria-hidden className="pointer-events-none absolute left-[14px] top-[14px] size-4 md:hidden" />
           <NativeSelect
+            variant="toolbar"
             name="sort"
-            defaultValue={sort}
+            value={sort === "created" ? "" : sort}
             aria-label="დალაგება"
-            className="h-10 text-[14px] sm:h-9 sm:text-[13px] max-md:size-11 max-md:[&>select]:h-11 max-md:[&>select]:rounded-full max-md:[&>select]:text-transparent max-md:[&_option]:text-foreground max-md:[&>select]:cursor-pointer max-md:[&>svg]:hidden"
+            className="h-11 text-[14px] sm:text-[13px] max-md:size-11 max-md:[&_button]:rounded-full max-md:[&_[data-slot=select-value]]:invisible max-md:[&_svg]:hidden"
             onChange={() => formRef.current?.requestSubmit()}
           >
             {SORTS.map((s) => (
@@ -82,13 +104,33 @@ export function OrdersToolbar({
             ))}
           </NativeSelect>
           </div>
-          <div className="max-md:hidden"><ViewPrefs storageKey="ln.orders.columns.v1" items={ORDER_COLUMNS} label="სვეტები" attr="data-col" /></div>
-          <Button render={<a href={excelHref} />} variant="outline" size="sm" className="h-10 sm:h-8 max-md:size-11 max-md:p-0" aria-label="ყველა შეკვეთა Excel-ად" title="ყველა შეკვეთა Excel-ად">
-            <Download className="size-3.5" /> <span className="max-md:hidden">Excel</span>
+          <div className="max-md:hidden [&_button]:h-11"><ViewPrefs storageKey="ln.orders.columns.v1" items={ORDER_COLUMNS} label="სვეტები" attr="data-col" /></div>
+          <Button render={<a href={excelHref} />} variant="outline" size="sm" className="h-11 max-md:size-11 max-md:p-0" aria-label="ყველა შეკვეთა Excel-ად, კატეგორიების მიხედვით" title="ყველა შეკვეთა Excel-ად, კატეგორიების მიხედვით">
+            <Download className="size-3.5" /> <span className="max-md:hidden">Excel ჯგუფებით</span>
           </Button>
         </div>
       </form>
       {open && children}
     </div>
   );
+}
+
+/** Change just the manager filter, retaining the current query including repeated keys. */
+export function ManagerFilter({ value, users }: { value: string; users: { id: string; name: string }[] }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  return <NativeSelect name="manager" value={value} aria-label="პასუხისმგებელი"
+    className="h-[36px] w-full rounded-[8px] bg-white text-[13px] sm:w-[240px]"
+    onChange={event => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (event.target.value) params.set("manager", event.target.value);
+      else params.delete("manager");
+      params.delete("page");
+      router.push(`${pathname}${params.size ? `?${params}` : ""}`);
+    }}>
+    <NativeSelectOption value="">პასუხისმგებელი: ყველა</NativeSelectOption>
+    <NativeSelectOption value="mine">პასუხისმგებელი: ჩემი</NativeSelectOption>
+    {users.map(user => <NativeSelectOption key={user.id} value={user.id}>{user.name}</NativeSelectOption>)}
+  </NativeSelect>;
 }

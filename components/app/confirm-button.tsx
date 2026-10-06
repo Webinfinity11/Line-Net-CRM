@@ -7,6 +7,7 @@ import type { ActionResult } from "@/actions/orders";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { t } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
 
 export function ConfirmButton({
   children,
@@ -51,17 +52,17 @@ export function ConfirmButton({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button variant={variant} size={size} className={className} aria-label={ariaLabel} />}>{children}</DialogTrigger>
+      <DialogTrigger render={<Button variant={variant} size={size} className={cn("max-md:h-11", className)} aria-label={ariaLabel} />}>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           {description ? <DialogDescription>{description}</DialogDescription> : null}
         </DialogHeader>
         <div className="flex justify-end gap-2">
-          <Button variant="outline" onClick={() => setOpen(false)}>
+          <Button variant="outline" className="max-md:h-11" onClick={() => setOpen(false)}>
             {t.common.cancel}
           </Button>
-          <Button variant={variant === "destructive" ? "destructive" : "default"} onClick={run} disabled={pending}>
+          <Button variant={variant === "destructive" ? "destructive" : "default"} className="max-md:h-11" onClick={run} disabled={pending}>
             {pending ? "…" : confirmLabel}
           </Button>
         </div>

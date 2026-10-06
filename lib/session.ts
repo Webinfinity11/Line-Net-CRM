@@ -16,7 +16,9 @@ export type SessionUser = {
 export const getSession = cache(async () => {
   const s = await auth.api.getSession({ headers: await headers() });
   if (!s) return null;
-  const u = s.user as typeof s.user & { role?: string; phone?: string | null };
+  const u = s.user as typeof s.user & { role?: string; phone?: string | null; banned?: boolean | null };
+  // A banned user whose sessions failed to revoke must not stay signed in.
+  if (u.banned === true) return null;
   const sessionUser: SessionUser = {
     id: u.id,
     name: u.name,

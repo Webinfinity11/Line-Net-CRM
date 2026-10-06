@@ -19,7 +19,7 @@ export const tableCls = {
   head: "bg-[#f8faff]",
   th: "px-4 py-3 text-left text-[11px] font-medium text-muted-foreground",
   thRight: "px-4 py-3 text-right text-[11px] font-medium text-muted-foreground",
-  row: "border-t border-[#eef1f6] transition-colors hover:bg-[#f8faff]",
+  row: "border-t border-[#eef1f6] transition-colors",
   td: "px-4 py-[14px]",
   tdRight: "px-4 py-[14px] text-right whitespace-nowrap tabular",
 };
@@ -81,10 +81,26 @@ export function DataRow({
   right?: ReactNode;
   actions?: ReactNode;
 }) {
+  const rowLink = Boolean(href && !actions);
   const head = (
-    <div className="flex items-start justify-between gap-3">
+    <div className={cn(
+      "flex items-start justify-between gap-3",
+      rowLink && "ln-row-link relative min-h-[44px] rounded-[12px] pr-6 transition-colors",
+    )}>
       <div className="min-w-0 flex-1">
-        <div className="text-[14px] font-medium leading-snug text-foreground">{title}</div>
+        <div className="text-[14px] font-medium leading-snug text-foreground">
+          {href ? (
+            <Link
+              href={href}
+              className={cn(
+                "ln-link",
+                rowLink && "ln-row-link-anchor after:absolute after:inset-0 after:rounded-[12px] after:content-[''] focus-visible:after:outline-2 focus-visible:after:outline-[#3457d5]",
+              )}
+            >
+              {title}
+            </Link>
+          ) : title}
+        </div>
         {meta ? <div className="mt-1 space-y-0.5 text-[12px] text-muted-foreground">{meta}</div> : null}
       </div>
       {right ? <div className="shrink-0 text-right text-[12.5px]">{right}</div> : null}
@@ -92,13 +108,7 @@ export function DataRow({
   );
   return (
     <li className="py-3.5 first:pt-0 last:pb-0">
-      {href ? (
-        <Link href={href} className="block min-h-[44px] rounded-[12px] transition-colors active:bg-[#f8faff]">
-          {head}
-        </Link>
-      ) : (
-        head
-      )}
+      {head}
       {actions ? <div className="mt-3 flex flex-wrap gap-2">{actions}</div> : null}
     </li>
   );

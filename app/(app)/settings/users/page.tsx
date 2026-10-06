@@ -21,7 +21,7 @@ const ROLE_TONE: Record<string, string> = {
   admin: "bg-[#f1f4f9] text-[#17212b]",
   manager: "bg-[#f1f4f9] text-[#4a5e73]",
   executor: "bg-[#f1f4f9] text-[#617084]",
-  client: "bg-[#eef2ff] text-[#3457d5]",
+  client: "bg-[#f1f4f9] text-[#4a5e73]",
 };
 
 export default async function UsersPage() {
@@ -31,7 +31,7 @@ export default async function UsersPage() {
   /** What sits next to the role: a technician's categories, a client's company. */
   const Links = ({ u }: { u: (typeof users)[number] }) =>
     u.role === "client" ? (
-      <Chip tone="accent">{u.clientId ? (company.get(u.clientId) ?? "—") : "კომპანია არ არის მიბმული"}</Chip>
+      <Chip>{u.clientId ? (company.get(u.clientId) ?? "—") : "კომპანია არ არის მიბმული"}</Chip>
     ) : (
       <>
         {u.specializations.map((k) => (

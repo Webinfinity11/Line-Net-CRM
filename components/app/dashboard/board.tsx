@@ -3,6 +3,7 @@
 import { ArrowRight, CalendarDays, CheckCircle2, Clock3, Mail, MailX, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { OverdueBadge, PriorityLabel } from "@/components/app/badges";
 import { UserAvatar } from "@/components/app/user-avatar";
 import { STATUS_HEX, STATUS_TINT } from "@/lib/i18n";
 import { toMtavruli } from "@/lib/mtavruli";
@@ -121,10 +122,10 @@ export function DashboardBoard({
           </p>
         ) : focus ? (
           <div className={cn("flex min-w-0 flex-1 flex-col items-stretch gap-2 border-t border-[#eef1f6] pt-3 sm:flex-row sm:items-center sm:border-0 sm:pt-0", inHead ? "sm:justify-between" : "sm:justify-end")}>
-            <span className="flex min-w-0 items-center gap-2 text-[12.5px]">
-              <span className="size-2 shrink-0 rounded-full bg-[#b13f32] max-md:bg-[#93a0b0]" />
+            <span className="flex min-w-0 flex-wrap items-center gap-2 text-[12.5px]">
+              {focus.kind === "urgent" ? <PriorityLabel priority="urgent" /> : <OverdueBadge />}
               <span className="truncate max-md:whitespace-normal max-md:break-words">
-                <span className="text-[#b13f32]">{focus.kind === "urgent" ? "სასწრაფო:" : "ვადაგადაცილებული:"}</span> {focus.order.title}
+                {focus.order.title}
                 {focus.more > 0 && <span className="ml-1 text-muted-foreground">+{focus.more}</span>}
               </span>
             </span>
@@ -140,7 +141,7 @@ export function DashboardBoard({
           // work is waiting but nothing is on fire: the bar still points somewhere instead of ending in white space
           <Link
             href={counts.unassigned > 0 ? "/schedule" : "/orders?status=done"}
-            className="inline-flex items-center gap-1.5 self-start rounded-full bg-[#eef2ff] px-4 py-2 text-[12.5px] text-[#4a5e73] transition-colors hover:bg-[#e2e9ff] sm:self-auto"
+            className="inline-flex min-h-[44px] whitespace-nowrap items-center gap-1.5 self-start rounded-full bg-[#eef2ff] px-4 py-2 text-[12.5px] text-[#4a5e73] transition-colors hover:bg-[#e2e9ff] sm:self-auto"
           >
             {counts.unassigned > 0 ? "დაგეგმეთ დღე" : "შეამოწმეთ ჩაბარებული"} <ArrowRight className="size-3.5" />
           </Link>
@@ -204,11 +205,12 @@ export function DashboardBoard({
                             <button
                               type="button"
                               onClick={() => setSelectedId(b.id)}
-                              className="flex min-h-[44px] w-full items-center gap-2 rounded-[8px] px-2 py-1.5 text-left text-[12.5px]"
+                              className="flex min-h-[44px] w-full cursor-pointer items-center gap-2 rounded-[8px] px-2 py-1.5 text-left text-[12.5px] transition-[filter] hover:brightness-95 active:brightness-90"
                               style={{ background: STATUS_TINT[b.status], borderLeft: `3px solid ${STATUS_HEX[b.status]}` }}
                             >
                               <span className="tabular shrink-0 font-medium">{b.timeLabel}</span>
-                              <span className="truncate max-md:whitespace-normal max-md:break-words">{b.title}</span>
+                              <span className="min-w-0 flex-1 truncate max-md:whitespace-normal max-md:break-words">{b.title}</span>
+                              <span aria-hidden="true" className="shrink-0 text-[20px] text-[#3457d5]">›</span>
                             </button>
                           </li>
                         ))}
@@ -255,7 +257,7 @@ export function DashboardBoard({
                               type="button"
                               onClick={() => setSelectedId(b.id)}
                               title={`${b.timeLabel} · ${b.title}${b.client ? ` · ${b.client}` : ""}`}
-                              className="ln-pop absolute top-1 flex h-7 items-center gap-1.5 overflow-hidden rounded-[8px] px-2 text-left text-[11px] transition-[transform,box-shadow] duration-150 hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(16,24,40,0.16)] focus-visible:outline-2 focus-visible:outline-[#3457d5]"
+                              className="ln-pop absolute top-1 flex h-7 cursor-pointer items-center gap-1.5 overflow-hidden rounded-[8px] px-2 pr-5 text-left text-[11px] transition-[transform,box-shadow] duration-150 hover:-translate-y-px hover:brightness-95 active:brightness-90 hover:shadow-[0_4px_12px_rgba(16,24,40,0.16)] focus-visible:outline-2 focus-visible:outline-[#3457d5]"
                               style={{
                                 left: `${Math.max(0, Math.min(97, left))}%`,
                                 width: `${Math.max(6, Math.min(100 - Math.max(0, left), width))}%`,
@@ -266,6 +268,7 @@ export function DashboardBoard({
                               <span className="truncate max-md:whitespace-normal max-md:break-words">
                                 <span className="tabular text-muted-foreground">{b.timeLabel}</span> {b.title}
                               </span>
+                              <span aria-hidden="true" className="absolute right-1 text-[16px] text-[#3457d5]">›</span>
                             </button>
                           );
                         })}

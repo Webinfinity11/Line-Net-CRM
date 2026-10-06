@@ -1,7 +1,7 @@
 import "server-only";
 import { eq, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { mailSync, outlookConnection } from "@/db/schema";
+import { appSettings, mailSync, outlookConnection } from "@/db/schema";
 import { decryptMailSecret, encryptMailSecret, GRAPH_URL, graphJson, OutlookError, outlookConfig, requestOutlookToken } from "@/lib/outlook-oauth";
 
 export type MailTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
@@ -29,6 +29,7 @@ export async function saveOutlookConnection(code: string, verifier: string, user
       expiresAt: new Date(now.getTime() + tokens.expires_in * 1000), connectedBy: userId,
     };
     await tx.insert(outlookConnection).values(values).onConflictDoUpdate({ target: outlookConnection.id, set: values });
+    await tx.insert(appSettings).values({ key: "outlook_granted_scope", value: tokens.scope ?? "" }).onConflictDoUpdate({ target: appSettings.key, set: { value: tokens.scope ?? "" } });
     // First connection imports only future mail. Reconnection resumes the existing cursor.
     await tx.insert(mailSync).values({ mailbox, lastReceivedAt: now }).onConflictDoNothing();
     await tx.update(mailSync).set({ lastError: null }).where(eq(mailSync.mailbox, mailbox));
@@ -44,6 +45,7 @@ export async function getOutlookAccessToken(tx: MailTransaction, connection: typ
       refreshToken: token.refresh_token ? encryptMailSecret(token.refresh_token) : connection.refreshToken,
       expiresAt: new Date(Date.now() + token.expires_in * 1000),
     }).where(eq(outlookConnection.id, connection.id));
+    if (token.scope !== undefined) await tx.insert(appSettings).values({ key: "outlook_granted_scope", value: token.scope }).onConflictDoUpdate({ target: appSettings.key, set: { value: token.scope } });
     return token.access_token;
   } catch (error) {
     if (error instanceof OutlookError) throw error;

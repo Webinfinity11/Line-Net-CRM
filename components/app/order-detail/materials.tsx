@@ -1,4 +1,5 @@
 "use client";
+import { UnitInput } from "@/components/app/unit-input";
 
 import { Package, Plus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -66,7 +67,7 @@ export function Materials({
           <span className="text-sm font-normal text-muted-foreground">{materials.length}</span>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="@container space-y-3">
         {materials.length > 0 && (
           <ul className="divide-y divide-[#eef1f6] sm:hidden">
             {materials.map((m) => (
@@ -78,6 +79,30 @@ export function Materials({
                     {financeVisible && m.unitCost ? ` · ${formatMoney(Number(m.unitCost) * Number(m.quantity))}` : ""}
                     {financeVisible && !m.unitCost ? " · ფასი არ არის" : ""}
                   </div>
+                  {financeVisible && (
+                    <label className="mt-2 block text-[11px] text-muted-foreground">
+                      ერთ. ფასი
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        aria-label={`${m.name} ერთეულის ფასი`}
+                        defaultValue={m.unitCost ?? ""}
+                        placeholder="—"
+                        disabled={readOnly}
+                        className="mt-1 h-11 text-[16px]"
+                        onBlur={(e) => {
+                          const v = e.target.value === "" ? null : Number(e.target.value);
+                          if ((v ?? null) === (m.unitCost === null ? null : Number(m.unitCost))) return;
+                          start(async () => {
+                            const res = await updateMaterialCost(m.id, v);
+                            if (!res.ok) toast.error(res.error);
+                            router.refresh();
+                          });
+                        }}
+                      />
+                    </label>
+                  )}
                 </div>
                 {(financeVisible || m.createdBy === meId) && !readOnly && (
                   <Button
@@ -99,6 +124,22 @@ export function Materials({
                 )}
               </li>
             ))}
+            {financeVisible && (
+              <li className="space-y-1 py-2.5 text-[13px]">
+                <div className="flex justify-between gap-3">
+                  <span className="text-muted-foreground">
+                    მასალების ხარჯი{!cost.known && cost.missingPrices > 0 ? ` (${cost.missingPrices} პოზიციას ფასი აკლია)` : ""}
+                  </span>
+                  <span className="shrink-0 font-medium">{cost.known ? formatMoney(cost.cost) : "უცნობია"}</span>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <span className="text-muted-foreground">სხვაობა (თანხა − მასალები)</span>
+                  <span className={margin === null ? "shrink-0 text-muted-foreground" : margin >= 0 ? "shrink-0 font-semibold text-[#25815a]" : "shrink-0 font-semibold text-[#b13f32]"}>
+                    {margin === null ? "—" : formatMoney(margin)}
+                  </span>
+                </div>
+              </li>
+            )}
           </ul>
         )}
         {materials.length > 0 && (
@@ -191,14 +232,14 @@ export function Materials({
         )}
         {materials.length === 0 && <p className="text-sm text-muted-foreground">მასალები არ არის ჩაწერილი{financeVisible ? ", ხარჯი უცნობია" : ""}.</p>}
         {!readOnly && (
-          <form ref={formRef} onSubmit={submit} className="grid grid-cols-2 items-end gap-2 sm:flex sm:flex-wrap">
-            <div className="col-span-2 min-w-[160px] sm:flex-1">
-              <Input name="name" placeholder="მასალა, მაგ. UTP კაბელი" aria-label="მასალის დასახელება" required className="h-11 text-[16px] sm:h-9 sm:text-[13px]" />
-            </div>
-            <Input name="quantity" type="number" step="0.01" min="0.01" defaultValue="1" className="h-11 w-full text-[16px] sm:h-9 sm:w-20 sm:text-[13px]" aria-label="რაოდენობა" />
-            <Input name="unit" defaultValue="ცალი" className="h-11 w-full text-[16px] sm:h-9 sm:w-20 sm:text-[13px]" aria-label="ერთეული" />
-            {financeVisible && <Input name="unitCost" type="number" step="0.01" min="0" placeholder="ფასი ₾" className="h-11 w-full text-[16px] sm:h-9 sm:w-24 sm:text-[13px]" aria-label="ერთეულის ფასი" />}
-            <Button type="submit" size="default" variant="outline" className="col-span-2 h-11 sm:col-span-1 sm:h-9" disabled={pending}>
+          <form ref={formRef} onSubmit={submit} className={`grid grid-cols-2 items-start gap-2 ${financeVisible ? "@min-[760px]:grid-cols-[minmax(180px,1fr)_88px_144px_110px_auto]" : "@min-[760px]:grid-cols-[minmax(180px,1fr)_88px_144px_auto]"}`}>
+            <label className="col-span-2 grid min-w-0 gap-1 text-[12px] leading-4 text-muted-foreground @min-[760px]:col-span-1">მასალის დასახელება
+              <Input name="name" placeholder="მასალა, მაგ. UTP კაბელი" aria-label="მასალის დასახელება" required className="h-11 text-[16px] sm:text-[13px]" />
+            </label>
+            <label className="grid min-w-0 gap-1 text-[12px] leading-4 text-muted-foreground">რაოდენობა<Input name="quantity" type="number" step="0.01" min="0.01" defaultValue="1" className="h-11 w-full min-w-0 text-[16px] sm:text-[13px]" aria-label="რაოდენობა" /></label>
+            <UnitInput formRow label="საზომი ერთეული" name="unit" defaultValue="ცალი" className="h-11 w-full min-w-0 text-[16px] sm:text-[13px]" aria-label="ერთეული" />
+            {financeVisible && <label className="grid min-w-0 gap-1 text-[12px] leading-4 text-muted-foreground">ფასი / ერთ. ₾<Input name="unitCost" type="number" step="0.01" min="0" placeholder="ფასი ₾" className="h-11 w-full min-w-0 text-[16px] sm:text-[13px]" aria-label="ერთეულის ფასი" /></label>}
+            <Button type="submit" size="default" variant="outline" className={`mt-5 h-11 whitespace-nowrap ${financeVisible ? "" : "col-span-2 @min-[760px]:col-span-1"}`} disabled={pending}>
               <Plus className="size-4" /> დამატება
             </Button>
           </form>

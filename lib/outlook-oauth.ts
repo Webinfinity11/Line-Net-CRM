@@ -6,6 +6,8 @@ export const OUTLOOK_CALLBACK = "/api/mail/outlook/callback";
 export const GRAPH_URL = "https://graph.microsoft.com/v1.0";
 const SCOPES = "offline_access https://graph.microsoft.com/User.Read https://graph.microsoft.com/Mail.Read";
 
+export function outlookScopes() { return SCOPES + (process.env.OUTLOOK_SEND === "1" ? " https://graph.microsoft.com/Mail.Send" : ""); }
+
 export const outlookMessages = {
   setup: "Outlook-ის დასაკავშირებლად ადმინისტრატორმა აპლიკაციის პარამეტრები უნდა გამართოს.",
   forbidden: "ფოსტის დაკავშირება მხოლოდ ადმინისტრატორს შეუძლია.",
@@ -69,7 +71,7 @@ export function createOutlookAuthorization(sessionId: string) {
   const url = new URL("https://login.microsoftonline.com/common/oauth2/v2.0/authorize");
   url.search = new URLSearchParams({
     client_id: cfg.clientId, redirect_uri: cfg.redirectUri, response_type: "code", response_mode: "query",
-    scope: SCOPES, prompt: "select_account", state,
+    scope: outlookScopes(), prompt: "select_account", state,
     code_challenge: createHash("sha256").update(verifier).digest("base64url"), code_challenge_method: "S256",
   }).toString();
   return { url: url.href, cookie, secure: cfg.origin.startsWith("https:") };
@@ -98,7 +100,7 @@ export async function requestOutlookToken(params: Record<string, string>): Promi
     response = await fetch("https://login.microsoftonline.com/common/oauth2/v2.0/token", {
       method: "POST", cache: "no-store", signal: AbortSignal.timeout(20_000),
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ client_id: cfg.clientId, client_secret: cfg.clientSecret, scope: SCOPES, ...params }),
+      body: new URLSearchParams({ client_id: cfg.clientId, client_secret: cfg.clientSecret, scope: outlookScopes(), ...params }),
     });
   } catch { throw new OutlookError("unavailable"); }
   const result = await response.json().catch(() => ({}));

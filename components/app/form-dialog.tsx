@@ -61,10 +61,10 @@ export function FormDialog({
         <form onSubmit={submit} className="space-y-4">
           {children}
           <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
-            <Button type="button" variant="outline" className="h-11 sm:h-9" onClick={() => setOpen(false)}>
+            <Button type="button" variant="outline" className="h-11" onClick={() => setOpen(false)}>
               {t.common.cancel}
             </Button>
-            <Button type="submit" className="h-11 sm:h-9" disabled={pending}>
+            <Button type="submit" className="h-11" disabled={pending}>
               {pending ? "ინახება…" : submitLabel}
             </Button>
           </div>

@@ -1,7 +1,7 @@
 import "server-only";
-import { and, asc, eq, ilike, or, sql } from "drizzle-orm";
+import { and, asc, eq, getTableColumns, ilike, or, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { orderItems, services } from "@/db/schema";
+import { orderItems, services, serviceSubgroups } from "@/db/schema";
 
 /** Catalogue for the admin screen; `q` filters by name. */
 export async function listServices(opts: { q?: string; includeInactive?: boolean } = {}) {
@@ -9,14 +9,15 @@ export async function listServices(opts: { q?: string; includeInactive?: boolean
     opts.includeInactive ? undefined : eq(services.active, true),
     opts.q ? or(ilike(services.name, `%${opts.q}%`), ilike(services.description, `%${opts.q}%`)) : undefined,
   );
-  return db.select().from(services).where(where).orderBy(asc(services.sort), asc(services.name));
+  return db.select({ ...getTableColumns(services), subgroupName: serviceSubgroups.name }).from(services).leftJoin(serviceSubgroups, eq(services.subgroupId, serviceSubgroups.id)).where(where).orderBy(asc(services.sort), asc(services.name));
 }
 
 /** Compact list for the picker on an order. */
 export async function listActiveServices() {
   return db
-    .select({ id: services.id, name: services.name, unit: services.unit, price: services.price, systemType: services.systemType })
+    .select({ id: services.id, name: services.name, unit: services.unit, price: services.price, systemType: services.systemType, subgroupId: services.subgroupId, subgroupName: serviceSubgroups.name })
     .from(services)
+    .leftJoin(serviceSubgroups, eq(services.subgroupId, serviceSubgroups.id))
     .where(eq(services.active, true))
     .orderBy(asc(services.sort), asc(services.name));
 }

@@ -22,6 +22,8 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
+    // Accounts are provisioned by admins; public signup would grant access to the team board.
+    disableSignUp: true,
     minPasswordLength: 6,
   },
   socialProviders: microsoftEnabled
@@ -30,6 +32,7 @@ export const auth = betterAuth({
           clientId: process.env.MICROSOFT_CLIENT_ID!,
           clientSecret: process.env.MICROSOFT_CLIENT_SECRET!,
           tenantId: process.env.MICROSOFT_TENANT_ID || "common",
+          disableSignUp: true,
           prompt: "select_account",
         },
       }

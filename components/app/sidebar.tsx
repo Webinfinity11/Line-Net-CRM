@@ -85,7 +85,7 @@ export function SidebarFooter({ user, collapsed = false, onNavigate }: { user: S
   const profileActive = pathname === "/profile";
   if (collapsed) {
     return (
-      <div className="flex flex-col items-center gap-1 p-3">
+      <div className="flex shrink-0 flex-col items-center gap-1 p-3">
         <Link
           href="/profile"
           onClick={onNavigate}
@@ -108,7 +108,7 @@ export function SidebarFooter({ user, collapsed = false, onNavigate }: { user: S
     );
   }
   return (
-    <div className="p-3">
+    <div className="shrink-0 p-3">
       <Link
         href="/profile"
         onClick={onNavigate}
@@ -160,14 +160,14 @@ export function Sidebar(props: { user: SessionUser; inboxCount: number; unseenCo
   }
   return (
     <aside
-      className={cn("sticky top-0 hidden h-screen shrink-0 flex-col bg-[#16293a] transition-[width] duration-200 ease-out md:flex", open ? "w-[224px]" : "w-[84px]")}
+      className={cn("sticky top-0 hidden h-dvh shrink-0 flex-col bg-[#16293a] transition-[width] duration-200 ease-out md:flex", open ? "w-[224px]" : "w-[84px]")}
       aria-label="მთავარი მენიუ"
     >
       <Link
         href="/"
         title={open ? undefined : t.nav.dashboard}
         className={cn(
-          "flex h-16 items-center rounded-[14px] outline-none focus-visible:ring-2 focus-visible:ring-[#3457d5]/60",
+          "flex h-16 shrink-0 cursor-pointer items-center rounded-[14px] transition-colors hover:bg-white/[0.07] active:bg-white/10 outline-none focus-visible:ring-2 focus-visible:ring-[#3457d5]/60",
           open ? "gap-2.5 px-4" : "justify-center px-2",
         )}
       >
@@ -183,7 +183,7 @@ export function Sidebar(props: { user: SessionUser; inboxCount: number; unseenCo
       </Link>
 
       {isStaffRole(props.user.role) && (
-        <div className={cn("pb-1 pt-1", open ? "px-3" : "px-2")}>
+        <div className={cn("shrink-0 pb-1 pt-1", open ? "px-3" : "flex justify-center px-2")}>
           <Link
             href="/orders/new"
             title={open ? undefined : t.order.new}
@@ -198,14 +198,14 @@ export function Sidebar(props: { user: SessionUser; inboxCount: number; unseenCo
         </div>
       )}
 
-      <div className={cn("flex-1 overflow-y-auto pt-2", open ? "px-3" : "px-2")}>
+      <div className={cn("min-h-0 flex-1 overflow-y-auto pt-2", open ? "px-3" : "px-2")}>
         <NavLinks {...props} collapsed={!open} />
       </div>
 
       <SidebarFooter user={props.user} collapsed={!open} />
 
       {/* window chrome, not navigation: it belongs at the foot of the rail, not between the logo and the primary action */}
-      <div className={cn("border-t border-white/[0.06] p-3", open ? "" : "flex justify-center")}>
+      <div className={cn("shrink-0 border-t border-white/[0.06] p-3", open ? "" : "flex justify-center")}>
         <button
           type="button"
           onClick={toggle}

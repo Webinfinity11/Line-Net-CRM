@@ -27,10 +27,12 @@ export type OrderFilters = {
   priority?: OrderPriority;
   system?: SystemType;
   assignee?: string;
+  manager?: string;
   clientId?: number;
   overdue?: boolean;
   /** orders whose migrated partial payment needs manual confirmation */
   review?: boolean;
+  payment?: "unpaid";
   inbox?: boolean;
   /** Only orders assigned to this user id */
   mine?: string;
@@ -60,6 +62,7 @@ function buildWhere(f: OrderFilters): SQL | undefined {
     if (f.status === "active") parts.push(inArray(orders.status, ACTIVE_STATUSES));
     else parts.push(eq(orders.status, f.status));
   }
+  if (f.manager) parts.push(eq(orders.managerId, f.manager));
   if (f.type) parts.push(eq(orders.type, f.type));
   if (f.priority) parts.push(eq(orders.priority, f.priority));
   if (f.system) parts.push(eq(orders.systemType, f.system));
@@ -68,6 +71,7 @@ function buildWhere(f: OrderFilters): SQL | undefined {
     parts.push(lt(orders.dueDate, todayIso()));
     parts.push(notInArray(orders.status, FINISHED));
   }
+  if (f.payment === "unpaid") parts.push(eq(orders.triaged, true), ne(orders.status, "cancelled"), sql`${orders.amount} is not null`, sql`${orders.amount} - ${orders.paidTotal} > 0`);
   if (f.review) parts.push(eq(orders.paymentReviewNeeded, true));
   if (f.q && f.q.trim()) {
     const q = `%${f.q.trim()}%`;
@@ -94,7 +98,7 @@ function buildWhere(f: OrderFilters): SQL | undefined {
 
 export type OrderSort = "created" | "due" | "priority" | "amount";
 
-/** Sort options for the orders list. "created" (newest first) is the default everywhere else. */
+/** Sort options for the orders list; newest first is the default. */
 function orderByFor(sort: OrderSort | undefined): SQL[] {
   switch (sort) {
     case "due":
@@ -104,6 +108,7 @@ function orderByFor(sort: OrderSort | undefined): SQL[] {
       return [desc(orders.priority), sql`${orders.dueDate} asc nulls last`];
     case "amount":
       return [sql`${orders.amount} desc nulls last`, desc(orders.createdAt)];
+    case "created": return [desc(orders.createdAt)];
     default:
       return [desc(orders.createdAt)];
   }
@@ -113,6 +118,7 @@ export async function listOrders(f: OrderFilters = {}, opts: { limit?: number; o
   return db.query.orders.findMany({
     where: buildWhere(f),
     with: {
+      manager: { columns: { id: true, name: true } },
       client: { columns: { id: true, name: true } },
       site: { columns: { id: true, name: true, address: true } },
       assignees: { with: { user: { columns: { id: true, name: true, image: true } } } },
@@ -135,8 +141,7 @@ export async function listOrdersPage(f: OrderFilters, page: number, pageSize = P
 }
 
 /**
- * Orders for the executor's own list. Financial columns are never selected,
- * so nothing money-related reaches the client bundle.
+ * Orders for the executor's own list, newest first, without prices, amounts, receipts or costs.
  */
 export async function listMyOrders(userId: string) {
   return db.query.orders.findMany({
@@ -156,17 +161,16 @@ export async function listMyOrders(userId: string) {
       dueDate: true,
       scheduledAt: true,
       plannedMinutes: true,
-      requiresPhoto: true,
       createdAt: true,
     },
     with: {
       client: { columns: { id: true, name: true, phone: true, contactName: true } },
       site: { columns: { id: true, name: true, address: true, lat: true, lng: true, contactName: true, contactPhone: true } },
-      assignees: { columns: { userId: true, seenAt: true } },
+      assignees: { columns: { userId: true, seenAt: true, doneAt: true }, with: { user: { columns: { name: true } } } },
       visits: { columns: { id: true, userId: true, startedAt: true, endedAt: true } },
       checklist: { columns: { id: true, done: true, required: true } },
     },
-    orderBy: [asc(orders.scheduledAt), desc(orders.createdAt)],
+    orderBy: [desc(orders.createdAt)],
     limit: 300,
   });
 }
@@ -184,13 +188,14 @@ export async function getOrder(id: number) {
     with: {
       client: true,
       site: true,
+      manager: { columns: { id: true, name: true } },
       creator: { columns: { id: true, name: true } },
       assignees: { with: { user: { columns: { id: true, name: true, image: true, phone: true, role: true } } } },
       comments: { with: { user: { columns: { id: true, name: true, image: true } } }, orderBy: [asc(sql`created_at`)] },
       attachments: { orderBy: [asc(sql`created_at`)] },
       events: { with: { user: { columns: { id: true, name: true } } }, orderBy: [desc(sql`created_at`)] },
       materials: { orderBy: [asc(sql`created_at`)] },
-      items: { orderBy: [asc(sql`created_at`)] },
+      items: { with: { creator: { columns: { name: true, role: true } } }, orderBy: [asc(sql`created_at`)] },
       checklist: { with: { doneByUser: { columns: { id: true, name: true } } }, orderBy: [asc(sql`position`), asc(sql`id`)] },
       payments: { with: { creator: { columns: { id: true, name: true } } }, orderBy: [desc(sql`paid_at`), desc(sql`id`)] },
       visits: { with: { user: { columns: { id: true, name: true, image: true } } }, orderBy: [desc(sql`started_at`)] },
@@ -203,25 +208,29 @@ export type OrderDetail = NonNullable<Awaited<ReturnType<typeof getOrder>>>;
 
 /**
  * Role-restricted order view. Executors get the order only when assigned, and the
- * financial fields are stripped on the server: amount, payments, paid totals and
- * material prices never leave the server for them.
+ * payment fields are removed on the server. Amounts, line prices and material
+ * costs are null; line names, units and quantities remain visible.
  */
-export async function getOrderForUser(id: number, u: SessionUser): Promise<{ order: OrderDetail; financeVisible: boolean } | null> {
+type OrderItem = OrderDetail["items"][number];
+type ExecutorOrderDetail = Omit<OrderDetail, "amount" | "items" | "paidTotal" | "paidAt" | "paymentStatus" | "paymentReviewNeeded" | "payments"> & {
+  amount: null;
+  items: Array<Omit<OrderItem, "unitPrice"> & { unitPrice: null }>;
+};
+export async function getOrderForUser(id: number, u: SessionUser): Promise<{ order: OrderDetail; financeVisible: true } | { order: ExecutorOrderDetail; financeVisible: false } | null> {
   const order = await getOrder(id);
   if (!order) return null;
   const staff = u.role === "admin" || u.role === "manager";
   if (staff) return { order, financeVisible: true };
+  if (u.role !== "executor") return null;
   if (!order.assignees.some((a) => a.userId === u.id)) return null;
-  const stripped: OrderDetail = {
-    ...order,
+  const { paidTotal, paidAt, paymentReviewNeeded, paymentStatus, payments, ...visible } = order;
+  const stripped: ExecutorOrderDetail = {
+    ...visible,
     amount: null,
-    paidTotal: "0",
-    paidAt: null,
-    paymentReviewNeeded: false,
-    payments: [],
+    items: order.items.map((item) => ({ ...item, unitPrice: null })),
     materials: order.materials.map((m) => ({ ...m, unitCost: null })),
-    items: [], // billable lines carry prices: executors never see them
-    events: order.events.filter((e) => !e.type.startsWith("payment")),
+
+    events: order.events.filter((e) => !e.type.startsWith("payment") && !["client_email", "updated", "edited_closed"].includes(e.type)),
   };
   return { order: stripped, financeVisible: false };
 }
@@ -293,7 +302,7 @@ export function periodBounds(p: CustomPeriod): { start: Date; end: Date } {
   return { start, end };
 }
 
-export async function getDashboardStats(range: DateRange = "week", custom?: CustomPeriod) {
+export async function getDashboardStats(range: DateRange = "week", custom?: CustomPeriod, includeMoney = true) {
   const bounds = custom ? periodBounds(custom) : null;
   const start = bounds ? bounds.start : rangeStart(range);
   const end = bounds ? bounds.end : null;
@@ -328,15 +337,15 @@ export async function getDashboardStats(range: DateRange = "week", custom?: Cust
         .groupBy(orderAssignees.userId),
       listAssignableUsers(),
       // received in the selected period, from actual payment rows
-      db
+      includeMoney ? db
         .select({ total: sum(orderPayments.amount) })
         .from(orderPayments)
-        .where(start ? gte(orderPayments.paidAt, start) : undefined),
+        .where(start ? gte(orderPayments.paidAt, start) : undefined) : Promise.resolve([{ total: null }]),
       // outstanding balance, all time: amount minus what was received, excluding cancelled orders
-      db
+      includeMoney ? db
         .select({ total: sql<string>`coalesce(sum(greatest(${orders.amount} - ${orders.paidTotal}, 0)), 0)` })
         .from(orders)
-        .where(and(notInbox, ne(orders.status, "cancelled"), sql`${orders.amount} is not null`)),
+        .where(and(notInbox, ne(orders.status, "cancelled"), sql`${orders.amount} is not null`)) : Promise.resolve([{ total: "0" }]),
       listOrders({ inbox: false }, { limit: 8 }),
       listOrders({ inbox: true }, { limit: 5 }),
       // today's planned visits (scheduled time inside the Tbilisi day)
@@ -387,7 +396,7 @@ export async function getDashboardStats(range: DateRange = "week", custom?: Cust
         where: and(notInbox, eq(orders.status, "new"), inArray(orders.priority, ["urgent", "high"])),
         columns: { id: true, number: true, title: true, priority: true, dueDate: true, scheduledAt: true },
         with: { client: { columns: { id: true, name: true } } },
-        orderBy: [asc(orders.priority), asc(orders.createdAt)],
+        orderBy: [desc(orders.priority), asc(orders.createdAt)],
         limit: 8,
       }),
       db.query.orders.findMany({
@@ -407,7 +416,7 @@ export async function getDashboardStats(range: DateRange = "week", custom?: Cust
           site: { columns: { id: true, name: true, address: true } },
           assignees: { with: { user: { columns: { id: true, name: true, image: true } } } },
         },
-        orderBy: [desc(orders.updatedAt)],
+        orderBy: [desc(orders.priority), desc(orders.updatedAt)],
         limit: 30,
       }),
       // planned minutes per executor for today's scheduled visits (planned time, not tracked time)
@@ -552,4 +561,3 @@ async function getWeeklySeries() {
   }
   return days;
 }
-

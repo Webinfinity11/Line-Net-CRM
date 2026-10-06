@@ -1,4 +1,4 @@
-import { Building2, CalendarClock, ChartColumnIncreasing, CirclePlus, ClipboardCheck, ClipboardList, Inbox, LayoutGrid, MapPin, Tags, UsersRound, Wrench, type LucideIcon } from "lucide-react";
+import { Building2, CalendarClock, ChartColumnIncreasing, CirclePlus, ClipboardCheck, ClipboardList, Inbox, LayoutGrid, MapPin, Settings2, Tags, UsersRound, Wrench, type LucideIcon } from "lucide-react";
 import type { UserRole } from "@/db/schema";
 import { t } from "@/lib/i18n";
 
@@ -10,7 +10,10 @@ export type NavItem = { href: string; label: string; icon: LucideIcon; badge?: n
 
 export function navFor(role: UserRole, counts: { inbox: number; unseen: number }): NavItem[] {
   if (role === "executor") {
-    return [{ href: "/my", label: t.nav.my, icon: ClipboardCheck, badge: counts.unseen, phone: true }];
+    return [
+      { href: "/my", label: t.nav.my, icon: ClipboardCheck, badge: counts.unseen, phone: true },
+      { href: "/my/board", label: "ყველა შეკვეთა", icon: LayoutGrid, phone: true },
+    ];
   }
   if (role === "client") {
     return [
@@ -30,6 +33,7 @@ export function navFor(role: UserRole, counts: { inbox: number; unseen: number }
     { href: "/settings/services", label: "სერვისები", icon: Tags },
   ];
   if (role === "admin") {
+    items.push({ href: "/settings/company", label: "კომპანია", icon: Settings2 });
     items.push({ href: "/settings/users", label: t.nav.users, icon: UsersRound });
   }
   return items;

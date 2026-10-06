@@ -1,5 +1,6 @@
 "use client";
 
+import { DateField, TimeField } from "@/components/ui/date-field";
 import { UserPlus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useRef, useState, useTransition } from "react";
@@ -8,9 +9,9 @@ import { assignMany } from "@/actions/plan";
 import type { ExecutorOption } from "@/components/app/assign-form";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
+import { compareNames } from "@/lib/order-utils";
 
 const DURATIONS = [30, 60, 90, 120, 180, 240, 480];
 
@@ -35,7 +36,7 @@ export function BulkAssignDialog({
   const router = useRouter();
   const busy = useRef(false);
   const [pending, start] = useTransition();
-  const sorted = useMemo(() => [...executors].sort((a, b) => (a.hours ?? 0) - (b.hours ?? 0) || a.name.localeCompare(b.name, "ka")), [executors]);
+  const sorted = useMemo(() => [...executors].sort((a, b) => (a.hours ?? 0) - (b.hours ?? 0) || compareNames(a.name, b.name)), [executors]);
   const [assignee, setAssignee] = useState("");
   const [date, setDate] = useState(defaultDate);
   const [time, setTime] = useState("");
@@ -91,18 +92,18 @@ export function BulkAssignDialog({
               ))}
             </NativeSelect>
           </div>
-          <div className="grid grid-cols-[1fr_auto_auto] gap-2">
-            <div className="space-y-1.5">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
+            <div className="col-span-2 min-w-0 space-y-1.5 sm:col-span-1">
               <Label htmlFor="bulk-date" className="text-[12px] text-[#4a5e73]">
                 როდის
               </Label>
-              <Input id="bulk-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+              <DateField id="bulk-date" value={date} onChange={setDate} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="bulk-time" className="text-[12px] text-[#4a5e73]">
                 დრო
               </Label>
-              <Input id="bulk-time" type="time" value={time} onChange={(e) => setTime(e.target.value)} className="w-[110px]" />
+              <TimeField id="bulk-time" value={time} onChange={setTime} className="w-[110px]" />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="bulk-min" className="text-[12px] text-[#4a5e73]">

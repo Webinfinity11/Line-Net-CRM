@@ -10,3 +10,13 @@ export async function getWorkHoursPerDay(): Promise<number> {
   const n = Number(row?.value);
   return Number.isFinite(n) && n > 0 ? n : DEFAULT_WORK_HOURS;
 }
+
+export async function getCompanySettings() {
+ const rows = await db.select().from(appSettings);
+ const { COMPANY_FIELDS } = await import("./company");
+ return Object.fromEntries(Object.keys(COMPANY_FIELDS).map(k => [k, String(rows.find(r => r.key === k)?.value ?? "")])) as import("./company").CompanySettings;
+}
+export async function clientEmailsEnabled() {
+ const row = await db.query.appSettings.findFirst({ where: eq(appSettings.key, "client_emails_enabled") });
+ return row?.value === true || row?.value === "true";
+}

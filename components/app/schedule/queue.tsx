@@ -26,7 +26,7 @@ export function Queue({ items, day, executors, normHours }: { items: QueueItem[]
     <div className="divide-y divide-[#eef1f6]">
       {items.map((o) => (
         <div key={o.id} className="py-3 text-xs first:pt-0 last:pb-0">
-          <Link href={`/orders/${o.id}`} className="block text-[13px] font-medium leading-snug text-foreground hover:text-[#3457d5]">
+          <Link href={`/orders/${o.id}`} className="ln-link block text-[13px] font-medium leading-snug">
             {o.title}
           </Link>
           <div className="mt-1 leading-relaxed text-muted-foreground">
@@ -36,7 +36,7 @@ export function Queue({ items, day, executors, normHours }: { items: QueueItem[]
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <SystemBadge system={o.systemType} />
-            {o.priority !== "normal" && <PriorityLabel priority={o.priority} className="text-[11px]" />}
+            <PriorityLabel priority={o.priority} />
             <div className="ml-auto">
               <AssignDialog orderId={o.id} title={o.title} systemType={o.systemType} executors={executors} normHours={normHours} defaultAssigneeId={o.currentAssigneeId} defaultDate={day} defaultTime={null} className="h-10 md:h-8" />
             </div>

@@ -65,3 +65,14 @@ it("surfaces expired consent without consuming messages", async () => {
   expect(mocks.graphJson).not.toHaveBeenCalled();
   expect(saved[0]).not.toHaveProperty("lastReceivedAt");
 });
+
+it("imports named HTML mail and paginated non-inline file attachments", async () => {
+ mocks.graphJson.mockResolvedValueOnce({value:[{...message("one"),internetMessageId:undefined,from:{emailAddress:{address:"sender@example.com",name:"კლიენტი"}},body:{contentType:"html",content:"<p>სამუშაო</p>"},hasAttachments:true}]})
+  .mockResolvedValueOnce({value:[{"@odata.type":"#microsoft.graph.fileAttachment",name:"one.pdf",contentBytes:"YQ=="},{"@odata.type":"#microsoft.graph.fileAttachment",name:"logo.png",contentBytes:"YQ==",isInline:true}],"@odata.nextLink":"https://graph.microsoft.com/v1.0/me/messages/one/attachments?$skip=1"})
+  .mockResolvedValueOnce({value:[{"@odata.type":"#microsoft.graph.fileAttachment",name:"two.pdf",contentBytes:"Yg=="}]});
+ expect(await pollMailbox()).toMatchObject({ok:true,created:1});
+ expect(mocks.importMail).toHaveBeenCalledWith(expect.objectContaining({messageId:"graph:test@outlook.com:one",from:"sender@example.com",fromName:"კლიენტი",html:"<p>სამუშაო</p>",text:null,attachments:[{fileName:"one.pdf",contentType:null,contentBase64:"YQ=="},{fileName:"two.pdf",contentType:null,contentBase64:"Yg=="}]}));
+});
+it("keeps the cursor when a message has an invalid timestamp", async () => {
+ mocks.graphJson.mockResolvedValueOnce({value:[message("one","invalid")]}); expect((await pollMailbox()).ok).toBe(false); expect(mocks.importMail).not.toHaveBeenCalled(); expect(saved[0]).not.toHaveProperty("lastReceivedAt");
+});

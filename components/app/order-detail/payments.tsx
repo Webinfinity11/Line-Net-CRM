@@ -1,10 +1,12 @@
 "use client";
 
+import { DateField } from "@/components/ui/date-field";
 import { AlertTriangle, Plus, Trash2, Wallet } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useTransition } from "react";
 import { toast } from "sonner";
 import { addPayment, confirmPaymentReview, deletePayment } from "@/actions/payments";
+import { ConfirmButton } from "@/components/app/confirm-button";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -128,22 +130,18 @@ export function Payments({
                   </div>
                 </div>
                 {(isAdmin || p.createdBy === meId) && !disabled && (
-                  <Button
-                    variant="ghost"
-                    size="icon-xs"
-                    className="size-11 md:size-7"
-                    aria-label={`გადახდის წაშლა ${formatMoney(p.amount)}`}
-                    disabled={pending}
-                    onClick={() =>
-                      start(async () => {
-                        const res = await deletePayment(p.id);
-                        if (!res.ok) toast.error(res.error);
-                        router.refresh();
-                      })
-                    }
+                  <ConfirmButton
+                    title="გადახდის წაშლა"
+                    description={`წაიშლება გადახდა ${formatMoney(p.amount)}, ${formatDate(p.paidAt)}.`}
+                    confirmLabel="წაშლა"
+                    variant="destructive"
+                    size="xs"
+                    className="size-11 px-0 bg-transparent text-[#617084] hover:bg-[#f1f4f9] hover:text-[#17212b] md:size-7"
+                    ariaLabel="გადახდის წაშლა"
+                    action={() => deletePayment(p.id)}
                   >
                     <Trash2 className="size-3.5 text-muted-foreground" />
-                  </Button>
+                  </ConfirmButton>
                 )}
               </li>
             ))}
@@ -153,7 +151,7 @@ export function Payments({
         {!disabled && (
           <form ref={formRef} onSubmit={submit} className="grid grid-cols-2 gap-2 sm:grid-cols-[1fr_1fr_1fr_auto]">
             <Input name="amount" type="number" step="0.01" min="0.01" required placeholder="თანხა ₾" aria-label="თანხა" className="h-11 text-[16px] sm:h-9 sm:text-[13px]" defaultValue={remaining > 0 ? remaining.toFixed(2) : ""} />
-            <Input name="paidAt" type="date" defaultValue={today} aria-label="გადახდის თარიღი" className="h-11 text-[16px] sm:h-9 sm:text-[13px]" />
+            <DateField name="paidAt" defaultValue={today} aria-label="გადახდის თარიღი" />
             <NativeSelect name="method" defaultValue="transfer" aria-label="მეთოდი" className="h-11 text-[16px] sm:h-9 sm:text-[13px] max-md:w-full max-md:min-w-0 max-md:[&_select]:h-11 max-md:[&_select]:text-[16px]">
               {Object.entries(PAYMENT_METHODS)
                 .filter(([k]) => k !== "migration")

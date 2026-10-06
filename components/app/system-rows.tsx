@@ -24,10 +24,10 @@ export function NewSystemDialog() {
       trigger={<Button />}
       triggerLabel={
         <>
-          <Plus className="size-4" /> ახალი კატეგორია
+          <Plus className="size-4" /> ახალი ჯგუფი
         </>
       }
-      title="ახალი კატეგორია"
+      title="ახალი ჯგუფი"
       description="მაგ. მზის პანელები, ვენტილაცია, ჭკვიანი სახლი"
       action={async (fd) => {
         const res = await createSystem(fd);
@@ -37,7 +37,7 @@ export function NewSystemDialog() {
       // straight to the new, still empty category, where its first service is added
       onSuccess={() => created.current && router.push(`/settings/services?cat=${encodeURIComponent(created.current)}`)}
       submitLabel="დამატება"
-      successMessage="კატეგორია დაემატა. დაამატეთ მისი პირველი სერვისი."
+      successMessage="ჯგუფი დაემატა. დაამატეთ მისი პირველი სერვისი."
     >
       <div className="space-y-1.5">
         <Label htmlFor="sys-name">დასახელება</Label>
@@ -91,7 +91,7 @@ export function SystemRow({ row, first, last }: { row: SystemAdminRow; first: bo
             />
           }
           triggerLabel={<CategoryName name={row.name} />}
-          title="კატეგორიის სახელი"
+          title="ჯგუფის სახელი"
           action={(fd) => renameSystem(row.slug, String(fd.get("name") ?? "").trim())}
           submitLabel="შენახვა"
           successMessage="შენახულია"
@@ -117,8 +117,8 @@ export function SystemRow({ row, first, last }: { row: SystemAdminRow; first: bo
         name={row.name} active={row.active} disabled={pending}
         toggle={() => setSystemActive(row.slug, !row.active)}
         remove={usage === 0 ? () => deleteSystem(row.slug) : undefined}
-        deleteDisabledReason={usage > 0 ? "გამოყენებული კატეგორია არ იშლება" : undefined}
-        deleteTitle="კატეგორიის წაშლა"
+        deleteDisabledReason={usage > 0 ? "გამოყენებული ჯგუფი არ იშლება" : undefined}
+        deleteTitle="ჯგუფის წაშლა"
         deleteDescription={`„${row.name}“ სამუდამოდ წაიშლება. ეს შესაძლებელია, რადგან არსად არ გამოიყენება.`}
       >
         <DropdownMenuItem disabled={first || pending} onClick={() => run(() => moveSystem(row.slug, "up"))}>

@@ -9,8 +9,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { signIn } from "@/lib/auth-client";
 
-export function LoginForm({ next, microsoft }: { next: string; microsoft: boolean }) {
+export function LoginForm({ next: rawNext, microsoft }: { next: string; microsoft: boolean }) {
   const router = useRouter();
+  const next =
+    rawNext.startsWith("/") && !rawNext.startsWith("//") && !rawNext.includes("\\") && !rawNext.includes(":")
+      ? rawNext
+      : "/";
   const [pending, start] = useTransition();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

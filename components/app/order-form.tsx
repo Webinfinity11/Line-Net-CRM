@@ -1,5 +1,6 @@
 "use client";
 
+import { DateTimeField } from "@/components/ui/date-field";
 import { BadgeCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
@@ -11,14 +12,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
-import { useActiveSystems } from "@/components/app/systems-provider";
+import { useSystems } from "@/components/app/systems-provider";
 import { Textarea } from "@/components/ui/textarea";
 import type { Order } from "@/db/schema";
 import { PRIORITY_LABELS, TYPE_LABELS, t } from "@/lib/i18n";
 import { toMtavruli } from "@/lib/mtavruli";
-import { toLocalInput } from "@/lib/order-utils";
 import { cn } from "@/lib/utils";
 import { UserAvatar } from "./user-avatar";
+import { compareNames, toLocalInput } from "@/lib/order-utils";
 
 export type ClientOption = { id: number; name: string; sites: { id: number; name: string; address: string | null }[] };
 export type UserOption = { id: string; name: string; role: string; image?: string | null; specializations?: string[] };
@@ -26,7 +27,7 @@ export type UserOption = { id: string; name: string; role: string; image?: strin
 type Initial = Partial<
   Pick<
     Order,
-    "title" | "description" | "type" | "priority" | "clientId" | "siteId" | "address" | "dueDate" | "amount" | "vatPercent" | "systemType" | "scheduledAt" | "warrantyMonths" | "plannedMinutes" | "requiresPhoto"
+    "title" | "description" | "type" | "priority" | "clientId" | "siteId" | "address" | "dueDate" | "amount" | "vatPercent" | "systemType" | "scheduledAt" | "warrantyMonths" | "plannedMinutes"
   >
 > & {
   assigneeIds?: string[];
@@ -35,6 +36,7 @@ type Initial = Partial<
 export function OrderForm({
   clients,
   users,
+  amountFromItems = false,
   initial,
   action,
   submitLabel,
@@ -43,6 +45,7 @@ export function OrderForm({
 }: {
   clients: ClientOption[];
   users: UserOption[];
+  amountFromItems?: boolean;
   initial?: Initial;
   action: (fd: FormData) => Promise<ActionResult<{ id: number }> | ActionResult | undefined | void>;
   submitLabel: string;
@@ -51,7 +54,8 @@ export function OrderForm({
   compact?: boolean;
 }) {
   const router = useRouter();
-  const systemOptions = useActiveSystems();
+  // a disabled category stays selectable on an order that already uses one, so saving does not silently drop it
+  const systemOptions = useSystems().filter((s) => s.active || s.key === initial?.systemType);
   const [pending, start] = useTransition();
   const [clientId, setClientId] = useState(initial?.clientId ? String(initial.clientId) : "");
   const [siteId, setSiteId] = useState(initial?.siteId ? String(initial.siteId) : "");
@@ -63,7 +67,7 @@ export function OrderForm({
   const matches = (u: UserOption) => Boolean(system && u.specializations?.includes(system));
   const sortedUsers = useMemo(() => {
     const copy = [...users];
-    copy.sort((a, b) => Number(matches(b)) - Number(matches(a)) || a.name.localeCompare(b.name, "ka"));
+    copy.sort((a, b) => Number(matches(b)) - Number(matches(a)) || compareNames(a.name, b.name));
     return copy;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [users, system]);
@@ -176,18 +180,14 @@ export function OrderForm({
               </NativeSelect>
             </Field>
             <Field label={t.order.scheduledAt} htmlFor="scheduledAt">
-              <Input id="scheduledAt" name="scheduledAt" type="datetime-local" defaultValue={toLocalInput(initial?.scheduledAt)} />
+              <DateTimeField id="scheduledAt" name="scheduledAt" defaultValue={toLocalInput(initial?.scheduledAt)} />
             </Field>
           </Section>
 
-          <Section title="ფინანსები და ჩაბარება" collapsible={compact} summary="თანხა, ფოტოს მოთხოვნა">
-            <Field label={`${t.order.amount} (₾)`} htmlFor="amount" hint="სერვისების დამატებისას ჯამი ავტომატურად ითვლება">
-              <Input id="amount" name="amount" type="number" step="0.01" min="0" defaultValue={initial?.amount ?? ""} placeholder="0.00" />
+          <Section title="ფინანსები" collapsible={compact} summary="თანხა">
+            <Field label={`${t.order.amount} (₾)`} htmlFor="amount" hint={amountFromItems ? "ჯამი პოზიციებიდან ითვლება — ფასები შეცვალეთ შეკვეთის სერვისებში" : "სერვისების დამატებისას ჯამი ავტომატურად ითვლება"}>
+              <Input readOnly={amountFromItems} id="amount" name="amount" type="number" step="0.01" min="0" defaultValue={initial?.amount ?? ""} placeholder="0.00" />
             </Field>
-            <label className="flex items-center gap-2.5 rounded-[12px] bg-[#f8faff] px-3 py-2.5 text-[13px] sm:col-span-2">
-              <input id="requiresPhoto" name="requiresPhoto" type="checkbox" defaultChecked={Boolean(initial?.requiresPhoto)} className="size-4 accent-[#3457d5]" />
-              ჩაბარებისას ფოტო სავალდებულოა
-            </label>
           </Section>
         </CardContent>
       </Card>

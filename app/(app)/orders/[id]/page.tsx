@@ -1,4 +1,10 @@
-import { Building2, CalendarClock, CalendarDays, Camera, FileCheck, Mail, MapPin, Pencil, Phone, Printer, ShieldCheck, Trash2, User } from "lucide-react";
+import { executorProgress, managerProgress } from "@/lib/workflow-view";
+import { CLIENT_MAIL_LABELS, type ClientMailKind } from "@/lib/client-mail-content";
+import { QuickPriority } from "@/components/app/order-detail/priority";
+import { ColleagueAdd } from "@/components/app/order-detail/requests";
+import { assigneeStage } from "@/lib/team-flow";
+import { OrderManager } from "@/components/app/order-detail/manager";
+import { Building2, CalendarClock, CalendarDays, Mail, MapPin, Pencil, Phone, ShieldCheck, Trash2, User } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { deleteOrder } from "@/actions/orders";
@@ -6,6 +12,7 @@ import { OverdueBadge, PriorityLabel, StatusBadge, SystemBadge, TypeBadge } from
 import { ConfirmButton } from "@/components/app/confirm-button";
 import { MapView } from "@/components/app/map-switch";
 import { AssigneesEditor } from "@/components/app/order-detail/assignees-editor";
+import { DocumentsMenu } from "@/components/app/order-detail/documents-menu";
 import { Attachments } from "@/components/app/order-detail/attachments";
 import { Comments } from "@/components/app/order-detail/comments";
 import { MarkSeen } from "@/components/app/order-detail/mark-seen";
@@ -13,17 +20,18 @@ import { OrderHistory, type HistoryEntry } from "@/components/app/order-detail/h
 import { Materials } from "@/components/app/order-detail/materials";
 import { OrderServices } from "@/components/app/order-detail/services";
 import { Payments } from "@/components/app/order-detail/payments";
+import { Checklist } from "@/components/app/order-detail/checklist";
 import { StatusActions } from "@/components/app/order-detail/status-actions";
 import { UserAvatar } from "@/components/app/user-avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PAYMENT_METHODS } from "@/lib/finance";
-import { EVENT_LABELS, PAYMENT_LABELS, STATUS_LABELS, formatDate, formatDuration, formatMoney, t } from "@/lib/i18n";
+import { PRIORITY_LABELS, EVENT_LABELS, PAYMENT_LABELS, STATUS_LABELS, formatDate, formatDuration, formatMoney, t } from "@/lib/i18n";
 import { listActiveServices } from "@/lib/services";
 import { getOrderForUser, listAssignableUsers, plannedMinutesByUser } from "@/lib/orders";
 import { AssignDialog } from "@/components/app/assign-form";
-import { getWorkHoursPerDay } from "@/lib/settings";
-import { isOverdue, orderContact, telHref } from "@/lib/order-utils";
+import { getWorkHoursPerDay, clientEmailsEnabled } from "@/lib/settings";
+import { compareNames, isOverdue, orderContact, telHref } from "@/lib/order-utils";
 import { plannedEnd, tbilisiTime, tbilisiToday } from "@/lib/schedule-utils";
 import { isStaff, requireUser } from "@/lib/session";
 
@@ -33,16 +41,22 @@ export async function generateMetadata({ params }: PageProps<"/orders/[id]">) {
 }
 
 /** Events that only repeat what the screen already shows, or belong to a retired feature. */
-const HIDDEN_EVENTS = new Set(["visit_started", "visit_ended", "checklist_done", "seen"]);
+const HIDDEN_EVENTS = new Set(["visit_started", "visit_ended", "checklist_done", "checklist_changed", "seen"]);
 
 function eventText(type: string, data: Record<string, unknown> | null) {
+  if (type === "manager_changed") return `პასუხისმგებელი შეიცვალა: ${data?.from ?? "არავინ"} → ${data?.to}`;
+  if (type === "priority_changed") return `პრიორიტეტი: ${PRIORITY_LABELS[data?.from as keyof typeof PRIORITY_LABELS]} → ${PRIORITY_LABELS[data?.to as keyof typeof PRIORITY_LABELS]}`;
+  if (type === "client_email") {
+    const parts = [CLIENT_MAIL_LABELS[data?.kind as ClientMailKind], Array.isArray(data?.to) ? data.to.join(", ") : "", data?.skipped ?? data?.error].map((p) => (typeof p === "string" ? p.trim() : "")).filter(Boolean);
+    return `${data?.ok ? "კლიენტს გაეგზავნა" : data?.skipped ? "კლიენტის მეილი გამოტოვებულია" : "კლიენტის მეილი ვერ გაიგზავნა"}${parts.length ? `: ${parts.join(" · ")}` : ""}`;
+  }
   const base = EVENT_LABELS[type] ?? type;
   const st = (v: unknown) => STATUS_LABELS[v as keyof typeof STATUS_LABELS] ?? String(v);
   if ((type === "status_changed" || type === "reopened" || type === "verified_closed") && data) return `${base}: ${st(data.from)} → ${st(data.to)}`;
   if (type === "payment_changed" && data) return `${base}: ${PAYMENT_LABELS[data.from as keyof typeof PAYMENT_LABELS] ?? data.from} → ${PAYMENT_LABELS[data.to as keyof typeof PAYMENT_LABELS] ?? data.to}`;
   if (type === "payment_added" && data) return `${base}: ${formatMoney(data.amount as number)} (${PAYMENT_METHODS[String(data.method)] ?? data.method})${data.status ? ` → ${PAYMENT_LABELS[data.status as keyof typeof PAYMENT_LABELS]}` : ""}`;
   if (type === "payment_removed" && data) return `${base}: ${formatMoney(data.amount as number)}`;
-  if ((type === "assigned" || type === "unassigned") && Array.isArray(data?.users)) return `${base}: ${(data!.users as string[]).join(", ")}`;
+  if ((type === "assigned" || type === "self_assigned" || type === "unassigned") && Array.isArray(data?.users)) return `${base}: ${(data!.users as string[]).join(", ")}`;
   if ((type === "attachment_added" || type === "attachment_removed") && data?.fileName) return `${base}: ${data.fileName}`;
   if (type === "created_from_email" && data?.from) return `${base}: ${data.from}`;
   if ((type === "material_added" || type === "material_removed") && data?.name) return `${base}: ${data.name}${data.quantity ? ` (${data.quantity} ${data.unit ?? ""})` : ""}`;
@@ -62,15 +76,19 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
   const staff = isStaff(me.role);
   const isAssignee = order.assignees.some((a) => a.userId === me.id);
   const readOnly = order.status === "closed" && me.role !== "admin";
-  const [users, plannedToday, normHours, catalogue] = await Promise.all([staff ? listAssignableUsers() : Promise.resolve([]), staff ? plannedMinutesByUser(tbilisiToday()) : Promise.resolve({} as Record<string, number>), getWorkHoursPerDay(), staff ? listActiveServices() : Promise.resolve([])]);
+  const [users, plannedToday, normHours, catalogue] = await Promise.all([listAssignableUsers(), staff ? plannedMinutesByUser(tbilisiToday()) : Promise.resolve({} as Record<string, number>), getWorkHoursPerDay(), listActiveServices()]);
   const executorOptions = users.filter((u) => u.role === "executor").map((u) => ({ id: u.id, name: u.name, image: u.image, specializations: u.specializations ?? [], hours: Math.round(((plannedToday[u.id] ?? 0) / 60) * 10) / 10 }));
+  const colleagueCandidates = users
+    .filter(u => u.role === "executor" && u.id !== me.id && !order.assignees.some(a => a.userId === u.id))
+    .map(u => ({ id: u.id, name: u.name }))
+    .sort((a, b) => compareNames(a.name, b.name));
+  const emailsEnabled = staff ? await clientEmailsEnabled() : false;
   const overdue = isOverdue(order);
+  const workOpen = order.status === "new" || order.status === "assigned" || order.status === "in_progress";
   const contact = orderContact(order);
   const siteCoords = order.site?.lat && order.site?.lng ? { lat: Number(order.site.lat), lng: Number(order.site.lng) } : null;
   const address = order.address ?? order.site?.address ?? null;
-  const requiredLeft = 0;
-  const hasPhoto = order.attachments.some((a) => a.mimeType?.startsWith("image/"));
-  const needsPhoto = order.requiresPhoto && !hasPhoto;
+  const requiredLeft = order.checklist.filter(item => item.required && !item.done).length;
   const plannedEndAt = order.scheduledAt ? plannedEnd(order.scheduledAt, order.plannedMinutes) : null;
 
   // one line per change: consecutive identical entries by the same person collapse
@@ -92,23 +110,20 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
     <div className="space-y-4 pb-[152px] md:pb-0">
       {!staff && <MarkSeen orderId={order.id} />}
 
+      {staff && !readOnly && <QuickPriority id={order.id} value={order.priority} />}
+      {staff && <OrderManager id={order.id} manager={order.manager} at={order.managerAt} me={me.id} />}
       {/* Summary header: status, people, place, time, next action */}
       <div className="ln-card p-4 md:p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 flex-1 md:min-w-[480px]">
             <div className="mb-2 flex flex-wrap items-center gap-1.5 md:mb-1.5 md:gap-2">
               <span className="font-mono text-[11px] text-muted-foreground md:text-sm">{order.number}</span>
               <StatusBadge status={order.status} />
               <TypeBadge type={order.type} />
               <SystemBadge system={order.systemType} className="order-last max-w-full whitespace-normal break-words md:order-none md:whitespace-nowrap" />
-              <PriorityLabel priority={order.priority} className={order.priority === "normal" ? "hidden md:inline-flex" : overdue ? "max-md:text-muted-foreground" : undefined} />
-              {overdue && <OverdueBadge className="hidden md:inline-flex" />}
+              <PriorityLabel priority={order.priority} />
+              {overdue && <OverdueBadge />}
               {!order.triaged && <span className="rounded-md bg-[#3457d5] px-2 py-0.5 text-xs font-medium text-white">დაუმუშავებელი შეკვეთა</span>}
-              {order.requiresPhoto && (
-                <span className="inline-flex items-center gap-1 rounded-md bg-[#fff4df] px-2 py-0.5 text-xs text-[#96610b] ring-1 ring-[#f0d9a8]">
-                  <Camera className="size-3" /> ფოტო სავალდებულოა
-                </span>
-              )}
             </div>
             <h1 className="font-heading text-[20px] leading-snug break-words tracking-[-0.3px] md:text-[24px]">{order.title}</h1>
             <dl className="mt-3 grid gap-x-6 gap-y-2.5 text-[13px] sm:grid-cols-2 sm:text-sm xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1.3fr)_minmax(0,0.7fr)_minmax(0,1fr)]">
@@ -117,7 +132,7 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
                 <div className="min-w-0">
                   <dt className="text-xs text-muted-foreground">{t.order.client} / {t.order.site}</dt>
                   <dd className="font-medium">
-                    {order.client ? (staff ? <Link href={`/clients/${order.client.id}`} className="hover:text-[#2846b7]">{order.client.name}</Link> : order.client.name) : "—"}
+                    {order.client ? (staff ? <Link href={`/clients/${order.client.id}`} className="ln-link">{order.client.name}</Link> : order.client.name) : "—"}
                     {order.site ? <span className="text-muted-foreground"> · {order.site.name}</span> : null}
                   </dd>
                 </div>
@@ -136,7 +151,7 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
                 <CalendarDays className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
                 <div>
                   <dt className="text-xs text-muted-foreground">{t.order.dueDate}</dt>
-                  <dd className={overdue ? "font-semibold text-[#b13f32]" : "font-medium"}>{overdue && <span className="md:hidden">ვადაგადაცილებულია · </span>}{formatDate(order.dueDate)}</dd>
+                  <dd className="font-medium">{formatDate(order.dueDate)}</dd>
                 </div>
               </div>
               <div className="flex items-start gap-2">
@@ -146,12 +161,18 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
                   <dd className="flex flex-wrap items-center gap-1.5 font-medium">
                     {order.assignees.length === 0 && <span className="text-[#b13f32]">{t.order.unassigned}</span>}
                     {order.assignees.map((a) => (
-                      <span key={a.userId} className="inline-flex items-center gap-1">
-                        <UserAvatar name={a.user.name} image={a.user.image} size="xs" /> {a.user.name.split(" ")[0]}
+                      <span key={a.userId} className="inline-flex items-center gap-1 whitespace-nowrap">
+                        <UserAvatar name={a.user.name} image={a.user.image} size="xs" /> {a.user.name.split(" ")[0]} · {assigneeStage(a, order.visits)}
                       </span>
                     ))}
-                    {staff && !readOnly && <AssigneesEditor orderId={order.id} users={users} selected={order.assignees.map((a) => a.userId)} />}
-                    {staff && !readOnly && (
+                    {staff && !readOnly && !order.triaged && (
+                      <span className="text-[13px] font-normal text-muted-foreground">
+                        დანიშვნამდე შეკვეთა დაამუშავეთ („<Link href={`/orders/${order.id}/edit`} className="ln-link">დამუშავება</Link>“)
+                      </span>
+                    )}
+                    {/* one control per state: nobody yet → assign with a time; a team already → change it; finished work → neither */}
+                    {staff && !readOnly && order.triaged && workOpen && order.assignees.length > 0 && <AssigneesEditor orderId={order.id} users={users} selected={order.assignees.map((a) => a.userId)} />}
+                    {staff && !readOnly && order.triaged && workOpen && order.assignees.length === 0 && (
                       <AssignDialog
                         orderId={order.id}
                         title={order.title}
@@ -170,15 +191,20 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
               </div>
             </dl>
           </div>
-          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-            <Button render={<Link href={`/orders/${order.id}/sheet`} target="_blank" />} variant="outline" size="sm" className="h-11 flex-1 md:h-8 md:flex-none">
-              <Printer className="size-3.5" /> სამუშაო ფურცელი
-            </Button>
-            {staff && (order.status === "done" || order.status === "closed") && (
-              <Button render={<Link href={`/orders/${order.id}/act`} target="_blank" />} variant="outline" size="sm" className="h-11 flex-1 md:h-8 md:flex-none">
-                <FileCheck className="size-3.5" /> მიღება-ჩაბარების აქტი
-              </Button>
-            )}
+          <div className="flex w-full items-center gap-2 sm:w-auto md:justify-end">
+            <DocumentsMenu
+              className="h-11 flex-1 md:h-8 md:flex-none"
+              items={[
+                { kind: "sheet" as const, href: `/orders/${order.id}/sheet`, label: "სამუშაო ფურცელი", newTab: true },
+                ...(staff && (order.status === "done" || order.status === "closed")
+                  ? [
+                      { kind: "act" as const, href: `/orders/${order.id}/act`, label: "მიღება-ჩაბარების აქტი", newTab: true },
+                      { kind: "invoice" as const, href: `/orders/${order.id}/invoice`, label: "ინვოისი", newTab: true },
+                    ]
+                  : []),
+                ...(staff ? [{ kind: "mail" as const, href: `/orders/${order.id}/mail-preview`, label: "კლიენტის მეილები" }] : []),
+              ]}
+            />
             {staff && !readOnly && (
               <Button render={<Link href={`/orders/${order.id}/edit`} />} variant="outline" size="sm" className="h-11 flex-1 md:h-8 md:flex-none">
                 <Pencil className="size-3.5" /> {t.common.edit}
@@ -188,9 +214,16 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
         </div>
       </div>
 
-      <StatusActions orderId={order.id} status={order.status} role={me.role} isAssignee={isAssignee} requiredLeft={requiredLeft} needsPhoto={needsPhoto} />
+      {staff && order.status === "done" && <section className="ln-card p-4 space-y-3"><h2 className="font-heading">შემოწმება</h2><ul className="divide-y">{order.assignees.map(a => <li className="py-2 text-[13px]" key={a.userId}><strong>{a.user.name}</strong><p className="whitespace-pre-wrap">{a.doneNote ?? "ჩაბარების შენიშვნა არ არის"}</p></li>)}</ul><ul className="text-[13px]">{order.items.filter(i => i.creator?.role === "executor").map(i => <li key={i.id}>{i.name} · დაამატა: {i.creator?.name} · {formatMoney(Number(i.quantity) * Number(i.unitPrice))}</li>)}</ul><p>ჯამი: {formatMoney(order.amount)}</p></section>}
+      {me.role === "executor" && isAssignee && ["assigned", "in_progress"].includes(order.status) && <ColleagueAdd orderId={order.id} candidates={colleagueCandidates} />}
+      <section aria-label="სამუშაოს მიმდინარე ეტაპი" className="border-y border-[#e6ebf2] py-4">
+        <h2 className="font-heading text-[16px]">{(staff ? managerProgress(order) : executorProgress(order, me.id)).title}</h2>
+        <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">{(staff ? managerProgress(order) : executorProgress(order, me.id)).detail}</p>
+        {order.assignees.length > 0 && <p className="mt-2 text-[13px] font-medium">გუნდში ჩაბარებულია: {order.assignees.filter(a => a.doneAt).length} / {order.assignees.length}</p>}
+      </section>
+      <StatusActions emailsEnabled={emailsEnabled} doneByMe={Boolean(order.assignees.find(a => a.userId === me.id)?.doneAt)} startedByMe={order.visits.some(v => v.userId === me.id && !v.endedAt)} orderId={order.id} status={order.status} role={me.role} isAssignee={isAssignee} requiredLeft={requiredLeft} />
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-4 lg:grid-cols-3 [&>*]:min-w-0">
         {/* Work first, money after it: the technician never needs the finance block. */}
         <div className="space-y-4 lg:col-span-2">
           <Card>
@@ -199,7 +232,7 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
             </CardHeader>
             <CardContent className="space-y-3">
               {order.source === "email" && (
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg bg-[#eef2ff] px-3 py-2 text-xs text-[#3457d5] dark:bg-blue-950/30 dark:text-blue-200">
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg bg-muted px-3 py-2 text-xs text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <Mail className="size-3.5" /> {order.emailFrom}
                   </span>
@@ -223,7 +256,7 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
           </Card>
 
 
-          {financeVisible && <OrderServices orderId={order.id} orderSystemType={order.systemType} items={order.items} catalogue={catalogue} readOnly={readOnly} vatPercent={order.vatPercent} />}
+          {<OrderServices financeVisible={staff} executorId={staff ? undefined : me.id} orderId={order.id} orderSystemType={order.systemType} items={order.items} catalogue={staff ? catalogue : catalogue.map((service) => ({ ...service, price: null }))} readOnly={readOnly || (!staff && !["assigned", "in_progress"].includes(order.status))} vatPercent={order.vatPercent} />}
 
           {financeVisible && (
             <Payments
@@ -240,6 +273,8 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
           )}
 
           <Materials orderId={order.id} materials={order.materials} financeVisible={financeVisible} meId={me.id} amount={order.amount} readOnly={readOnly} />
+
+          <Checklist orderId={order.id} items={order.checklist} staff={staff} readOnly={readOnly || order.status === "done" || (!staff && Boolean(order.assignees.find(a => a.userId === me.id)?.doneAt))} />
 
           <Attachments orderId={order.id} attachments={order.attachments} canDelete={staff && !readOnly} />
           <Comments orderId={order.id} comments={order.comments} meId={me.id} />
@@ -262,7 +297,7 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
                       href={`https://maps.google.com/?q=${siteCoords ? `${siteCoords.lat},${siteCoords.lng}` : encodeURIComponent(address)}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-xs text-[#3457d5] hover:underline"
+                      className="ln-link text-xs"
                     >
                       {address}
                     </a>
@@ -283,7 +318,7 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
                       {contact.namedOnSite && <span className="ml-1.5 text-[11px] font-normal text-muted-foreground">ობიექტზე</span>}
                     </div>
                     {contact.phone ? (
-                      <a href={telHref(contact.phone)!} className="text-xs text-[#3457d5] hover:underline">
+                      <a href={telHref(contact.phone)!} className="ln-link text-xs">
                         {contact.phone}
                       </a>
                     ) : (
@@ -292,7 +327,7 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
                     {contact.onSite && order.client.phone && order.client.phone !== contact.phone && (
                       <div className="mt-0.5 text-[11px] text-muted-foreground">
                         ოფისი{" "}
-                        <a href={telHref(order.client.phone)!} className="hover:underline">
+                        <a href={telHref(order.client.phone)!} className="ln-link">
                           {order.client.phone}
                         </a>
                       </div>
@@ -317,7 +352,7 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
                       <div className="min-w-0 flex-1">
                         <div className="truncate text-sm font-medium">{a.user.name}</div>
                         {a.user.phone && (
-                          <a href={`tel:${a.user.phone.replace(/\s+/g, "")}`} className="text-xs text-muted-foreground hover:text-[#2846b7]">
+                          <a href={`tel:${a.user.phone.replace(/\s+/g, "")}`} className="ln-link text-xs">
                             {a.user.phone}
                           </a>
                         )}

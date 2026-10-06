@@ -1,10 +1,11 @@
+import { SiteContacts } from "@/components/app/site-contacts";
 import { ClipboardList, Cpu, KeyRound, MapPin, MapPinned, Pencil, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createSite, deleteClient, deleteSite, updateClient, updateSite } from "@/actions/clients";
 import { createEquipment, deleteEquipment, updateEquipment } from "@/actions/equipment";
 import { createUser } from "@/actions/users";
-import { StatusBadge, SystemBadge } from "@/components/app/badges";
+import { OverdueBadge, StatusBadge, SystemBadge } from "@/components/app/badges";
 import { BulkSitesDialog } from "@/components/app/bulk-sites-dialog";
 import { ClientActionsMenu } from "@/components/app/client-actions-menu";
 import { ClientFields, SiteFields } from "@/components/app/client-forms";
@@ -19,7 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatDate, t } from "@/lib/i18n";
 import { getClient, listOrders } from "@/lib/orders";
-import { isOverdue } from "@/lib/order-utils";
+import { isOverdue, telHref } from "@/lib/order-utils";
 import { listPortalLogins } from "@/lib/portal";
 import { requireUser } from "@/lib/session";
 import { cn } from "@/lib/utils";
@@ -41,7 +42,13 @@ export default async function ClientPage({ params }: PageProps<"/clients/[id]">)
       <PageHeader
         kicker={t.nav.clients}
         title={client.name}
-        subtitle={[client.idCode && `ს/კ ${client.idCode}`, client.contactName, client.phone, client.email].filter(Boolean).join(" · ")}
+        subtitle={
+          <>
+            {[client.idCode && `ს/კ ${client.idCode}`, client.contactName].filter(Boolean).join(" · ")}
+            {client.phone && <>{(client.idCode || client.contactName) && " · "}<a href={telHref(client.phone) ?? undefined} className="ln-link whitespace-nowrap">{client.phone}</a></>}
+            {client.email && <>{(client.idCode || client.contactName || client.phone) && " · "}<a href={`mailto:${client.email}`} className="ln-link break-all">{client.email}</a></>}
+          </>
+        }
         actions={
           <div className="flex flex-wrap items-center gap-2">
             <Button render={<Link href={`/orders/new?client=${client.id}`} />} size="sm" className="h-11 md:h-8">
@@ -49,7 +56,7 @@ export default async function ClientPage({ params }: PageProps<"/clients/[id]">)
             </Button>
             <div className="md:hidden">
               <ClientActionsMenu name={client.name} editTitle="კლიენტის რედაქტირება" editAction={updateClient.bind(null, client.id)}
-                secondary={me.role === "admin" ? { label: t.common.delete, title: "კლიენტის წაშლა", description: "კლიენტი და მისი ობიექტები წაიშლება. შეკვეთები დარჩება კლიენტის გარეშე.", action: deleteClient.bind(null, client.id), destructive: true, redirectTo: "/clients" } : undefined}>
+                secondary={me.role === "admin" ? { label: t.common.delete, title: "კლიენტის წაშლა", description: "წაიშლება კლიენტი, მისი ობიექტები, აღჭურვილობა და ტექმომსახურების გრაფიკები. შეკვეთები დარჩება კლიენტის გარეშე, კაბინეტის ლოგინი კი კომპანიის გარეშე.", action: deleteClient.bind(null, client.id), destructive: true, redirectTo: "/clients" } : undefined}>
                 <ClientFields initial={client} />
               </ClientActionsMenu>
             </div>
@@ -69,7 +76,7 @@ export default async function ClientPage({ params }: PageProps<"/clients/[id]">)
               {me.role === "admin" && (
                 <ConfirmButton
                   title="კლიენტის წაშლა"
-                  description="კლიენტი და მისი ობიექტები წაიშლება. შეკვეთები დარჩება კლიენტის გარეშე."
+                  description="წაიშლება კლიენტი, მისი ობიექტები, აღჭურვილობა და ტექმომსახურების გრაფიკები. შეკვეთები დარჩება კლიენტის გარეშე, კაბინეტის ლოგინი კი კომპანიის გარეშე."
                   confirmLabel={t.common.delete}
                   variant="destructive"
                   size="sm"
@@ -119,14 +126,16 @@ export default async function ClientPage({ params }: PageProps<"/clients/[id]">)
                         </div>
                         {(s.contactName || s.contactPhone) && (
                           <div className="mt-0.5 text-[11.5px] text-muted-foreground">
-                            {[s.contactName, s.contactPhone].filter(Boolean).join(" · ")}
+                            {s.contactName}
+                            {s.contactName && s.contactPhone && " · "}
+                            {s.contactPhone && <a href={telHref(s.contactPhone) ?? undefined} className="ln-link whitespace-nowrap">{s.contactPhone}</a>}
                           </div>
                         )}
                         {s.notes && <div className="mt-1 text-[11.5px] text-muted-foreground">{s.notes}</div>}
                       </div>
                       <div className="absolute right-0 top-0 md:hidden">
                         <ClientActionsMenu name={s.name} editTitle="ობიექტის რედაქტირება" editAction={updateSite.bind(null, s.id)}
-                          secondary={{ label: t.common.delete, title: "ობიექტის წაშლა", action: deleteSite.bind(null, s.id), destructive: true }}>
+                          secondary={{ label: t.common.delete, title: "ობიექტის წაშლა", description: "ობიექტის აღჭურვილობა წაიშლება. შეკვეთები დარჩება ობიექტის გარეშე.", action: deleteSite.bind(null, s.id), destructive: true }}>
                           <SiteFields clientId={client.id} initial={s} />
                         </ClientActionsMenu>
                       </div>
@@ -134,12 +143,13 @@ export default async function ClientPage({ params }: PageProps<"/clients/[id]">)
                         <FormDialog trigger={<Button variant="ghost" size="icon-xs" aria-label="ობიექტის რედაქტირება" />} triggerLabel={<Pencil className="size-3.5" />} title="ობიექტის რედაქტირება" action={updateSite.bind(null, s.id)}>
                           <SiteFields clientId={client.id} initial={s} />
                         </FormDialog>
-                        <ConfirmButton title="ობიექტის წაშლა" confirmLabel={t.common.delete} variant="ghost" size="xs" action={deleteSite.bind(null, s.id)}>
+                        <ConfirmButton title="ობიექტის წაშლა" description="ობიექტის აღჭურვილობა წაიშლება. შეკვეთები დარჩება ობიექტის გარეშე." confirmLabel={t.common.delete} variant="ghost" size="xs" action={deleteSite.bind(null, s.id)}>
                           <Trash2 className="size-3.5 text-muted-foreground" />
                         </ConfirmButton>
                       </div>
                     </div>
 
+                    <SiteContacts siteId={s.id} staff />
                     {/* an empty equipment block repeated per branch is noise; then only the add link stays */}
                     <div className="mt-2 border-t border-[#e6ebf2] pt-1 md:mt-3 md:pt-3">
                       <div className={cn("flex items-center justify-between gap-2", s.equipment.length > 0 && "mb-2")}>
@@ -203,11 +213,13 @@ export default async function ClientPage({ params }: PageProps<"/clients/[id]">)
                     <Link href={`/orders/${o.id}`} className="flex flex-wrap items-start gap-2 rounded-[12px] px-2 py-2.5 md:flex-nowrap md:gap-3 transition-colors hover:bg-[#f8faff]">
                       <span className="min-w-0 basis-full md:flex-1 md:basis-auto">
                         <span className="block text-[13px] font-medium md:truncate">{o.title}</span>
-                        <span className="mt-0.5 block text-[11px] md:truncate text-muted-foreground">
-                          {o.number}
-                          {o.site ? ` · ${o.site.name}` : ""}
-                          {o.dueDate ? ` · ვადა ${formatDate(o.dueDate)}` : ""}
-                          {late ? <span className="font-medium text-[#b13f32]"> · {t.order.overdue}</span> : null}
+                        <span className="mt-0.5 flex min-w-0 flex-wrap items-center gap-[6px] text-[11px] text-muted-foreground">
+                          <span className="min-w-0 break-words md:truncate">
+                            {o.number}
+                            {o.site ? ` · ${o.site.name}` : ""}
+                            {o.dueDate ? ` · ვადა ${formatDate(o.dueDate)}` : ""}
+                          </span>
+                          {late && <OverdueBadge />}
                         </span>
                       </span>
                       <StatusBadge status={o.status} className="shrink-0" />
@@ -279,7 +291,7 @@ export default async function ClientPage({ params }: PageProps<"/clients/[id]">)
               <li key={l.id} className={cn("flex flex-wrap items-center justify-between gap-2 rounded-[12px] px-2 py-2 text-[13px]", l.banned && "opacity-60")}>
                 <span className="min-w-0 max-md:basis-full">
                   <span className="block break-words font-medium">{l.name}</span>
-                  <span className="block break-all text-[11.5px] text-muted-foreground md:truncate">{l.email}</span>
+                  <span className="block break-all text-[11.5px] text-muted-foreground md:truncate">{l.email && <a href={`mailto:${l.email}`} className="ln-link">{l.email}</a>}</span>
                 </span>
                 {l.banned ? <Chip tone="warn">დეაქტივირებული</Chip> : <Chip tone="accent">აქტიური</Chip>}
               </li>

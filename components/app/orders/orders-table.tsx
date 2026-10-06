@@ -1,10 +1,10 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, FileText, MoreHorizontal, Pencil, SquareArrowOutUpRight, UserPlus } from "lucide-react";
+import { ChevronLeft, ChevronRight, FileText, MessageCircle, MoreHorizontal, Pencil, SquareArrowOutUpRight, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { AssignDialog, AssignForm, type ExecutorOption } from "@/components/app/assign-form";
-import { PaymentBadge, StatusBadge, SystemBadge } from "@/components/app/badges";
+import { OverdueBadge, PaymentBadge, PriorityLabel, StatusBadge, SystemBadge } from "@/components/app/badges";
 import { UserAvatar } from "@/components/app/user-avatar";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -34,9 +34,25 @@ export type OrderRow = {
   scheduledDate: string | null;
   scheduledTime: string | null;
   plannedMinutes: number | null;
+  unreadChat: boolean;
 };
 
 const firstName = (n: string) => n.split(" ")[0];
+
+/** Unread chat on this order: a link straight to the order's chat. Kept outside the row's own link. */
+function ChatLink({ id, className }: { id: number; className?: string }) {
+  return (
+    <Link
+      href={`/orders/${id}#comments`}
+      aria-label="ახალი შეტყობინება ჩატში"
+      title="ახალი შეტყობინება ჩატში"
+      className={cn("relative inline-flex shrink-0 items-center justify-center rounded-full text-[#3457d5]", className)}
+    >
+      <MessageCircle className="size-4" />
+      <span className="absolute right-1/2 top-1/2 size-2 -translate-y-[10px] translate-x-[10px] rounded-full bg-[#3457d5]" />
+    </Link>
+  );
+}
 
 /** Row actions, shared by the desktop table and the phone cards. */
 function RowMenu({ o, onAssign }: { o: OrderRow; onAssign: (o: OrderRow) => void }) {
@@ -70,7 +86,7 @@ function OrderCardRow({ o, onAssign }: { o: OrderRow; onAssign: (o: OrderRow) =>
   const lead = o.assignees[0];
   return (
     <li className="relative border-t border-[#eef1f6] first:border-t-0">
-      <Link href={`/orders/${o.id}`} className="block px-4 py-3.5 pr-12 active:bg-[#f8faff]">
+      <Link href={`/orders/${o.id}`} className={cn("block cursor-pointer px-4 py-3.5 pr-12 hover:bg-[#f8faff] active:bg-[#eef2ff]", o.unreadChat && "min-h-[108px]")}>
         <span className="flex items-start gap-2">
           <span className="min-w-0 flex-1">
             <span className="block text-[15px] font-semibold leading-snug text-foreground">{o.title}</span>
@@ -80,11 +96,13 @@ function OrderCardRow({ o, onAssign }: { o: OrderRow; onAssign: (o: OrderRow) =>
               {o.site ? ` · ${o.site}` : ""}
             </span>
           </span>
-          {o.priority === "urgent" && <span className="mt-0.5 shrink-0 text-[11px] font-semibold text-[#b13f32]">სასწრაფო</span>}
+          <ChevronRight aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-[#3457d5]" />
         </span>
         <span className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[12.5px]">
           <StatusBadge status={o.status} />
-          <span className={cn("text-muted-foreground", o.overdue && "font-semibold text-[#b13f32]", o.priority === "urgent" && "max-md:text-muted-foreground")}>
+          <PriorityLabel priority={o.priority} />
+          {o.overdue && <OverdueBadge />}
+          <span className="text-muted-foreground">
             {o.dueLabel ? `ვადა ${o.dueLabel}` : "ვადის გარეშე"}
           </span>
           <span className="text-muted-foreground">{lead ? firstName(lead.name) : "დაუნიშნავი"}</span>
@@ -94,6 +112,7 @@ function OrderCardRow({ o, onAssign }: { o: OrderRow; onAssign: (o: OrderRow) =>
       <span className="absolute right-2 top-2.5">
         <RowMenu o={o} onAssign={onAssign} />
       </span>
+      {o.unreadChat && <ChatLink id={o.id} className="absolute right-2 top-[56px] size-11" />}
     </li>
   );
 }
@@ -144,7 +163,7 @@ export function OrdersTable({
           <Button size="sm" onClick={() => setBulkOpen(true)}>
             <UserPlus className="size-3.5" /> ჯგუფური დანიშვნა
           </Button>
-          <button type="button" onClick={clear} className="text-muted-foreground underline-offset-2 hover:text-foreground hover:underline">
+          <button type="button" onClick={clear} className="ln-link min-h-[44px]">
             {toMtavruli("მონიშვნის მოხსნა")}
           </button>
         </div>
@@ -181,16 +200,18 @@ export function OrdersTable({
                 {rows.map((o) => {
                   const lead = o.assignees[0];
                   return (
-                    <tr key={o.id} className={cn("border-t border-[#eef1f6] transition-colors hover:bg-[#f8faff]", selected.has(o.id) && "bg-[#f4f7ff]")}>
+                    <tr key={o.id} className={cn("border-t border-[#eef1f6]", selected.has(o.id) && "bg-[#f4f7ff]")}>
                       <td className="hidden px-3 py-[14px] sm:table-cell sm:px-4">
                         <Checkbox checked={selected.has(o.id)} onCheckedChange={() => toggle(o.id)} aria-label={`${o.number} მონიშვნა`} />
                       </td>
                       <td data-col="number" className={cn(td, "hidden whitespace-nowrap font-mono text-[11px] text-muted-foreground sm:table-cell")}>{o.number}</td>
-                      <td className={cn(td, "max-w-[160px] sm:max-w-[260px]")}>
-                        <Link href={`/orders/${o.id}`} className="block">
-                          <span className="flex items-center gap-1.5">
-                            <span className="truncate font-medium text-foreground hover:text-[#3457d5]">{o.title}</span>
-                            {o.priority === "urgent" && <span className="shrink-0 text-[10px] font-semibold text-[#b13f32]">სასწრაფო</span>}
+                      <td className={cn(td, "min-w-0 max-w-[160px] sm:max-w-[260px]")}>
+                        <div className="flex min-w-0 items-start gap-1.5">
+                        <Link href={`/orders/${o.id}`} className="group block min-w-0 flex-1 cursor-pointer">
+                          <span className="flex min-w-0 flex-wrap items-center gap-1.5">
+                            <span className="min-w-0 truncate font-medium text-[#3457d5] group-hover:underline">{o.title}</span>
+                            <PriorityLabel priority={o.priority} />
+                            {o.overdue && <OverdueBadge />}
                           </span>
                           <span className="mt-0.5 block truncate text-[11px] text-muted-foreground">
                             {[o.client, o.site].filter(Boolean).join(" · ") || "—"}
@@ -198,9 +219,10 @@ export function OrdersTable({
                           <span className="mt-0.5 block truncate text-[11px] text-muted-foreground md:hidden">
                             {lead ? firstName(lead.name) : "დაუნიშნავი"}
                             {o.dueLabel ? ` · ვადა ${o.dueLabel}` : ""}
-                            {o.overdue ? <span className="font-medium text-[#b13f32]"> · {t.order.overdue}</span> : null}
                           </span>
                         </Link>
+                        {o.unreadChat && <ChatLink id={o.id} className="-my-1 size-6" />}
+                        </div>
                       </td>
                       <td data-col="system" className={cn(td, "hidden max-w-[150px] lg:table-cell")}>
                         <span className="block truncate">
@@ -231,9 +253,8 @@ export function OrdersTable({
                           />
                         )}
                       </td>
-                      <td data-col="due" className={cn(td, "hidden whitespace-nowrap md:table-cell", o.overdue && "font-semibold text-[#b13f32]", o.priority === "urgent" && "max-md:text-muted-foreground")} title={o.overdue ? t.order.overdue : undefined}>
+                      <td data-col="due" className={cn(td, "hidden whitespace-nowrap text-muted-foreground md:table-cell")} title={o.overdue ? t.order.overdue : undefined}>
                         {o.dueLabel ?? "—"}
-                        {o.overdue && <span className="sr-only"> {t.order.overdue}</span>}
                       </td>
                       <td className={cn(td, "whitespace-nowrap")}>
                         <StatusBadge status={o.status} />

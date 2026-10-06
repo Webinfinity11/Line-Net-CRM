@@ -1,5 +1,6 @@
 "use client";
 
+import { DateField } from "@/components/ui/date-field";
 import { FileText, Pencil } from "lucide-react";
 import { useState } from "react";
 import { createQuoteAndOpen, updateQuote } from "@/actions/quotes";
@@ -80,7 +81,7 @@ function Fields({ clients, initial }: { clients: ClientOption[]; initial?: Initi
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="q-valid">ძალაშია თარიღამდე</Label>
-        <Input id="q-valid" name="validUntil" type="date" defaultValue={initial?.validUntil ?? ""} />
+        <DateField id="q-valid" name="validUntil" defaultValue={initial?.validUntil ?? ""} />
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="q-vat">დღგ (%)</Label>

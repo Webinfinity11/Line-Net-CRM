@@ -1,5 +1,6 @@
 "use client";
 
+import { DateField } from "@/components/ui/date-field";
 import { formFields } from "@/components/app/section-card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -43,11 +44,11 @@ export function EquipmentFields({ siteId, initial }: { siteId: number; initial?:
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="e-inst">მონტაჟის თარიღი</Label>
-        <Input id="e-inst" name="installedAt" type="date" defaultValue={initial?.installedAt ?? ""} />
+        <DateField id="e-inst" name="installedAt" defaultValue={initial?.installedAt ?? ""} />
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="e-war">გარანტიის ბოლო თარიღი</Label>
-        <Input id="e-war" name="warrantyUntil" type="date" defaultValue={initial?.warrantyUntil ?? ""} />
+        <DateField id="e-war" name="warrantyUntil" defaultValue={initial?.warrantyUntil ?? ""} />
       </div>
       <div className="space-y-1.5 sm:col-span-2">
         <Label htmlFor="e-notes">შენიშვნა</Label>

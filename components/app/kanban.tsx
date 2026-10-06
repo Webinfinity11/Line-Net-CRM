@@ -10,7 +10,7 @@ import { KANBAN_STATUSES, STATUS_HEX, STATUS_LABELS, formatDate, formatMoney } f
 import type { OrderListItem } from "@/lib/orders";
 import { isOverdue } from "@/lib/order-utils";
 import { cn } from "@/lib/utils";
-import { PriorityLabel, TypeBadge } from "./badges";
+import { OverdueBadge, PriorityLabel, TypeBadge } from "./badges";
 import { AvatarStack } from "./user-avatar";
 
 export function Kanban({ orders }: { orders: OrderListItem[] }) {
@@ -72,7 +72,7 @@ export function Kanban({ orders }: { orders: OrderListItem[] }) {
                     setOverCol(null);
                   }}
                   className={cn(
-                    "block cursor-grab rounded-lg border bg-white p-3 shadow-sm transition-shadow hover:shadow-md active:cursor-grabbing dark:bg-neutral-800",
+                    "ln-card-link block cursor-grab rounded-lg border bg-white p-3 shadow-sm transition-shadow hover:shadow-md active:cursor-grabbing dark:bg-neutral-800",
                     dragId === o.id && "opacity-50",
                   )}
                 >
@@ -84,9 +84,10 @@ export function Kanban({ orders }: { orders: OrderListItem[] }) {
                   <div className="mt-1 truncate text-xs text-muted-foreground">{o.client?.name ?? o.emailFrom ?? "—"}</div>
                   <div className="mt-2 flex items-center justify-between">
                     <AvatarStack users={o.assignees.map((a) => a.user)} />
-                    <div className="flex flex-col items-end text-[11px]">
+                    <div className="flex min-w-0 flex-col items-end gap-1.5 text-[11px]">
                       <PriorityLabel priority={o.priority} />
-                      {o.dueDate && <span className={cn(isOverdue(o) ? "font-semibold text-[#b13f32]" : "text-muted-foreground")}>{formatDate(o.dueDate)}</span>}
+                      {isOverdue(o) && <OverdueBadge />}
+                      {o.dueDate && <span className="text-muted-foreground">{formatDate(o.dueDate)}</span>}
                     </div>
                   </div>
                   {o.amount && <div className="mt-1.5 text-right text-xs font-medium">{formatMoney(o.amount)}</div>}

@@ -2,19 +2,24 @@ import "server-only";
 import { and, asc, desc, eq, gte, inArray, isNotNull, lt, ne, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { clients, orderAssignees, orderMaterials, orderPayments, orders, user } from "@/db/schema";
+import { tbilisiDayBounds, tbilisiToday } from "@/lib/schedule-utils";
 
-export type Period = { from: string; to: string }; // inclusive from, exclusive to (YYYY-MM-DD)
+export type Period = { from: string; to: string }; // both days inclusive, Tbilisi calendar (YYYY-MM-DD)
 
-export function defaultPeriod(): Period {
-  const now = new Date();
-  const from = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
-  const to = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
-  return { from: from.toISOString().slice(0, 10), to: to.toISOString().slice(0, 10) };
+/** The current Tbilisi month, first to last day. */
+export function defaultPeriod(now = new Date()): Period {
+  const today = tbilisiToday(now);
+  const [y, m] = today.split("-").map(Number);
+  const last = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  return { from: `${today.slice(0, 7)}-01`, to: `${today.slice(0, 7)}-${String(last).padStart(2, "0")}` };
 }
 
-function range(p: Period) {
-  return { start: new Date(`${p.from}T00:00:00+04:00`), end: new Date(`${p.to}T00:00:00+04:00`) };
+/** Half-open instants: Tbilisi midnight of `from` up to the midnight after `to`. */
+export function periodRange(p: Period) {
+  return { start: tbilisiDayBounds(p.from).start, end: tbilisiDayBounds(p.to).end };
 }
+
+const range = periodRange;
 
 const num = (v: unknown) => Number(v ?? 0);
 
@@ -32,7 +37,7 @@ export async function reportByClient(p: Period) {
     })
     .from(orders)
     .innerJoin(clients, eq(clients.id, orders.clientId))
-    .where(and(eq(orders.triaged, true), gte(orders.createdAt, start), lt(orders.createdAt, end)))
+    .where(and(eq(orders.triaged, true), ne(orders.status, "cancelled"), gte(orders.createdAt, start), lt(orders.createdAt, end)))
     .groupBy(clients.id, clients.name)
     .orderBy(desc(sql`sum(${orders.amount})`));
   return rows.map((r) => ({ ...r, amount: num(r.amount), paid: num(r.paid), unpaid: num(r.unpaid) }));
@@ -46,7 +51,7 @@ export async function reportByExecutor(p: Period) {
       name: user.name,
       total: sql<number>`count(${orders.id})`.mapWith(Number),
       completed: sql<number>`count(*) filter (where ${orders.status} in ('done','closed'))`.mapWith(Number),
-      overdue: sql<number>`count(*) filter (where ${orders.dueDate} < current_date and ${orders.status} not in ('done','closed','cancelled'))`.mapWith(Number),
+      overdue: sql<number>`count(*) filter (where ${orders.dueDate} < ${tbilisiToday()}::date and ${orders.status} not in ('done','closed','cancelled'))`.mapWith(Number),
       lateDone: sql<number>`count(*) filter (where ${orders.completedAt} is not null and ${orders.dueDate} is not null and (${orders.completedAt} at time zone 'Asia/Tbilisi')::date > ${orders.dueDate})`.mapWith(Number),
       minutes: sql<number>`coalesce(sum((select sum(extract(epoch from (v.ended_at - v.started_at)) / 60) from order_visits v where v.user_id = ${orderAssignees.userId} and v.order_id = ${orderAssignees.orderId} and v.ended_at is not null)), 0)`.mapWith(Number),
       amount: sql<string>`coalesce(sum(${orders.amount}), 0)`,
@@ -54,7 +59,7 @@ export async function reportByExecutor(p: Period) {
     .from(orderAssignees)
     .innerJoin(orders, eq(orders.id, orderAssignees.orderId))
     .innerJoin(user, eq(user.id, orderAssignees.userId))
-    .where(and(eq(orders.triaged, true), gte(orders.createdAt, start), lt(orders.createdAt, end)))
+    .where(and(eq(orders.triaged, true), ne(orders.status, "cancelled"), gte(orders.createdAt, start), lt(orders.createdAt, end)))
     .groupBy(user.id, user.name)
     .orderBy(desc(sql`count(*) filter (where ${orders.status} in ('done','closed'))`));
   return rows.map((r) => ({ ...r, amount: num(r.amount), hours: Math.round((r.minutes / 60) * 10) / 10 }));
@@ -71,7 +76,7 @@ export async function reportBySystem(p: Period) {
       paid: sql<string>`coalesce(sum(${orders.paidTotal}), 0)`,
     })
     .from(orders)
-    .where(and(eq(orders.triaged, true), gte(orders.createdAt, start), lt(orders.createdAt, end)))
+    .where(and(eq(orders.triaged, true), ne(orders.status, "cancelled"), gte(orders.createdAt, start), lt(orders.createdAt, end)))
     .groupBy(orders.systemType)
     .orderBy(desc(sql`count(*)`));
   return rows.map((r) => ({ ...r, amount: num(r.amount), paid: num(r.paid) }));
@@ -141,7 +146,6 @@ export async function ordersForExport(p: Period | null) {
       visits: { columns: { startedAt: true, endedAt: true } },
     },
     orderBy: [asc(orders.createdAt)],
-    limit: 5000,
   });
 }
 
