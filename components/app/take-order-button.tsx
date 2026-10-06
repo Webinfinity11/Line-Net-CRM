@@ -26,8 +26,8 @@ export function TakeOrderButton({ orderId, label = "ავიღებ", classNa
           toast.error(res.error);
           return;
         }
-        toast.success("დავალება აიღეთ — სამუშაო დაიწყო");
-        router.push("/my?tab=active");
+        toast.success("დავალება აიღეთ");
+        router.push("/my?tab=new");
         router.refresh();
       } catch {
         const message = "დავალების აღება ვერ დადასტურდა. შეამოწმეთ კავშირი და განაახლეთ სია ხელახლა ცდამდე.";
@@ -39,6 +39,6 @@ export function TakeOrderButton({ orderId, label = "ავიღებ", classNa
 
   return <div className="space-y-2">
     <Button type="button" className={cn("h-11 whitespace-nowrap", className)} disabled={pending} onClick={run}>{pending ? "მიმდინარეობს…" : label}</Button>
-    {error && <p role="alert" className="text-[13px] leading-5 text-[#b13f32]">{error}</p>}
+    {error && <p role="alert" className="text-[13px] leading-5 text-[#b13f32] dark:text-[var(--ln-alert)]">{error}</p>}
   </div>;
 }

@@ -1,7 +1,6 @@
 "use client";
 
 import { DateTimeField } from "@/components/ui/date-field";
-import { BadgeCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -19,10 +18,11 @@ import { PRIORITY_LABELS, TYPE_LABELS, t } from "@/lib/i18n";
 import { toMtavruli } from "@/lib/mtavruli";
 import { cn } from "@/lib/utils";
 import { UserAvatar } from "./user-avatar";
+import { canHandle, type Competencies } from "@/lib/competency-utils";
 import { compareNames, toLocalInput } from "@/lib/order-utils";
 
 export type ClientOption = { id: number; name: string; sites: { id: number; name: string; address: string | null }[] };
-export type UserOption = { id: string; name: string; role: string; image?: string | null; specializations?: string[] };
+export type UserOption = { id: string; name: string; role: string; image?: string | null; competencies: Competencies; competenceLabel: string };
 
 type Initial = Partial<
   Pick<
@@ -64,13 +64,9 @@ export function OrderForm({
   const [assignees, setAssignees] = useState<string[]>(initial?.assigneeIds ?? []);
   const sites = useMemo(() => clients.find((c) => String(c.id) === clientId)?.sites ?? [], [clients, clientId]);
 
-  const matches = (u: UserOption) => Boolean(system && u.specializations?.includes(system));
-  const sortedUsers = useMemo(() => {
-    const copy = [...users];
-    copy.sort((a, b) => Number(matches(b)) - Number(matches(a)) || compareNames(a.name, b.name));
-    return copy;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [users, system]);
+  const sortedUsers = useMemo(() => users.filter(u =>
+    initial?.assigneeIds?.includes(u.id) || (u.role === "executor" && canHandle(system, u.competencies))
+  ).sort((a, b) => compareNames(a.name, b.name)), [users, system, initial?.assigneeIds]);
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -102,7 +98,11 @@ export function OrderForm({
               <Input id="title" name="title" required minLength={2} defaultValue={initial?.title ?? ""} placeholder="მაგ. CCTV კამერის შეკეთება, მე-3 სართული" />
             </Field>
             <Field label={t.order.system} htmlFor="systemType">
-              <NativeSelect id="systemType" name="systemType" value={system} onChange={(e) => setSystem(e.target.value)}>
+              <NativeSelect id="systemType" name="systemType" value={system} onChange={(e) => {
+                const next = e.target.value;
+                setSystem(next);
+                setAssignees(ids => ids.filter(id => initial?.assigneeIds?.includes(id) || users.some(u => u.id === id && u.role === "executor" && canHandle(next, u.competencies))));
+              }}>
                 <NativeSelectOption value="">— აირჩიეთ —</NativeSelectOption>
                 {systemOptions.map((sys) => (
                   <NativeSelectOption key={sys.key} value={sys.key}>
@@ -197,12 +197,11 @@ export function OrderForm({
           <CardContent className="pt-6">
             <h3 className="font-heading text-[15px]">{toMtavruli(t.order.assignees)}</h3>
             <p className="mb-3 mt-1 text-[11.5px] text-muted-foreground">
-              {system ? "შესაბამისი სპეციალიზაციის შემსრულებლები სიის თავშია." : "აირჩიეთ კატეგორია და შესაბამისი შემსრულებლები სიის თავში გამოჩნდებიან."}
+              შემსრულებლის გარეშე დავალება გამოჩნდება შესაბამისი კომპეტენციის შემსრულებლების „ყველა დავალებაში“.
             </p>
             <div className="max-h-[320px] space-y-1 overflow-y-auto">
               {sortedUsers.map((u) => {
                 const on = assignees.includes(u.id);
-                const fit = matches(u);
                 return (
                   <button
                     type="button"
@@ -211,22 +210,18 @@ export function OrderForm({
                     aria-pressed={on}
                     className={cn(
                       "flex w-full items-center gap-2.5 rounded-[12px] border px-2.5 py-2 text-left text-[13px] transition-colors",
-                      on ? "border-[#a5b5ed] bg-[#eef2ff]" : "border-transparent hover:bg-[#f8faff]",
+                      on ? "border-[#a5cdd1] dark:border-primary bg-accent" : "border-transparent hover:bg-[#f6fafb] dark:hover:bg-muted",
                     )}
                   >
-                    <input type="checkbox" readOnly checked={on} className="size-4 accent-[#3457d5]" />
+                    <input type="checkbox" readOnly checked={on} className="size-4 accent-[#397b83]" />
                     <UserAvatar name={u.name} image={u.image} />
                     <span className="min-w-0 flex-1 truncate">{u.name}</span>
-                    {fit && (
-                      <span title="შესაბამისი სპეციალიზაცია" className="text-[#25815a]">
-                        <BadgeCheck className="size-4" />
-                      </span>
-                    )}
+                    <span className="text-[11px] text-muted-foreground">{u.competenceLabel}</span>
                   </button>
                 );
               })}
             </div>
-            {assignees.length > 0 && <p className="mt-3 border-t border-[#eef1f6] pt-3 text-[11.5px] text-muted-foreground">არჩეულია {assignees.length}</p>}
+            {assignees.length > 0 && <p className="mt-3 border-t border-[#eef1f6] dark:border-border pt-3 text-[11.5px] text-muted-foreground">არჩეულია {assignees.length}</p>}
           </CardContent>
         </Card>
 
@@ -248,8 +243,8 @@ function Section({ title, summary, collapsible, children }: { title: string; sum
   const grid = <div className="grid gap-4 sm:grid-cols-2">{children}</div>;
   if (collapsible) {
     return (
-      <details className="rounded-[14px] border border-[#eef1f6]">
-        <summary className="cursor-pointer list-none px-3 py-2.5 text-[12.5px] font-medium text-[#3457d5]">
+      <details className="rounded-[14px] border border-[#eef1f6] dark:border-border">
+        <summary className="cursor-pointer list-none px-3 py-2.5 text-[12.5px] font-medium text-primary">
           {title}
           {summary ? <span className="ml-1 font-normal text-muted-foreground">· {summary}</span> : null}
         </summary>
@@ -259,7 +254,7 @@ function Section({ title, summary, collapsible, children }: { title: string; sum
   }
   return (
     <fieldset className="min-w-0">
-      <legend className="mb-3 font-heading text-[13px] font-semibold text-[#4a5e73]">{toMtavruli(title)}</legend>
+      <legend className="mb-3 font-heading text-[13px] font-semibold text-[#4a5e73] dark:text-[var(--ln-strong)]">{toMtavruli(title)}</legend>
       {grid}
     </fieldset>
   );

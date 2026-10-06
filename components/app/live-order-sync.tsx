@@ -63,7 +63,7 @@ export function LiveOrderSync() {
         } catch { /* Reconnect after a temporary network failure. */ }
         finally { clearTimeout(timeout); }
       }
-      if (!disposed && connection === generation) pollTimer = setTimeout(() => void poll(connection), 3_000);
+      if (!disposed && connection === generation) pollTimer = setTimeout(() => void poll(connection), 10_000);
     };
     const disconnect = () => {
       generation++;
@@ -86,7 +86,7 @@ export function LiveOrderSync() {
         };
         source.onerror = () => { streaming = false; };
       }
-      pollTimer = setTimeout(() => void poll(connection), 3_000);
+      pollTimer = setTimeout(() => void poll(connection), 10_000);
     };
     // The first snapshot refreshes once, covering changes between page render
     // and subscription, as well as stale prefetched/back-navigation pages.

@@ -89,7 +89,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
 
   const executors = users
     .filter((u) => u.role === "executor")
-    .map((u) => ({ id: u.id, name: u.name, image: u.image, specializations: u.specializations ?? [], hours: Math.round(((s.plannedToday[u.id] ?? 0) / 60) * 10) / 10 }));
+    .map((u) => ({ id: u.id, name: u.name, image: u.image, competencies: u.competencies, competenceLabel: u.competenceLabel, hours: Math.round(((s.plannedToday[u.id] ?? 0) / 60) * 10) / 10 }));
   const clients = clientRows.map((c) => ({ id: c.id, name: c.name }));
 
   const rank = (o: { priority: string; status: string; assignees: unknown[]; overdue: boolean }) =>
@@ -100,6 +100,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
       number: o.number,
       title: o.title,
       status: o.status,
+      completedLabel: o.status === "done" || o.status === "closed" ? formatDate(o.completedAt) : null,
       priority: o.priority,
       type: o.type,
       systemType: o.systemType,
@@ -129,11 +130,12 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
       startMin: minutesOf(o.scheduledAt),
       minutes: o.plannedMinutes ?? 120,
       status: o.status,
+      completedLabel: o.status === "done" || o.status === "closed" ? formatDate(o.completedAt) : null,
     };
     if (o.assignees.length === 0) return [{ ...base, laneId: "unassigned" }];
     return o.assignees.map((a) => ({ ...base, laneId: a.userId }));
   });
-  const completedToday = s.today.filter((o) => o.status === "done" || o.status === "closed").length;
+  const completedToday = s.completedToday;
 
   const firstName = user.name.split(" ")[0];
 
@@ -149,7 +151,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
         normHours={normHours}
         today={tbilisiToday()}
         mail={{ configured: mail.configured, count: s.inbox.length, connectHref: "/inbox" }}
-        counts={{ unassigned: s.unassignedCount, overdue: s.overdueCount, review: s.awaitingClosureCount, visits: s.todayTotal, completedToday }}
+        counts={{ unassigned: s.unassignedCount, overdue: s.overdueCount, review: s.awaitingClosureCount, closed: s.closedCount, visits: s.todayTotal, completedToday }}
         hero={{
           greeting: `გამარჯობა, ${firstName}!`,
           dateLine: dateLine(tbilisiToday()),
@@ -163,7 +165,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
           done: { count: heroMetrics.completed, amount: heroMetrics.amount, unpaid: heroMetrics.unpaid },
           controls: (
             <>
-            <div className="inline-flex max-md:min-w-0 max-md:flex-1 rounded-full border border-[#e6ebf2] bg-white p-1" role="group" aria-label="პერიოდი">
+            <div className="inline-flex max-md:min-w-0 max-md:flex-1 rounded-full border border-border bg-card p-1" role="group" aria-label="პერიოდი">
               {RANGES.map((r) => (
                 <Link
                   key={r.key}
@@ -171,7 +173,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
                   aria-current={!custom && r.key === range ? "page" : undefined}
                   className={cn(
                     "whitespace-nowrap rounded-full max-md:flex max-md:min-h-[44px] max-md:flex-1 max-md:items-center max-md:justify-center max-md:px-2 px-3.5 py-1.5 font-heading text-[11.5px] font-bold tracking-[-0.005em] transition-colors duration-150",
-                    !custom && r.key === range ? "bg-[#3457d5] text-white" : "text-muted-foreground hover:bg-[#f1f4f9] hover:text-foreground",
+                    !custom && r.key === range ? "bg-primary text-white dark:text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
                   )}
                 >
                   {toMtavruli(r.label)}
@@ -190,7 +192,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
 
       {/* zone 3: how the work is trending */}
       <div className="grid gap-4 xl:grid-cols-[minmax(0,6fr)_minmax(0,3fr)_minmax(0,3fr)]">
-        <Reveal as="section" className="ln-card ln-lift min-w-0 p-6 max-md:p-4" ariaLabel="სამუშაოს ნაკადი" view="flow">
+        <Reveal as="section" className="ln-card min-w-0 p-6 max-md:p-4" ariaLabel="სამუშაოს ნაკადი" view="flow">
           <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
             <h2 className="font-heading text-[15px]">{toMtavruli("სამუშაოს ნაკადი")}</h2>
             <span className="text-[11.5px] text-muted-foreground">ბოლო 7 დღე</span>
@@ -198,7 +200,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
           <WeeklyBars data={s.weekly} height={200} />
         </Reveal>
 
-        <Reveal as="section" className="ln-card ln-lift min-w-0 p-6 max-md:p-4" delay={80} ariaLabel="კატეგორიების მიხედვით" view="systems">
+        <Reveal as="section" className="ln-card min-w-0 p-6 max-md:p-4" delay={80} ariaLabel="კატეგორიების მიხედვით" view="systems">
           <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
             <h2 className="flex items-center gap-2 font-heading text-[15px]">
               <Layers className="size-4 text-muted-foreground [stroke-width:1.7]" /> {toMtavruli("კატეგორიები")}
@@ -217,7 +219,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
         <CrewCard crew={analytics.crew} normHours={normHours} />
       </div>
 
-      <Reveal as="section" className="ln-card ln-lift p-6 max-md:p-4" ariaLabel="აქტიური ობიექტები რუკაზე" view="map">
+      <Reveal as="section" className="ln-card p-6 max-md:p-4" ariaLabel="აქტიური ობიექტები რუკაზე" view="map">
         <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
           <h2 className="flex items-center gap-2 font-heading text-[15px]">
             <MapPinned className="size-4 text-muted-foreground [stroke-width:1.7]" /> {toMtavruli("აქტიური ობიექტები")}
@@ -232,7 +234,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
           </div>
         </div>
         {s.mapPoints.length === 0 ? (
-          <p className="rounded-[14px] border border-dashed border-[#e6ebf2] px-4 py-8 text-center text-[12.5px] text-muted-foreground">
+          <p className="rounded-[14px] border border-dashed border-border px-4 py-8 text-center text-[12.5px] text-muted-foreground">
             ობიექტებს კოორდინატები არ აქვს. გახსენით კლიენტი → ობიექტი → „რუკაზე მონიშვნა“.
           </p>
         ) : (
@@ -254,7 +256,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/">) {
             <ol className="max-h-[340px] space-y-1 overflow-y-auto pr-1">
               {s.mapPoints.map((p, i) => (
                 <li key={p.id}>
-                  <Link href={`/orders/${p.id}`} className="flex items-start gap-2.5 rounded-[12px] px-2 py-2 transition-colors hover:bg-[#f8faff]">
+                  <Link href={`/orders/${p.id}`} className="ln-row-link flex items-start gap-2.5 rounded-[12px] px-2 py-2 transition-colors">
                     <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full text-[10px] font-semibold text-white" style={{ background: STATUS_HEX[p.status] }}>
                       {i + 1}
                     </span>

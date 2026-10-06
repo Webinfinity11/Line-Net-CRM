@@ -1,5 +1,6 @@
 import "server-only";
-import { and, asc, desc, eq, ilike, inArray, or } from "drizzle-orm";
+import { parseMonth } from "@/lib/month-filter";
+import { and, asc, desc, eq, gte, lt, ilike, inArray, or } from "drizzle-orm";
 import { db } from "@/db";
 import { clients, orders, sites, user } from "@/db/schema";
 import { requireUser, type SessionUser } from "@/lib/session";
@@ -34,13 +35,17 @@ export async function listPortalSites(clientId: number) {
 }
 
 /** Everything ordered for the company, whoever entered it. No money, no internal notes, no people. */
-export async function listPortalOrders(clientId: number, filters: { q?: string; siteId?: number } = {}) {
+export async function listPortalOrders(clientId: number, filters: { q?: string; siteId?: number; month?: string } = {}) {
+  const month = parseMonth(filters.month);
   const query = filters.q?.trim();
   const pattern = query ? `%${query.replace(/[\\%_]/g, "\\$&")}%` : undefined;
   return db.query.orders.findMany({
     where: and(
       eq(orders.clientId, clientId),
-      filters.siteId ? eq(orders.siteId, filters.siteId) : undefined,
+      month ? and(gte(orders.createdAt, month.from), lt(orders.createdAt, month.to)) : undefined,
+      filters.siteId ? inArray(orders.siteId, db.select({ id: sites.id }).from(sites).where(and(
+        eq(sites.id, filters.siteId), eq(sites.clientId, clientId),
+      ))) : undefined,
       pattern ? or(
         ilike(orders.number, pattern), ilike(orders.title, pattern), ilike(orders.address, pattern),
         inArray(orders.siteId, db.select({ id: sites.id }).from(sites).where(and(
@@ -59,8 +64,9 @@ export async function listPortalOrders(clientId: number, filters: { q?: string; 
 export async function getPortalOrder(id: number, clientId: number) {
   const row = await db.query.orders.findFirst({
     where: and(eq(orders.id, id), eq(orders.clientId, clientId)),
-    columns: { id: true, number: true, title: true, description: true, address: true, status: true, triaged: true, systemType: true, createdAt: true, scheduledAt: true, completedAt: true, closedAt: true },
+    columns: { id: true, number: true, title: true, description: true, address: true, status: true, triaged: true, systemType: true, createdAt: true, scheduledAt: true, arrivedAt: true, completedAt: true, closedAt: true },
     with: {
+      visits: { columns: { startedAt: true }, orderBy: (visits, { asc }) => [asc(visits.startedAt)], limit: 1 },
       site: { columns: { id: true, name: true, address: true } },
       items: { columns: { id: true, name: true, unit: true, quantity: true }, orderBy: (items, { asc }) => [asc(items.id)] },
       assignees: {

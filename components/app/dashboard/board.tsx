@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { OverdueBadge, PriorityLabel } from "@/components/app/badges";
 import { UserAvatar } from "@/components/app/user-avatar";
-import { STATUS_HEX, STATUS_TINT } from "@/lib/i18n";
+import { STATUS_HEX, STATUS_TINT, STATUS_COLORS, STATUS_LABELS } from "@/lib/i18n";
 import { toMtavruli } from "@/lib/mtavruli";
 import { cn } from "@/lib/utils";
 import { DashboardHero, type DashboardHeroData } from "./hero";
@@ -26,21 +26,23 @@ function Counter({
   href,
   onClick,
   alert,
+  status,
 }: {
   label: string;
   value: number;
   href?: string;
   onClick?: () => void;
   alert?: boolean;
+  status?: "done" | "closed";
 }) {
   const body = (
     <>
-      <span className={cn("tabular font-heading text-[22px] font-semibold leading-none", alert && value > 0 ? "text-[#b13f32] max-md:text-foreground" : "text-foreground")}>{value}</span>
-      <span className="truncate text-[11px] leading-tight text-muted-foreground">{label}</span>
+      <span className={cn("tabular font-heading text-[22px] font-semibold leading-none", alert && value > 0 ? "text-[#b13f32] dark:text-[var(--ln-alert)] max-md:text-foreground" : "text-foreground")}>{value}</span>
+      <span className={cn("truncate text-[11px] leading-tight", status ? `rounded px-1.5 py-1 ${STATUS_COLORS[status]}` : "text-muted-foreground")}>{label}</span>
     </>
   );
   const cls =
-    "flex min-h-[64px] flex-col gap-1.5 rounded-[14px] px-3 py-2.5 text-left transition-colors duration-150 hover:bg-[#f1f4f9] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3457d5] sm:min-w-[104px] sm:px-4 sm:py-3";
+    "ln-row-link flex min-h-[64px] flex-col gap-1.5 rounded-[14px] px-3 py-2.5 text-left transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:min-w-[104px] sm:px-4 sm:py-3";
   if (onClick) {
     return (
       <button type="button" onClick={onClick} className={cls}>
@@ -79,7 +81,7 @@ export function DashboardBoard({
   normHours: number;
   today: string;
   mail: MailPeek;
-  counts: { unassigned: number; overdue: number; review: number; visits: number; completedToday: number };
+  counts: { unassigned: number; overdue: number; review: number; closed: number; visits: number; completedToday: number };
   /** The dashboard head; drawn here so its "needs a decision" column can open the shared drawer. */
   hero?: DashboardHeroData & { controls: React.ReactNode };
 }) {
@@ -114,25 +116,27 @@ export function DashboardBoard({
           <span className={cn("col-span-2 px-3 pb-1 text-[11px] font-medium tracking-[0.04em] text-muted-foreground sm:pb-0", inHead && "sm:basis-full sm:pb-1")}>{toMtavruli("მოქმედება სჭირდება")}</span>
           <Counter label="დაუნიშნავი" value={counts.unassigned} href="/schedule" alert />
           <Counter label="ვადაგადაცილებული" value={counts.overdue} href="/orders?overdue=1" alert />
-          <Counter label="ჩასაბარებელი" value={counts.review} href="/orders?status=done" />
+          <Counter label={STATUS_LABELS.done} status="done" value={counts.review} href="/orders?status=done" />
+          <Counter label={STATUS_LABELS.closed} status="closed" value={counts.closed} href="/orders?status=closed" />
         </div>
         {calm ? (
-          <p className="flex items-center gap-2 rounded-full bg-[#eaf6ef] px-4 py-2 text-[12px] text-[#25815a]">
+          <p className="flex items-center gap-2 rounded-full bg-[#eaf6ef] dark:bg-[var(--ln-success-bg)] px-4 py-2 text-[12px] text-[#25815a] dark:text-[var(--ln-success)]">
             <CheckCircle2 className="size-4 [stroke-width:1.8]" /> ყველა შეკვეთა დანიშნულია
           </p>
         ) : focus ? (
-          <div className={cn("flex min-w-0 flex-1 flex-col items-stretch gap-2 border-t border-[#eef1f6] pt-3 sm:flex-row sm:items-center sm:border-0 sm:pt-0", inHead ? "sm:justify-between" : "sm:justify-end")}>
+          <div className={cn("flex min-w-0 flex-1 flex-col items-stretch gap-2 border-t border-[#eef1f6] dark:border-border pt-3 sm:flex-row sm:items-center sm:border-0 sm:pt-0", inHead ? "sm:justify-between" : "sm:justify-end")}>
             <span className="flex min-w-0 flex-wrap items-center gap-2 text-[12.5px]">
               {focus.kind === "urgent" ? <PriorityLabel priority="urgent" /> : <OverdueBadge />}
               <span className="truncate max-md:whitespace-normal max-md:break-words">
                 {focus.order.title}
+                {focus.order.client && <span className="block text-[11px] text-muted-foreground">{focus.order.client.name}</span>}
                 {focus.more > 0 && <span className="ml-1 text-muted-foreground">+{focus.more}</span>}
               </span>
             </span>
             <button
               type="button"
               onClick={() => setSelectedId(focus.order.id)}
-              className="inline-flex min-h-[44px] shrink-0 items-center justify-center gap-1.5 rounded-full bg-[#3457d5] px-4 py-2 font-heading text-[13px] font-bold tracking-[-0.005em] text-white transition-colors hover:bg-[#2846b7]"
+              className="inline-flex min-h-[44px] shrink-0 items-center justify-center gap-1.5 rounded-full bg-primary px-4 py-2 font-heading text-[13px] font-bold tracking-[-0.005em] text-white dark:text-primary-foreground transition-colors hover:bg-[#326b72] dark:hover:bg-[var(--ln-accent-hover)]"
             >
               <UserPlus className="size-3.5" /> {toMtavruli(focus.kind === "urgent" ? "დანიშვნა" : "გახსნა")}
             </button>
@@ -141,7 +145,7 @@ export function DashboardBoard({
           // work is waiting but nothing is on fire: the bar still points somewhere instead of ending in white space
           <Link
             href={counts.unassigned > 0 ? "/schedule" : "/orders?status=done"}
-            className="inline-flex min-h-[44px] whitespace-nowrap items-center gap-1.5 self-start rounded-full bg-[#eef2ff] px-4 py-2 text-[12.5px] text-[#4a5e73] transition-colors hover:bg-[#e2e9ff] sm:self-auto"
+            className="inline-flex min-h-[44px] whitespace-nowrap items-center gap-1.5 self-start rounded-full bg-accent px-4 py-2 text-[12.5px] text-[#4a5e73] dark:text-[var(--ln-strong)] transition-colors hover:bg-[#dceef0] dark:hover:bg-accent sm:self-auto"
           >
             {counts.unassigned > 0 ? "დაგეგმეთ დღე" : "შეამოწმეთ ჩაბარებული"} <ArrowRight className="size-3.5" />
           </Link>
@@ -162,15 +166,15 @@ export function DashboardBoard({
         <section className="ln-card min-w-0 p-6 max-md:p-4" aria-label="დღევანდელი განრიგი">
           <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
             <h2 className="font-heading text-[15px]">{toMtavruli("დღევანდელი განრიგი")}</h2>
-            <Link href="/schedule" className="inline-flex max-md:min-h-[44px] items-center gap-1 text-[11.5px] text-[#3457d5] hover:underline">
+            <Link href="/schedule" className="inline-flex max-md:min-h-[44px] items-center gap-1 text-[11.5px] ln-link">
               სრული განრიგი <ArrowRight className="size-3" />
             </Link>
           </div>
 
           {laneRows.length === 0 || blocks.length === 0 ? (
-            <div className="rounded-[14px] border border-dashed border-[#e6ebf2] px-4 py-6 text-center">
+            <div className="rounded-[14px] border border-dashed border-border px-4 py-6 text-center">
               <p className="text-[12.5px] text-muted-foreground">დღეს დაგეგმილი ვიზიტი არ არის.</p>
-              <Link href="/schedule" className="mt-2 inline-flex max-md:min-h-[44px] items-center gap-1 text-[12px] font-medium text-[#3457d5] hover:underline">
+              <Link href="/schedule" className="mt-2 inline-flex max-md:min-h-[44px] items-center gap-1 text-[12px] font-medium ln-link">
                 დაგეგმეთ დღე <ArrowRight className="size-3.5" />
               </Link>
             </div>
@@ -183,10 +187,10 @@ export function DashboardBoard({
                   if (mine.length === 0) return null;
                   const hours = hoursOf.get(lane.id);
                   return (
-                    <li key={lane.id} className="rounded-[12px] border border-[#eef1f6] p-2.5">
+                    <li key={lane.id} className="rounded-[12px] border border-[#eef1f6] dark:border-border p-2.5">
                       <div className="mb-1.5 flex items-center gap-2">
                         {lane.id === "unassigned" ? (
-                          <span className="grid size-7 place-items-center rounded-full bg-[#fff0ed] text-[#b13f32]">
+                          <span className="grid size-7 place-items-center rounded-full bg-[#fff0ed] dark:bg-[var(--ln-alert-bg)] text-[#b13f32] dark:text-[var(--ln-alert)]">
                             <Clock3 className="size-3.5 [stroke-width:1.8]" />
                           </span>
                         ) : (
@@ -194,7 +198,7 @@ export function DashboardBoard({
                         )}
                         <span className="text-[13px] font-medium">{lane.name}</span>
                         {hours !== undefined && (
-                          <span className={cn("tabular ml-auto text-[11px]", hours > normHours ? "text-[#b13f32]" : "text-muted-foreground")}>
+                          <span className={cn("tabular ml-auto text-[11px]", hours > normHours ? "text-[#b13f32] dark:text-[var(--ln-alert)]" : "text-muted-foreground")}>
                             {hours}/{normHours} სთ
                           </span>
                         )}
@@ -209,8 +213,11 @@ export function DashboardBoard({
                               style={{ background: STATUS_TINT[b.status], borderLeft: `3px solid ${STATUS_HEX[b.status]}` }}
                             >
                               <span className="tabular shrink-0 font-medium">{b.timeLabel}</span>
-                              <span className="min-w-0 flex-1 truncate max-md:whitespace-normal max-md:break-words">{b.title}</span>
-                              <span aria-hidden="true" className="shrink-0 text-[20px] text-[#3457d5]">›</span>
+                              <span className="min-w-0 flex-1 truncate max-md:whitespace-normal max-md:break-words">{b.title}
+                                {b.client && <span className="block text-[11px] text-muted-foreground">{b.client}</span>}
+                                {b.completedLabel && <span className="block text-[11px] text-muted-foreground">დასრულდა: {b.completedLabel}</span>}
+                              </span>
+                              <span aria-hidden="true" className="shrink-0 text-[20px] text-primary">›</span>
                             </button>
                           </li>
                         ))}
@@ -219,7 +226,7 @@ export function DashboardBoard({
                   );
                 })}
               </ul>
-              <div className="ml-[128px] hidden justify-between border-b border-[#eef1f6] pb-1.5 text-[10px] text-muted-foreground sm:flex">
+              <div className="ml-[128px] hidden justify-between border-b border-[#eef1f6] dark:border-border pb-1.5 text-[10px] text-muted-foreground sm:flex">
                 {HOURS.map((h) => (
                   <span key={h}>{String(h).padStart(2, "0")}:00</span>
                 ))}
@@ -229,10 +236,10 @@ export function DashboardBoard({
                   const mine = blocks.filter((b) => b.laneId === lane.id);
                   const hours = hoursOf.get(lane.id);
                   return (
-                    <li key={lane.id} className="flex items-center gap-3 border-b border-[#f4f6fa] py-2 last:border-0">
+                    <li key={lane.id} className="flex items-center gap-3 border-b border-background py-2 last:border-0">
                       <span className="flex w-[116px] shrink-0 items-center gap-2">
                         {lane.id === "unassigned" ? (
-                          <span className="grid size-7 place-items-center rounded-full bg-[#fff0ed] text-[#b13f32]">
+                          <span className="grid size-7 place-items-center rounded-full bg-[#fff0ed] dark:bg-[var(--ln-alert-bg)] text-[#b13f32] dark:text-[var(--ln-alert)]">
                             <Clock3 className="size-3.5 [stroke-width:1.8]" />
                           </span>
                         ) : (
@@ -241,13 +248,13 @@ export function DashboardBoard({
                         <span className="min-w-0">
                           <span className="block truncate text-[12px]">{lane.name.split(" ")[0]}</span>
                           {hours !== undefined && (
-                            <span className={cn("tabular block text-[10px]", hours > normHours ? "text-[#b13f32]" : "text-muted-foreground")}>
+                            <span className={cn("tabular block text-[10px]", hours > normHours ? "text-[#b13f32] dark:text-[var(--ln-alert)]" : "text-muted-foreground")}>
                               {hours}/{normHours} სთ
                             </span>
                           )}
                         </span>
                       </span>
-                      <span className="relative h-9 min-w-0 flex-1 rounded-[10px] bg-[#f8faff]">
+                      <span className="relative h-[60px] min-w-0 flex-1 rounded-[10px] bg-[#f6fafb] dark:bg-muted">
                         {mine.map((b) => {
                           const left = ((b.startMin - DAY_START) / SPAN) * 100;
                           const width = (b.minutes / SPAN) * 100;
@@ -256,8 +263,8 @@ export function DashboardBoard({
                               key={`${b.id}-${b.laneId}`}
                               type="button"
                               onClick={() => setSelectedId(b.id)}
-                              title={`${b.timeLabel} · ${b.title}${b.client ? ` · ${b.client}` : ""}`}
-                              className="ln-pop absolute top-1 flex h-7 cursor-pointer items-center gap-1.5 overflow-hidden rounded-[8px] px-2 pr-5 text-left text-[11px] transition-[transform,box-shadow] duration-150 hover:-translate-y-px hover:brightness-95 active:brightness-90 hover:shadow-[0_4px_12px_rgba(16,24,40,0.16)] focus-visible:outline-2 focus-visible:outline-[#3457d5]"
+                              title={`${b.timeLabel} · ${b.title}${b.client ? ` · ${b.client}` : ""}${b.completedLabel ? ` · დასრულდა: ${b.completedLabel}` : ""}`}
+                              className="ln-pop absolute top-1 flex h-[52px] cursor-pointer items-center gap-1.5 overflow-hidden rounded-[8px] px-2 pr-5 text-left text-[11px] transition-[transform,box-shadow] duration-150 hover:-translate-y-px hover:brightness-95 active:brightness-90 hover:shadow-[0_4px_12px_rgba(16,24,40,0.16)] focus-visible:outline-2 focus-visible:outline-primary"
                               style={{
                                 left: `${Math.max(0, Math.min(97, left))}%`,
                                 width: `${Math.max(6, Math.min(100 - Math.max(0, left), width))}%`,
@@ -267,8 +274,10 @@ export function DashboardBoard({
                             >
                               <span className="truncate max-md:whitespace-normal max-md:break-words">
                                 <span className="tabular text-muted-foreground">{b.timeLabel}</span> {b.title}
+                                {b.client && <span className="block truncate">{b.client}</span>}
+                                {b.completedLabel && <span className="block truncate">დასრულდა: {b.completedLabel}</span>}
                               </span>
-                              <span aria-hidden="true" className="absolute right-1 text-[16px] text-[#3457d5]">›</span>
+                              <span aria-hidden="true" className="absolute right-1 text-[16px] text-primary">›</span>
                             </button>
                           );
                         })}
@@ -290,7 +299,7 @@ export function DashboardBoard({
               { icon: UserPlus, label: "ელოდება დანიშვნას", value: counts.unassigned },
             ].map((row) => (
               <div key={row.label} className="flex items-center gap-3">
-                <span className="grid size-9 shrink-0 place-items-center rounded-[12px] bg-[#f1f4f9] text-[#617084]">
+                <span className="grid size-9 shrink-0 place-items-center rounded-[12px] bg-muted text-muted-foreground">
                   <row.icon className="size-[18px] [stroke-width:1.7]" />
                 </span>
                 <dt className="min-w-0 flex-1 text-[12.5px] text-muted-foreground">{row.label}</dt>
@@ -298,13 +307,13 @@ export function DashboardBoard({
               </div>
             ))}
           </dl>
-          <div className="mt-5 flex items-center justify-between gap-2 border-t border-[#eef1f6] pt-4 text-[12px]">
+          <div className="mt-5 flex items-center justify-between gap-2 border-t border-[#eef1f6] dark:border-border pt-4 text-[12px]">
             {mail.configured ? (
               <>
                 <span className="flex items-center gap-1.5 text-muted-foreground">
                   <Mail className="size-4 [stroke-width:1.7]" /> ბოლო შემოსულები
                 </span>
-                <Link href="/inbox" className="tabular font-medium text-[#3457d5] hover:underline">
+                <Link href="/inbox" className="tabular font-medium ln-link">
                   {mail.count}
                 </Link>
               </>
@@ -313,7 +322,7 @@ export function DashboardBoard({
                 <span className="flex items-center gap-1.5 text-muted-foreground">
                   <MailX className="size-4 [stroke-width:1.7]" /> ფოსტა არ არის დაკავშირებული
                 </span>
-                <Link href={mail.connectHref} className="font-medium text-[#3457d5] hover:underline">
+                <Link href={mail.connectHref} className="font-medium ln-link">
                   დაკავშირება
                 </Link>
               </>

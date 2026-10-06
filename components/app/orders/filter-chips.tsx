@@ -1,3 +1,4 @@
+import { monthOptions, parseMonth } from "@/lib/month-filter";
 import { X } from "lucide-react";
 import Link from "next/link";
 import type { OrderPriority, OrderType } from "@/db/schema";
@@ -21,6 +22,8 @@ export async function FilterChips({ sp, users, clients }: { sp: Sp; users: { id:
   };
 
   const chips: { key: string; label: string }[] = [];
+  const month = parseMonth(get("month"));
+  if (month) chips.push({ key: "month", label: `თვე: ${monthOptions(month.from, month.from)[0].label}` });
   const q = get("q");
   if (q) chips.push({ key: "q", label: `${t.common.search}: ${q}` });
   const type = get("type");
@@ -44,7 +47,7 @@ export async function FilterChips({ sp, users, clients }: { sp: Sp; users: { id:
         <Link
           key={c.key}
           href={hrefWithout(c.key)}
-          className="inline-flex max-w-[260px] items-center gap-1.5 rounded-md border border-[#dbe3fd] bg-[#eef2ff] py-1 pl-2.5 pr-2 text-[11px] text-[#3457d5] transition-colors hover:bg-[#e2e9ff]"
+          className="inline-flex max-w-[260px] items-center gap-1.5 rounded-md border border-[#cde5e8] dark:border-primary bg-accent py-1 pl-2.5 pr-2 text-[11px] text-primary transition-colors hover:bg-[#dceef0] dark:hover:bg-accent"
         >
           <span className="truncate">{c.label}</span>
           <X className="size-3 shrink-0" aria-hidden />
@@ -52,7 +55,7 @@ export async function FilterChips({ sp, users, clients }: { sp: Sp; users: { id:
         </Link>
       ))}
       {chips.length > 1 && (
-        <Link href={clearHref} className="text-[11px] text-muted-foreground underline-offset-2 hover:text-foreground hover:underline">
+        <Link href={clearHref} className="ln-link text-[11px]">
           ყველას გასუფთავება ({chips.length})
         </Link>
       )}

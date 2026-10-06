@@ -114,7 +114,7 @@ export function QuickCreate({ clients }: { clients: ClientOption[] }) {
             </div>
           </div>
           {error && (
-            <p className="text-[12px] text-[#b13f32]" role="alert">
+            <p className="text-[12px] text-[#b13f32] dark:text-[var(--ln-alert)]" role="alert">
               {error}
             </p>
           )}

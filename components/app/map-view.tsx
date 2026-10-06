@@ -27,6 +27,7 @@ export function LeafletMapView({
   height = 300,
   showLabels = true,
   onPick,
+  pick,
   className,
 }: {
   markers: MapMarker[];
@@ -36,6 +37,7 @@ export function LeafletMapView({
   showLabels?: boolean;
   /** When set, clicking the map calls back with coordinates (picker mode) */
   onPick?: (lat: number, lng: number) => void;
+  pick?: { value: { lat: number; lng: number } | null; onChange: (point: { lat: number; lng: number } | null) => void };
   className?: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -43,29 +45,41 @@ export function LeafletMapView({
   const layerRef = useRef<import("leaflet").LayerGroup | null>(null);
   const onPickRef = useRef(onPick);
   onPickRef.current = onPick;
+  const pickRef = useRef(pick);
+  pickRef.current = pick;
   const [ready, setReady] = useState(0);
 
   useEffect(() => {
-    let cancelled = false;
+    let disposed = false;
+    let resizeTimer: ReturnType<typeof setTimeout> | undefined;
     let observer: ResizeObserver | null = null;
     (async () => {
       const L = await loadLeaflet();
-      if (cancelled || !ref.current || mapRef.current) return;
-      const first = markers[0];
+      if (disposed || !ref.current || mapRef.current) return;
+      const first = pickRef.current?.value ?? markers[0];
       const map = L.map(ref.current, { scrollWheelZoom: false, fadeAnimation: false, zoomControl: true }).setView(center ?? (first ? [first.lat, first.lng] : TBILISI), zoom);
       L.tileLayer(TILES, { maxZoom: 19, attribution: ATTR, crossOrigin: true }).addTo(map);
-      map.on("click", (e) => onPickRef.current?.(e.latlng.lat, e.latlng.lng));
+      map.on("click", (e) => {
+        const point = { lat: e.latlng.lat, lng: e.latlng.lng };
+        if (pickRef.current) pickRef.current.onChange(point);
+        else onPickRef.current?.(point.lat, point.lng);
+      });
       mapRef.current = map;
       layerRef.current = L.layerGroup().addTo(map);
       // keep the map correct when its card resizes (font load, sidebar, responsive columns)
-      observer = new ResizeObserver(() => map.invalidateSize());
+      const resize = () => {
+        if (!disposed) map.invalidateSize({ pan: false });
+      };
+      observer = new ResizeObserver(resize);
       observer.observe(ref.current);
       setReady((r) => r + 1);
-      setTimeout(() => map.invalidateSize(), 100);
+      resizeTimer = setTimeout(resize, 100);
     })();
     return () => {
-      cancelled = true;
+      disposed = true;
+      clearTimeout(resizeTimer);
       observer?.disconnect();
+      mapRef.current?.stop();
       mapRef.current?.remove();
       mapRef.current = null;
       layerRef.current = null;
@@ -79,9 +93,11 @@ export function LeafletMapView({
       const layer = layerRef.current;
       if (!map || !layer) return;
       const L = await loadLeaflet();
+      if (mapRef.current !== map || layerRef.current !== layer) return;
       layer.clearLayers();
-      markers.forEach((m, i) => {
-        const color = m.color ?? "#2563eb";
+      const visibleMarkers: MapMarker[] = pick ? (pick.value ? [{ id: "picked", ...pick.value }] : []) : markers;
+      visibleMarkers.forEach((m, i) => {
+        const color = m.color ?? "#397b83";
         const code = escapeHtml(m.code ?? String(i + 1));
         const labelHtml = showLabels && m.label ? `<span class="ln-pin-label">${escapeHtml(m.label)}</span>` : "";
         const icon = L.divIcon({
@@ -91,12 +107,17 @@ export function LeafletMapView({
           iconAnchor: [14, 28],
           popupAnchor: [0, -26],
         });
-        const marker = L.marker([m.lat, m.lng], { icon, title: m.label }).addTo(layer);
+        const marker = L.marker([m.lat, m.lng], { icon, title: m.label, draggable: Boolean(pick) }).addTo(layer);
+        if (pick) marker.on("dragend", () => {
+          const point = marker.getLatLng();
+          pickRef.current?.onChange({ lat: point.lat, lng: point.lng });
+        });
         if (m.label || m.detail) {
-          const title = m.href ? `<a href="${m.href}" style="font-weight:600;color:#1d4ed8">${escapeHtml(m.label ?? "")}</a>` : `<strong>${escapeHtml(m.label ?? "")}</strong>`;
+          const title = m.href ? `<a href="${m.href}" class="ln-link" style="font-weight:600;color:#397b83">${escapeHtml(m.label ?? "")}</a>` : `<strong>${escapeHtml(m.label ?? "")}</strong>`;
           marker.bindPopup(`${title}${m.detail ? `<div style="color:#64748b;margin-top:2px">${escapeHtml(m.detail)}</div>` : ""}`);
         }
       });
+      if (pick) return;
       if (markers.length > 1) {
         map.fitBounds(L.latLngBounds(markers.map((m) => [m.lat, m.lng] as [number, number])), { padding: [56, 56], maxZoom: 14 });
       } else if (markers.length === 1) {
@@ -104,7 +125,7 @@ export function LeafletMapView({
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [markers, ready, showLabels]);
+  }, [markers, ready, showLabels, pick?.value, Boolean(pick)]);
 
   return <div ref={ref} style={{ height }} className={className ?? "w-full overflow-hidden rounded-xl border"} role="region" aria-label="რუკა" />;
 }

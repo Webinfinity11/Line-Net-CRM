@@ -1,7 +1,8 @@
 import { executorBucket } from "@/lib/workflow-view";
 import { Suspense } from "react";
-import { and, eq, inArray, count } from "drizzle-orm";
+import { count } from "drizzle-orm";
 import { db } from "@/db";
+import { boardVisibility } from "@/lib/competencies";
 import { orders } from "@/db/schema";
 import { MobileNav } from "@/components/app/mobile-nav";
 import { LiveOrderSync } from "@/components/app/live-order-sync";
@@ -28,7 +29,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
       : Promise.resolve([]),
   ]);
 
-  const [boardCount] = user.role === "executor" ? await db.select({ n: count() }).from(orders).where(and(eq(orders.triaged, true), inArray(orders.status, ["new", "assigned", "in_progress", "done"]))) : [{ n: 0 }];
+  const [boardCount] = user.role === "executor" ? await db.select({ n: count() }).from(orders).where(await boardVisibility(user)) : [{ n: 0 }];
   const executorCounts = {
     board: boardCount.n,
     new: myStatuses.filter((o) => executorBucket(o, user.id) === "new").length,

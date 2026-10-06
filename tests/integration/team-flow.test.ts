@@ -17,7 +17,7 @@ vi.mock("@/db", async () => {
  return { db: drizzle(pool, { schema }), qaPool: pool };
 });
 import { db } from "@/db";
-import { clients, sites, siteContacts, user, orders, orderAssignees, orderRequests, orderVisits, orderItems, orderEvents, notifications, appSettings } from "@/db/schema";
+import { clients, sites, siteContacts, user, orders, orderAssignees, orderRequests, orderVisits, orderItems, orderEvents, notifications, appSettings, orderAttachments } from "@/db/schema";
 import { updateOrder, setAssignees, completeOrder, setStatus, takeOverOrder } from "@/actions/orders";
 import { addPayment } from "@/actions/payments";
 import { startVisit } from "@/actions/order-work";
@@ -39,6 +39,9 @@ async function order(assignees: string[] = [], patch: Partial<typeof orders.$inf
  const [o] = await db.insert(orders).values({ title: "QA სამუშაო", triaged: true, status: assignees.length ? "assigned" : "new", clientId: company, siteId: site, ...patch }).returning(); created.push(o.id);
  if (assignees.length) await db.insert(orderAssignees).values(assignees.map(userId => ({ orderId: o.id, userId })));
  return o;
+}
+async function photos(id: number, people: string[]) {
+ await db.insert(orderAttachments).values(people.map(uploadedBy => ({ orderId: id, uploadedBy, fileName: `${uploadedBy}.jpg`, mimeType: "image/jpeg", storagePath: `qa/${id}/${uploadedBy}.jpg` })));
 }
 const read = (id: number) => db.query.orders.findFirst({ where: eq(orders.id, id), with: { assignees: true, items: true, visits: true, requests: true } });
 describe.skipIf(!process.env.QA_DATABASE_URL)("isolated PostgreSQL team-flow QA", () => {
@@ -76,7 +79,7 @@ describe.skipIf(!process.env.QA_DATABASE_URL)("isolated PostgreSQL team-flow QA"
  it("denies colleague requests from an unassigned executor", async () => { const o=await order(["b"]); expect((await as("a",()=>requestAssignment(o.id,"c"))).ok).toBe(false); });
  it("runs request → assignment → two visits → two handovers → manager close", async () => {
   const o=await order(["a"]); await as("a",()=>requestAssignment(o.id,"b")); const request=(await read(o.id))!.requests[0]; expect((await as("manager",()=>decideRequest(request.id,true))).ok).toBe(true);
-  expect((await as("a",()=>startVisit(o.id))).ok).toBe(true); expect((await as("b",()=>startVisit(o.id))).ok).toBe(true);
+  expect((await as("a",()=>startVisit(o.id))).ok).toBe(true); expect((await as("b",()=>startVisit(o.id))).ok).toBe(true); await photos(o.id,["a","b"]);
   expect((await as("a",()=>completeOrder(o.id,"პირველი ნაწილი დასრულდა"))).ok).toBe(true); expect((await read(o.id))!.status).toBe("in_progress");
   expect((await as("manager",()=>setStatus(o.id,"closed"))).ok).toBe(false);
   expect((await as("b",()=>completeOrder(o.id,"მეორე ნაწილი დასრულდა"))).ok).toBe(true); expect((await read(o.id))!.status).toBe("done");
@@ -84,23 +87,23 @@ describe.skipIf(!process.env.QA_DATABASE_URL)("isolated PostgreSQL team-flow QA"
   expect((await as("manager",()=>setStatus(o.id,"closed",true))).ok).toBe(true); expect((await read(o.id))!.verifiedBy).toBe("manager"); expect(fetch).not.toHaveBeenCalled();
  });
  it("serializes concurrent last handovers without losing either note", async () => {
-  const o=await order(["a","b"],{status:"in_progress"}); const result=await Promise.all([as("a",()=>completeOrder(o.id,"პირველი დასრულდა")),as("b",()=>completeOrder(o.id,"მეორე დასრულდა"))]); expect(result.every(r=>r.ok)).toBe(true); const current=(await read(o.id))!; expect(current.status).toBe("done"); expect(current.completionNote).toContain("a:"); expect(current.completionNote).toContain("b:");
+  const o=await order(["a","b"],{status:"in_progress"}); await photos(o.id,["a","b"]); const result=await Promise.all([as("a",()=>completeOrder(o.id,"პირველი დასრულდა")),as("b",()=>completeOrder(o.id,"მეორე დასრულდა"))]); expect(result.every(r=>r.ok)).toBe(true); const current=(await read(o.id))!; expect(current.status).toBe("done"); expect(current.completionNote).toContain("a:"); expect(current.completionNote).toContain("b:");
  });
  it("reopening done work clears completion dates and warranty until new handover", async () => {
-  const o=await order(["a"],{warrantyMonths:12}); await as("a",()=>completeOrder(o.id,"ყველაფერი დასრულდა")); await as("manager",()=>setStatus(o.id,"in_progress"));
+  const o=await order(["a"],{warrantyMonths:12}); await photos(o.id,["a"]); expect((await as("a",()=>completeOrder(o.id,"ყველაფერი დასრულდა"))).ok).toBe(true); await as("manager",()=>setStatus(o.id,"in_progress"));
   const current=(await read(o.id))!; expect(current.assignees[0].doneAt).toBeNull(); expect(current.completedAt).toBeNull(); expect(current.completionNote).toBeNull(); expect(current.warrantyUntil).toBeNull();
  });
  it("admin reopening a closed order lets the executor work and hand over again", async () => {
-  const o=await order(["a"]); await as("a",()=>completeOrder(o.id,"ყველაფერი დასრულდა")); await as("manager",()=>setStatus(o.id,"closed")); await as("admin",()=>setStatus(o.id,"in_progress"));
+  const o=await order(["a"]); await photos(o.id,["a"]); expect((await as("a",()=>completeOrder(o.id,"ყველაფერი დასრულდა"))).ok).toBe(true); await as("manager",()=>setStatus(o.id,"closed")); await as("admin",()=>setStatus(o.id,"in_progress"));
   expect((await read(o.id))!.assignees[0].doneAt).toBeNull(); expect((await as("a",()=>startVisit(o.id))).ok).toBe(true); expect((await as("a",()=>completeOrder(o.id,"ახალი სამუშაო დასრულდა"))).ok).toBe(true);
  });
  it("last line deletion clears the amount while a no-lines manual order retains its amount", async () => {
-  const o=await order(["a"],{amount:"999"}); expect((await as("a",()=>addOrderItem(o.id,form({name:"კაბელი",unit:"მეტრი",quantity:"12.5",unitPrice:"3.2"})))).ok).toBe(true);
-  let current=(await read(o.id))!; expect(current.amount).toBe("40.00"); await as("a",()=>removeOrderItem(current.items[0].id)); current=(await read(o.id))!; expect(current.amount).toBe("0.00");
+  const o=await order(["a"],{amount:"999"}); expect((await as("manager",()=>addOrderItem(o.id,form({name:"კაბელი",unit:"მეტრი",quantity:"12.5",unitPrice:"3.2"})))).ok).toBe(true);
+  let current=(await read(o.id))!; expect(current.amount).toBe("40.00"); await as("manager",()=>removeOrderItem(current.items[0].id)); current=(await read(o.id))!; expect(current.amount).toBe("0.00");
  });
  it("denies editing a colleague line and returns no payment fields to executors", async () => {
   const o=await order(["a","b"]); await as("a",()=>addOrderItem(o.id,form({name:"პოზიცია",quantity:"1",unitPrice:"100"}))); const item=(await read(o.id))!.items[0]; expect((await as("b",()=>updateOrderItem(item.id,1,0))).ok).toBe(false);
-  const view=await getOrderForUser(o.id,{id:"b",role:"executor",name:"b",email:"b@qa.invalid"}); expect(view?.order.amount).toBe("100.00"); expect(view?.order).not.toHaveProperty("paidTotal"); expect(view?.order).not.toHaveProperty("payments");
+  const view=await getOrderForUser(o.id,{id:"b",role:"executor",name:"b",email:"b@qa.invalid"}); expect(view?.order.amount).toBeNull(); expect(view?.order.vatPercent).toBeNull(); expect(view?.order.items[0].unitPrice).toBeNull(); expect(view?.order).not.toHaveProperty("paidTotal"); expect(view?.order).not.toHaveProperty("payments");
  });
  it("rejects assigning a client login instead of a team member", async () => { const o=await order(); expect((await as("manager",()=>setAssignees(o.id,["client"]))).ok).toBe(false); expect((await read(o.id))!.assignees).toHaveLength(0); });
  it("resolves a pending request when staff directly assigns the requested person", async () => { const o=await order(); await as("a",()=>requestAssignment(o.id)); await as("manager",()=>setAssignees(o.id,["a"])); expect((await read(o.id))!.requests[0].status).toBe("approved"); });
@@ -113,13 +116,13 @@ describe.skipIf(!process.env.QA_DATABASE_URL)("isolated PostgreSQL team-flow QA"
   const o=await order(); expect((await previewClientMail(o.id,"received"))?.to).toEqual(["branch@qa.invalid"]);
  });
  it("keeps line-driven totals when the edit form sends a different amount", async () => {
-  const o=await order(["a"]); await as("a",()=>addOrderItem(o.id,form({name:"პოზიცია",quantity:"1",unitPrice:"100"})));
+  const o=await order(["a"]); await as("manager",()=>addOrderItem(o.id,form({name:"პოზიცია",quantity:"1",unitPrice:"100"})));
   const fd=form({title:"განახლებული სამუშაო",type:"service",priority:"normal",amount:"999",clientId:String(company),siteId:String(site)}); fd.append("assignees","a");
   expect((await as("manager",()=>updateOrder(o.id,fd))).ok).toBe(true); expect((await read(o.id))!.amount).toBe("100.00");
  });
  it("preserves a manually entered total when no lines ever existed", async () => { const o=await order([],{amount:"999"}); await db.transaction(tx=>recomputeOrderAmount(tx,o.id)); expect((await read(o.id))!.amount).toBe("999.00"); });
  it("staff completion closes all open visits and partial handover does not start warranty", async () => {
-  const o=await order(["a","b"],{warrantyMonths:12}); await as("a",()=>startVisit(o.id)); await as("b",()=>startVisit(o.id)); await as("a",()=>completeOrder(o.id,"ჩემი ნაწილი მზადაა")); expect((await read(o.id))!.warrantyUntil).toBeNull();
+  const o=await order(["a","b"],{warrantyMonths:12}); await as("a",()=>startVisit(o.id)); await as("b",()=>startVisit(o.id)); await photos(o.id,["a"]); expect((await as("a",()=>completeOrder(o.id,"ჩემი ნაწილი მზადაა"))).ok).toBe(true); expect((await read(o.id))!.warrantyUntil).toBeNull();
   await as("manager",()=>completeOrder(o.id,"მთლიანი სამუშაო მიღებულია")); expect((await read(o.id))!.visits.every(v=>v.endedAt)).toBe(true);
  });
  it("planning rejects client targets and does not overwrite an existing manager", async () => {
@@ -148,7 +151,7 @@ describe.skipIf(!process.env.QA_DATABASE_URL)("isolated PostgreSQL team-flow QA"
   const events=await db.query.orderEvents.findMany({where:and(eq(orderEvents.orderId,id!),eq(orderEvents.type,"client_email"))});
   expect(events.map(e=>(e.data as {kind:string}).kind).sort()).toEqual(["received","scheduled"]);
   await as("a",()=>addOrderItem(id!,form({name:"შეკეთება",quantity:"1",unitPrice:"100"})));
-  expect((await as("a",()=>completeOrder(id!,"შეკეთება დასრულდა"))).ok).toBe(true);
+  await photos(id!,["a"]); expect((await as("a",()=>completeOrder(id!,"შეკეთება დასრულდა"))).ok).toBe(true);
   expect((await as("manager",()=>setStatus(id!,"closed",true))).ok).toBe(true);
   const completed=await previewClientMail(id!,"completed"); expect(completed?.to).toEqual(["sender@qa.invalid"]); expect(completed?.html).toContain("ინვოისი"); expect(completed?.text).toContain("შეკეთება დასრულდა");
   expect((await db.query.orderEvents.findMany({where:and(eq(orderEvents.orderId,id!),eq(orderEvents.type,"client_email"))})).map(e=>(e.data as {kind:string}).kind).sort()).toEqual(["completed","received","scheduled"]); expect(fetch).not.toHaveBeenCalled();
@@ -170,7 +173,7 @@ describe.skipIf(!process.env.QA_DATABASE_URL)("isolated PostgreSQL team-flow QA"
   for(const id of [one.id,two.id]) expect(await db.query.orderEvents.findMany({where:and(eq(orderEvents.orderId,id),eq(orderEvents.type,"client_email"))})).toHaveLength(1);
  });
  it("closing without report consent does not trigger completed mail", async () => {
-  const o=await order(["a"]); await as("a",()=>completeOrder(o.id,"შესრულებულია")); expect((await as("manager",()=>setStatus(o.id,"closed",false))).ok).toBe(true);
+  const o=await order(["a"]); await photos(o.id,["a"]); expect((await as("a",()=>completeOrder(o.id,"შესრულებულია"))).ok).toBe(true); expect((await as("manager",()=>setStatus(o.id,"closed",false))).ok).toBe(true);
   expect(await db.query.orderEvents.findMany({where:and(eq(orderEvents.orderId,o.id),eq(orderEvents.type,"client_email"))})).toHaveLength(0);
  });
 

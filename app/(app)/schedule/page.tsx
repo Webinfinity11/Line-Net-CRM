@@ -128,10 +128,10 @@ export default async function SchedulePage({ searchParams }: PageProps<"/schedul
   const overlapCount = overlaps.size;
   const executorOptions = users
     .filter((u) => u.role === "executor")
-    .map((u) => ({ id: u.id, name: u.name, image: u.image, specializations: u.specializations ?? [], hours: lanes.find((l) => l.key === u.id)?.load?.hours ?? 0 }));
+    .map((u) => ({ id: u.id, name: u.name, image: u.image, competencies: u.competencies, competenceLabel: u.competenceLabel, hours: lanes.find((l) => l.key === u.id)?.load?.hours ?? 0 }));
   const queue: QueueItem[] = [
-    ...unassignedToday.map((o) => ({ id: o.id, number: o.number, title: o.title, client: o.client?.name ?? null, dueDate: o.dueDate, priority: o.priority, systemType: o.systemType, scheduled: true, currentAssigneeId: null })),
-    ...unscheduled.map((o) => ({ id: o.id, number: o.number, title: o.title, client: o.client?.name ?? null, dueDate: o.dueDate, priority: o.priority, systemType: o.systemType, scheduled: false, currentAssigneeId: o.assignees[0]?.userId ?? null })),
+    ...unassignedToday.map((o) => ({ id: o.id, number: o.number, title: o.title, client: o.client?.name ?? null, dueDate: o.dueDate, priority: o.priority, systemType: o.systemType, scheduled: true, currentAssigneeId: null, assignedIds: [] })),
+    ...unscheduled.map((o) => ({ id: o.id, number: o.number, title: o.title, client: o.client?.name ?? null, dueDate: o.dueDate, priority: o.priority, systemType: o.systemType, scheduled: false, currentAssigneeId: o.assignees[0]?.userId ?? null, assignedIds: o.assignees.map(a => a.userId) })),
   ];
 
   const d = new Date(day + "T00:00:00Z");
@@ -171,10 +171,10 @@ export default async function SchedulePage({ searchParams }: PageProps<"/schedul
               className={cn(
                 "max-md:min-h-[44px] rounded-md border px-1 py-1.5 text-center text-[11px] transition-colors duration-150 sm:min-w-[72px] sm:flex-1 sm:px-2",
                 w === day
-                  ? "border-[#3457d5] bg-[#3457d5] text-white"
+                  ? "border-[#397b83] bg-[#397b83] text-white"
                   : w === today
-                    ? "border-[#a5b5ed] bg-white text-foreground hover:bg-[#f8faff]"
-                    : "border-[#e6ebf2] bg-white text-muted-foreground hover:bg-[#f8faff] hover:text-foreground",
+                    ? "border-[#a5cdd1] dark:border-primary bg-card text-foreground hover:bg-[#f6fafb] dark:hover:bg-muted"
+                    : "border-border bg-card text-muted-foreground hover:bg-[#f6fafb] dark:hover:bg-muted hover:text-foreground",
               )}
             >
               <div>{DAY_NAMES[wd.getUTCDay()].slice(0, 3)}</div>
@@ -184,12 +184,12 @@ export default async function SchedulePage({ searchParams }: PageProps<"/schedul
         })}
       </div>
 
-      <div className="mb-4 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border border-[#e6ebf2] bg-white px-4 py-2.5 text-xs" role="status">
-        <span className={cn(unassignedToday.length ? "font-medium text-[#b13f32]" : "text-muted-foreground")}>დაუნიშნავი დღეს {unassignedToday.length}</span>
-        <span className="text-[#c9d3e3]">·</span>
+      <div className="mb-4 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border border-border bg-card px-4 py-2.5 text-xs" role="status">
+        <span className={cn(unassignedToday.length ? "font-medium text-[#b13f32] dark:text-[var(--ln-alert)]" : "text-muted-foreground")}>დაუნიშნავი დღეს {unassignedToday.length}</span>
+        <span className="text-[#c9d3e3] dark:text-[var(--ln-faint)]">·</span>
         <span className="text-muted-foreground">დაუგეგმავი აქტიური {unscheduled.length}</span>
-        <span className="text-[#c9d3e3]">·</span>
-        <span className={cn(overlapCount ? "font-medium text-[#b13f32]" : "text-muted-foreground")}>გადაფარვა {overlapCount}</span>
+        <span className="text-[#c9d3e3] dark:text-[var(--ln-faint)]">·</span>
+        <span className={cn(overlapCount ? "font-medium text-[#b13f32] dark:text-[var(--ln-alert)]" : "text-muted-foreground")}>გადაფარვა {overlapCount}</span>
       </div>
 
       <div className="ln-stagger grid gap-[18px] lg:grid-cols-[minmax(260px,3fr)_minmax(0,7fr)]">
@@ -223,7 +223,7 @@ export default async function SchedulePage({ searchParams }: PageProps<"/schedul
           <CardContent>
             {awaiting.length === 0 && <p className="py-4 text-center text-xs text-muted-foreground">ჩასაბარებელი შეკვეთა არ არის</p>}
             {awaiting.map((o) => (
-              <Link key={o.id} href={`/orders/${o.id}`} className="ln-card-link grid grid-cols-[1fr_auto] max-md:grid-cols-1 max-md:gap-1 items-center gap-3 border-t border-[#e6ebf2] py-2.5 text-xs first:border-t-0">
+              <Link key={o.id} href={`/orders/${o.id}`} className="ln-card-link grid grid-cols-[1fr_auto] max-md:grid-cols-1 max-md:gap-1 items-center gap-3 border-t border-border py-2.5 text-xs first:border-t-0">
                 <span className="min-w-0">
                   <span className="block truncate max-md:whitespace-normal max-md:break-words text-[13px] font-medium text-foreground">{o.title}</span>
                   <span className="block truncate max-md:whitespace-normal max-md:break-words text-muted-foreground">
@@ -244,7 +244,7 @@ export default async function SchedulePage({ searchParams }: PageProps<"/schedul
           <CardContent>
             {overdue.length === 0 && <p className="py-4 text-center text-xs text-muted-foreground">ვადაგადაცილებული შეკვეთა არ არის</p>}
             {overdue.map((o) => (
-              <Link key={o.id} href={`/orders/${o.id}`} className="ln-card-link grid grid-cols-[1fr_auto] max-md:grid-cols-1 max-md:gap-1 items-center gap-3 border-t border-[#e6ebf2] py-2.5 text-xs first:border-t-0">
+              <Link key={o.id} href={`/orders/${o.id}`} className="ln-card-link grid grid-cols-[1fr_auto] max-md:grid-cols-1 max-md:gap-1 items-center gap-3 border-t border-border py-2.5 text-xs first:border-t-0">
                 <span className="min-w-0">
                   <span className="block truncate max-md:whitespace-normal max-md:break-words text-[13px] font-medium text-foreground">{o.title}</span>
                   <span className="block truncate max-md:whitespace-normal max-md:break-words text-muted-foreground">

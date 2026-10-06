@@ -1,3 +1,4 @@
+import { candidateExecutors, canHandle } from "@/lib/competencies";
 import { executorProgress, managerProgress } from "@/lib/workflow-view";
 import { CLIENT_MAIL_LABELS, type ClientMailKind } from "@/lib/client-mail-content";
 import { QuickPriority } from "@/components/app/order-detail/priority";
@@ -26,7 +27,7 @@ import { UserAvatar } from "@/components/app/user-avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PAYMENT_METHODS } from "@/lib/finance";
-import { PRIORITY_LABELS, EVENT_LABELS, PAYMENT_LABELS, STATUS_LABELS, formatDate, formatDuration, formatMoney, t } from "@/lib/i18n";
+import { clientEditedEventText, PRIORITY_LABELS, EVENT_LABELS, PAYMENT_LABELS, STATUS_LABELS, formatDate, formatDuration, formatMoney, t } from "@/lib/i18n";
 import { listActiveServices } from "@/lib/services";
 import { getOrderForUser, listAssignableUsers, plannedMinutesByUser } from "@/lib/orders";
 import { AssignDialog } from "@/components/app/assign-form";
@@ -44,6 +45,7 @@ export async function generateMetadata({ params }: PageProps<"/orders/[id]">) {
 const HIDDEN_EVENTS = new Set(["visit_started", "visit_ended", "checklist_done", "checklist_changed", "seen"]);
 
 function eventText(type: string, data: Record<string, unknown> | null) {
+  if (type === "client_edited") return clientEditedEventText(data);
   if (type === "manager_changed") return `პასუხისმგებელი შეიცვალა: ${data?.from ?? "არავინ"} → ${data?.to}`;
   if (type === "priority_changed") return `პრიორიტეტი: ${PRIORITY_LABELS[data?.from as keyof typeof PRIORITY_LABELS]} → ${PRIORITY_LABELS[data?.to as keyof typeof PRIORITY_LABELS]}`;
   if (type === "client_email") {
@@ -76,11 +78,15 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
   const staff = isStaff(me.role);
   const isAssignee = order.assignees.some((a) => a.userId === me.id);
   const readOnly = order.status === "closed" && me.role !== "admin";
-  const [users, plannedToday, normHours, catalogue] = await Promise.all([listAssignableUsers(), staff ? plannedMinutesByUser(tbilisiToday()) : Promise.resolve({} as Record<string, number>), getWorkHoursPerDay(), listActiveServices()]);
-  const executorOptions = users.filter((u) => u.role === "executor").map((u) => ({ id: u.id, name: u.name, image: u.image, specializations: u.specializations ?? [], hours: Math.round(((plannedToday[u.id] ?? 0) / 60) * 10) / 10 }));
-  const colleagueCandidates = users
+  const [users, plannedToday, normHours, catalogue] = await Promise.all([listAssignableUsers(order.assignees.map(a => a.userId)), staff ? plannedMinutesByUser(tbilisiToday()) : Promise.resolve({} as Record<string, number>), getWorkHoursPerDay(), listActiveServices()]);
+  const candidates = (await candidateExecutors(order.systemType ? [order.systemType] : []))
+    .filter(u => canHandle(order.systemType, u.competencies));
+  const candidateIds = new Set(candidates.map(u => u.id));
+  const assignmentUsers = users.filter(u => candidateIds.has(u.id) || order.assignees.some(a => a.userId === u.id));
+  const executorOptions = assignmentUsers.map(u => ({ ...u, hours: Math.round(((plannedToday[u.id] ?? 0) / 60) * 10) / 10 }));
+  const colleagueCandidates = candidates
     .filter(u => u.role === "executor" && u.id !== me.id && !order.assignees.some(a => a.userId === u.id))
-    .map(u => ({ id: u.id, name: u.name }))
+    .map(u => ({ id: u.id, name: `${u.name} · ${u.competenceLabel}` }))
     .sort((a, b) => compareNames(a.name, b.name));
   const emailsEnabled = staff ? await clientEmailsEnabled() : false;
   const overdue = isOverdue(order);
@@ -123,7 +129,7 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
               <SystemBadge system={order.systemType} className="order-last max-w-full whitespace-normal break-words md:order-none md:whitespace-nowrap" />
               <PriorityLabel priority={order.priority} />
               {overdue && <OverdueBadge />}
-              {!order.triaged && <span className="rounded-md bg-[#3457d5] px-2 py-0.5 text-xs font-medium text-white">დაუმუშავებელი შეკვეთა</span>}
+              {!order.triaged && <span className="rounded-md bg-[#397b83] px-2 py-0.5 text-xs font-medium text-white">დაუმუშავებელი შეკვეთა</span>}
             </div>
             <h1 className="font-heading text-[20px] leading-snug break-words tracking-[-0.3px] md:text-[24px]">{order.title}</h1>
             <dl className="mt-3 grid gap-x-6 gap-y-2.5 text-[13px] sm:grid-cols-2 sm:text-sm xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1.3fr)_minmax(0,0.7fr)_minmax(0,1fr)]">
@@ -159,7 +165,7 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
                 <div className="min-w-0">
                   <dt className="text-xs text-muted-foreground">{t.order.assignees}</dt>
                   <dd className="flex flex-wrap items-center gap-1.5 font-medium">
-                    {order.assignees.length === 0 && <span className="text-[#b13f32]">{t.order.unassigned}</span>}
+                    {order.assignees.length === 0 && <span className="text-[#b13f32] dark:text-[var(--ln-alert)]">{t.order.unassigned}</span>}
                     {order.assignees.map((a) => (
                       <span key={a.userId} className="inline-flex items-center gap-1 whitespace-nowrap">
                         <UserAvatar name={a.user.name} image={a.user.image} size="xs" /> {a.user.name.split(" ")[0]} · {assigneeStage(a, order.visits)}
@@ -171,7 +177,7 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
                       </span>
                     )}
                     {/* one control per state: nobody yet → assign with a time; a team already → change it; finished work → neither */}
-                    {staff && !readOnly && order.triaged && workOpen && order.assignees.length > 0 && <AssigneesEditor orderId={order.id} users={users} selected={order.assignees.map((a) => a.userId)} />}
+                    {staff && !readOnly && order.triaged && workOpen && order.assignees.length > 0 && <AssigneesEditor orderId={order.id} users={assignmentUsers} selected={order.assignees.map((a) => a.userId)} />}
                     {staff && !readOnly && order.triaged && workOpen && order.assignees.length === 0 && (
                       <AssignDialog
                         orderId={order.id}
@@ -216,7 +222,7 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
 
       {staff && order.status === "done" && <section className="ln-card p-4 space-y-3"><h2 className="font-heading">შემოწმება</h2><ul className="divide-y">{order.assignees.map(a => <li className="py-2 text-[13px]" key={a.userId}><strong>{a.user.name}</strong><p className="whitespace-pre-wrap">{a.doneNote ?? "ჩაბარების შენიშვნა არ არის"}</p></li>)}</ul><ul className="text-[13px]">{order.items.filter(i => i.creator?.role === "executor").map(i => <li key={i.id}>{i.name} · დაამატა: {i.creator?.name} · {formatMoney(Number(i.quantity) * Number(i.unitPrice))}</li>)}</ul><p>ჯამი: {formatMoney(order.amount)}</p></section>}
       {me.role === "executor" && isAssignee && ["assigned", "in_progress"].includes(order.status) && <ColleagueAdd orderId={order.id} candidates={colleagueCandidates} />}
-      <section aria-label="სამუშაოს მიმდინარე ეტაპი" className="border-y border-[#e6ebf2] py-4">
+      <section aria-label="სამუშაოს მიმდინარე ეტაპი" className="border-y border-border py-4">
         <h2 className="font-heading text-[16px]">{(staff ? managerProgress(order) : executorProgress(order, me.id)).title}</h2>
         <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">{(staff ? managerProgress(order) : executorProgress(order, me.id)).detail}</p>
         {order.assignees.length > 0 && <p className="mt-2 text-[13px] font-medium">გუნდში ჩაბარებულია: {order.assignees.filter(a => a.doneAt).length} / {order.assignees.length}</p>}
@@ -242,8 +248,8 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
               )}
               {order.description ? <pre className="whitespace-pre-wrap max-md:break-words font-sans text-sm leading-relaxed">{order.description}</pre> : <p className="text-sm text-muted-foreground">აღწერა არ არის</p>}
               {order.completionNote && (
-                <div className="rounded-lg border border-[#25815a]/20 bg-[#eaf6ef] p-3 text-sm dark:bg-emerald-950/20">
-                  <div className="mb-0.5 text-xs font-medium text-[#25815a]">შესრულებული სამუშაო (ჩაბარებისას)</div>
+                <div className="rounded-lg border border-[#25815a]/20 dark:border-[var(--ln-success-line)] bg-[#eaf6ef] dark:bg-[var(--ln-success-bg)] p-3 text-sm">
+                  <div className="mb-0.5 text-xs font-medium text-[#25815a] dark:text-[var(--ln-success)]">შესრულებული სამუშაო (ჩაბარებისას)</div>
                   <pre className="whitespace-pre-wrap max-md:break-words font-sans">{order.completionNote}</pre>
                 </div>
               )}
@@ -352,7 +358,7 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
                       <div className="min-w-0 flex-1">
                         <div className="truncate text-sm font-medium">{a.user.name}</div>
                         {a.user.phone && (
-                          <a href={`tel:${a.user.phone.replace(/\s+/g, "")}`} className="ln-link text-xs">
+                          <a href={telHref(a.user.phone) ?? undefined} className="ln-link text-xs">
                             {a.user.phone}
                           </a>
                         )}
@@ -375,9 +381,9 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
           </Card>
 
           {me.role === "admin" && (
-            <Card className="ring-1 ring-[#f0c9c3]">
+            <Card className="ring-1 ring-[#f0c9c3] dark:ring-[var(--ln-alert-line)]">
               <CardHeader className="pb-1">
-                <CardTitle className="text-[#b13f32]">საშიში მოქმედებები</CardTitle>
+                <CardTitle className="text-[#b13f32] dark:text-[var(--ln-alert)]">საშიში მოქმედებები</CardTitle>
               </CardHeader>
               <CardContent className="flex items-center justify-between gap-3">
                 <p className="text-xs text-muted-foreground">წაშლა შეუქცევადია: შეკვეთა, ვიზიტები, გადახდები, ფაილები.</p>

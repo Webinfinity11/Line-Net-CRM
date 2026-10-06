@@ -32,7 +32,7 @@ export function UserAvatar({
       className={cn(
         "inline-flex shrink-0 items-center justify-center rounded-full font-semibold",
         dims,
-        tone === "color" ? "bg-[#617084] text-white" : "bg-[#f1f4f9] text-[#617084]",
+        tone === "color" ? "bg-muted-foreground text-white dark:text-primary-foreground" : "bg-muted text-muted-foreground",
         className,
       )}
     >
@@ -48,10 +48,10 @@ export function AvatarStack({ users, max = 3 }: { users: { id: string; name: str
   return (
     <span className="inline-flex items-center -space-x-1.5">
       {shown.map((u) => (
-        <UserAvatar key={u.id} name={u.name} image={u.image} size="sm" className="ring-2 ring-white dark:ring-neutral-900" />
+        <UserAvatar key={u.id} name={u.name} image={u.image} size="sm" className="ring-2 ring-card dark:ring-neutral-900" />
       ))}
       {rest > 0 && (
-        <span className="inline-flex size-6 items-center justify-center rounded-full bg-[#e6ebf2] text-[10px] font-semibold ring-2 ring-white dark:bg-neutral-700 dark:ring-neutral-900">
+        <span className="inline-flex size-6 items-center justify-center rounded-full bg-border text-[10px] font-semibold ring-2 ring-card dark:bg-neutral-700 dark:ring-neutral-900">
           +{rest}
         </span>
       )}

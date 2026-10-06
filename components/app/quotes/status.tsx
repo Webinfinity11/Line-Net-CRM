@@ -10,10 +10,10 @@ export const QUOTE_STATUS_LABELS: Record<QuoteStatus, string> = {
 
 /** Muted chips in the same family as order statuses: colour marks state, nothing else. */
 const CHIP: Record<QuoteStatus, string> = {
-  draft: "bg-[#eef1f5] text-[#65717f]",
-  sent: "bg-[#f8faff] text-[#3d5a8a]",
-  accepted: "bg-[#eaf4ee] text-[#35735a]",
-  declined: "bg-[#faeeee] text-[#96504e]",
+  draft: "bg-[#eef1f5] dark:bg-muted text-[#65717f] dark:text-muted-foreground",
+  sent: "bg-[#f6fafb] dark:bg-muted text-primary",
+  accepted: "bg-[#eaf4ee] dark:bg-[var(--ln-success-bg)] text-[#35735a] dark:text-[var(--ln-success)]",
+  declined: "bg-[#faeeee] dark:bg-[var(--ln-alert-bg)] text-[#96504e] dark:text-[var(--ln-alert)]",
 };
 
 export function QuoteStatusBadge({ status, className }: { status: QuoteStatus; className?: string }) {

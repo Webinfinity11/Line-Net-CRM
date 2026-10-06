@@ -1,3 +1,5 @@
+import { monthOptions, parseMonth } from "@/lib/month-filter";
+import { oldestOrderDate } from "@/lib/orders";
 import { WorkflowProgress } from "@/components/app/workflow-progress";
 import { PriorityLabel } from "@/components/app/badges";
 import { ArrowRight, CalendarClock, CircleCheck, MapPin, Plus } from "lucide-react";
@@ -18,21 +20,22 @@ export const metadata = { title: "ჩემი შეკვეთები" };
 function OrderCard({ o, category }: { o: PortalOrder; category: string | null }) {
   const place = o.site ? [o.site.name, o.address ?? o.site.address].filter(Boolean).join(" · ") : o.address;
   return (
-    <article className="ln-card [overflow-wrap:anywhere]" aria-label={`${o.number} ${o.title}`}>
-      <Link href={`/portal/orders/${o.id}`} aria-label={`${o.number} — ${o.title} — დეტალურად`} className="group block cursor-pointer rounded-[inherit] p-4 transition-colors hover:bg-[#fafbff] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3457d5]">
+    <article className="ln-card ln-card-link group p-4 [overflow-wrap:anywhere]" aria-label={`${o.number} ${o.title}`}>
       <div className="min-w-0">
         <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
           <span className="font-mono text-[11px] text-muted-foreground">{o.number}</span>
           <span className={cn("inline-flex items-center gap-1.5 rounded-[6px] px-2 py-[3px] text-[11px] font-medium", o.triaged ? STATUS_COLORS[o.status] : STATUS_COLORS.closed)}>
             <i className="size-[5px] rounded-full bg-current" aria-hidden />
-            {o.status === "assigned" && !o.scheduledAt ? "ვიზიტის დრო ზუსტდება" : portalStatusLabel(o.status, o.triaged)}
+            {o.triaged && o.status === "assigned" && !o.scheduledAt ? "ვიზიტის დრო ზუსტდება" : portalStatusLabel(o.status, o.triaged)}
           </span>
-          {category && <span className="rounded-[6px] bg-[#f1f4f9] px-1.5 py-[3px] text-[11px] text-[#617084]">{category}</span>}
+          {category && <span className="rounded-[6px] bg-muted px-1.5 py-[3px] text-[11px] text-muted-foreground">{category}</span>}
           <PriorityLabel priority={o.priority} />
         </div>
-        <h3 className="font-heading text-[16px] font-bold leading-snug tracking-[-0.01em] text-[#3457d5] underline-offset-4 group-hover:underline">{o.title}</h3>
+        <h3 className="font-heading text-[16px] font-bold leading-snug tracking-[-0.01em] text-primary underline-offset-4 group-hover:underline">
+          <Link href={`/portal/orders/${o.id}`} aria-label={`${o.number} — ${o.title} — დეტალურად`} className="ln-row-link-anchor">{o.title}</Link>
+        </h3>
         {place && (
-          <div className="mt-1.5 flex items-start gap-1.5 text-[13px] text-[#4a5a6c]">
+          <div className="mt-1.5 flex items-start gap-1.5 text-[13px] text-[#4a5a6c] dark:text-[var(--ln-strong)]">
             <MapPin className="mt-0.5 size-4 shrink-0" />
             <span className="line-clamp-2">{place}</span>
           </div>
@@ -46,7 +49,7 @@ function OrderCard({ o, category }: { o: PortalOrder; category: string | null })
             </span>
           )}
           {o.completedAt && (o.status === "done" || o.status === "closed") && (
-            <span className="flex items-center gap-1 text-[#25815a]">
+            <span className="flex items-center gap-1 text-[#25815a] dark:text-[var(--ln-success)]">
               <CircleCheck className="size-3.5" /> შესრულდა {formatDate(o.completedAt)}
             </span>
           )}
@@ -54,9 +57,8 @@ function OrderCard({ o, category }: { o: PortalOrder; category: string | null })
         <WorkflowProgress status={o.status} triaged={o.triaged} scheduled={Boolean(o.scheduledAt)} compact />
       </div>
       <div className="mt-3 flex justify-end">
-        <span className={cn(buttonVariants({ variant: "outline" }), "h-11 w-full gap-2 whitespace-nowrap sm:w-auto")} aria-hidden="true">{toMtavruli("დეტალურად")} <ArrowRight className="size-4" /></span>
+        <Link href={`/portal/orders/${o.id}`} className={cn(buttonVariants({ variant: "outline" }), "relative z-10 h-11 w-full gap-2 whitespace-nowrap sm:w-auto")}>{toMtavruli("დეტალურად")} <ArrowRight className="size-4" /></Link>
       </div>
-      </Link>
     </article>
   );
 }
@@ -83,7 +85,8 @@ export default async function PortalPage({ searchParams }: PageProps<"/portal">)
   const q = typeof sp.q === "string" ? sp.q.trim() : "";
   const site = typeof sp.site === "string" && /^\d+$/.test(sp.site) ? Number(sp.site) : undefined;
   const siteId = site && Number.isSafeInteger(site) && site <= 2147483647 ? site : undefined;
-  const [orders, labels, sites] = await Promise.all([listPortalOrders(company.id, { q, siteId }), systemLabels(), listPortalSites(company.id)]);
+  const month = typeof sp.month === "string" && parseMonth(sp.month) ? sp.month : undefined;
+  const [orders, labels, sites, oldest] = await Promise.all([listPortalOrders(company.id, { q, siteId, month }), systemLabels(), listPortalSites(company.id), oldestOrderDate(company.id)]);
   const sentOrder = typeof sp.sent === "string" ? orders.find((o) => String(o.id) === sp.sent) : undefined;
   const counts = countPortalTabs(orders);
   const visibleOrders = tab === "all" ? orders : orders.filter((o) => portalTabOf(o.status, o.triaged) === tab);
@@ -94,15 +97,15 @@ export default async function PortalPage({ searchParams }: PageProps<"/portal">)
       <PageHeader kicker={company.name} title={t.nav.my} subtitle={`${counts.sent + counts.planned + counts.progress} მიმდინარე · ${orders.length} სულ`} actions={newButton} />
 
       {sentOrder && (
-        <div role="status" className="ln-card flex items-center gap-2.5 px-4 py-3 text-[13px] text-[#25815a]">
+        <div role="status" className="ln-card flex items-center gap-2.5 px-4 py-3 text-[13px] text-[#25815a] dark:text-[var(--ln-success)]">
           <CircleCheck className="size-4 shrink-0" /> მოთხოვნა გაგზავნილია — {sentOrder.number}. როცა ლაინნეტი მიიღებს, შეტყობინებას მიიღებთ.
         </div>
       )}
 
-      <PortalFilters tab={tab} q={q} siteId={siteId} counts={counts} sites={sites.map(({ id, name, address }) => ({ id, name, address }))} />
+      <PortalFilters month={month ?? ""} months={monthOptions(oldest, new Date())} tab={tab} q={q} siteId={siteId} counts={counts} sites={sites.map(({ id, name, address }) => ({ id, name, address }))} />
       {visibleOrders.length === 0 ? (
         <div className="ln-card px-6 py-14 text-center text-sm text-muted-foreground">
-          {q || siteId ? "ვერაფერი მოიძებნა" : "შეკვეთა არ არის"}
+          {q || siteId || month ? "ვერაფერი მოიძებნა" : "შეკვეთა არ არის"}
         </div>
       ) : (
         <section className="space-y-2" aria-label="შეკვეთები">

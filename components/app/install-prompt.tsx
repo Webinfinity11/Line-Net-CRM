@@ -118,13 +118,13 @@ export function InstallPrompt() {
       <div className="flex items-start gap-[12px]">
         <img src="/icon-192.png" alt="" width={40} height={40} className="size-[40px] shrink-0 rounded-[10px]" />
         <div className="min-w-0 flex-1 pt-[2px]">
-          <p className="text-[14px] font-semibold leading-[20px] text-[#17212b]">დააყენეთ Line Net ტელეფონზე</p>
+          <p className="text-[14px] font-semibold leading-[20px] text-foreground">დააყენეთ Line Net ტელეფონზე</p>
           {mode === "android" ? (
-            <p className="mt-[2px] text-[13px] leading-[18px] text-[#617084]">გაიხსნება აპივით, ბრაუზერის გარეშე.</p>
+            <p className="mt-[2px] text-[13px] leading-[18px] text-muted-foreground">გაიხსნება აპივით, ბრაუზერის გარეშე.</p>
           ) : (
-            <p className="mt-[2px] text-[13px] leading-[18px] text-[#617084]">
+            <p className="mt-[2px] text-[13px] leading-[18px] text-muted-foreground">
               დააჭირეთ
-              <Share className="mx-[4px] inline size-[15px] -translate-y-px align-middle text-[#3457d5]" aria-label="გაზიარება" />
+              <Share className="mx-[4px] inline size-[15px] -translate-y-px align-middle text-primary" aria-label="გაზიარება" />
               და აირჩიეთ „Add to Home Screen“
             </p>
           )}
@@ -133,7 +133,7 @@ export function InstallPrompt() {
           type="button"
           onClick={notNow}
           aria-label="დახურვა"
-          className="-mr-[8px] -mt-[8px] flex size-[44px] shrink-0 items-center justify-center rounded-full text-[#8b98a9] hover:bg-[#f1f4f9] hover:text-[#17212b]"
+          className="-mr-[8px] -mt-[8px] flex size-[44px] shrink-0 items-center justify-center rounded-full text-[#8b98a9] dark:text-[var(--ln-faint)] hover:bg-muted hover:text-foreground"
         >
           <X className="size-[18px]" />
         </button>

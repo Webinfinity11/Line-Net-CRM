@@ -13,25 +13,29 @@ import { ROLE_LABELS, formatDate, t } from "@/lib/i18n";
 import { listAllUsers, listClientNames } from "@/lib/orders";
 import { systemLabels } from "@/lib/systems";
 import { requireUser } from "@/lib/session";
+import { competenciesByUser, competenceLabel } from "@/lib/competencies";
 import { cn } from "@/lib/utils";
 
 export const metadata = { title: "მომხმარებლები" };
 
 const ROLE_TONE: Record<string, string> = {
-  admin: "bg-[#f1f4f9] text-[#17212b]",
-  manager: "bg-[#f1f4f9] text-[#4a5e73]",
-  executor: "bg-[#f1f4f9] text-[#617084]",
-  client: "bg-[#f1f4f9] text-[#4a5e73]",
+  admin: "bg-muted text-foreground",
+  manager: "bg-muted text-[#4a5e73] dark:text-[var(--ln-strong)]",
+  executor: "bg-muted text-muted-foreground",
+  client: "bg-muted text-[#4a5e73] dark:text-[var(--ln-strong)]",
 };
 
 export default async function UsersPage() {
   const me = await requireUser(["admin"]);
   const [users, clientList, labels] = await Promise.all([listAllUsers(), listClientNames(), systemLabels()]);
+  const competencies = await competenciesByUser(users.map(u => u.id));
   const company = new Map(clientList.map((c) => [c.id, c.name]));
   /** What sits next to the role: a technician's categories, a client's company. */
   const Links = ({ u }: { u: (typeof users)[number] }) =>
     u.role === "client" ? (
       <Chip>{u.clientId ? (company.get(u.clientId) ?? "—") : "კომპანია არ არის მიბმული"}</Chip>
+    ) : u.role === "executor" ? (
+      <span className="text-[12px] text-muted-foreground">{competenceLabel(competencies.get(u.id) ?? "all", labels)}</span>
     ) : (
       <>
         {u.specializations.map((k) => (
@@ -49,11 +53,11 @@ export default async function UsersPage() {
   );
   const Status = ({ banned }: { banned: boolean }) =>
     banned ? (
-      <span className="flex items-center gap-1.5 text-[11.5px] text-[#8b98a9]">
+      <span className="flex items-center gap-1.5 text-[11.5px] text-[#8b98a9] dark:text-[var(--ln-faint)]">
         <span className="size-1.5 rounded-full border border-[#8b98a9]" /> დეაქტივირებული
       </span>
     ) : (
-      <span className="flex items-center gap-1.5 text-[11.5px] text-[#4a5e73]">
+      <span className="flex items-center gap-1.5 text-[11.5px] text-[#4a5e73] dark:text-[var(--ln-strong)]">
         <span className="size-1.5 rounded-full bg-[#4a5e73]" /> აქტიური
       </span>
     );
@@ -65,7 +69,7 @@ export default async function UsersPage() {
         title="მომხმარებლის რედაქტირება"
         action={updateUser.bind(null, u.id)}
       >
-        <UserFields initial={u} clients={clientList} />
+        <UserFields initial={{ ...u, competencies: competencies.get(u.id) ?? "all" }} clients={clientList} />
       </FormDialog>
       {u.id !== me.id && (
         <ConfirmButton
@@ -75,7 +79,7 @@ export default async function UsersPage() {
           variant="ghost"
           size={labelled ? "sm" : "xs"}
           // deactivating is reversible, so it stays neutral; red is reserved for problems
-          className={cn(labelled && "h-10", u.banned ? "text-[#25815a]" : "text-muted-foreground hover:text-[#b13f32]")}
+          className={cn(labelled && "h-10", u.banned ? "text-[#25815a] dark:text-[var(--ln-success)]" : "text-muted-foreground hover:text-[#b13f32] dark:hover:text-[var(--ln-alert)]")}
           action={setUserBanned.bind(null, u.id, !u.banned)}
         >
           {u.banned ? <UserCheck className="size-3.5" /> : <UserX className="size-3.5" />}
@@ -139,7 +143,7 @@ export default async function UsersPage() {
                 <div className="absolute right-0 top-3.5">
                   <ClientActionsMenu name={u.name} editTitle="მომხმარებლის რედაქტირება" editAction={updateUser.bind(null, u.id)}
                   secondary={u.id !== me.id ? { label: u.banned ? "აქტივაცია" : "დეაქტივაცია", title: u.banned ? "აქტივაცია" : "დეაქტივაცია", description: u.banned ? "მომხმარებელი კვლავ შეძლებს შესვლას." : "მომხმარებელი ვეღარ შევა სისტემაში. მონაცემები რჩება.", action: setUserBanned.bind(null, u.id, !u.banned) } : undefined}>
-                  <UserFields initial={u} clients={clientList} />
+                  <UserFields initial={{ ...u, competencies: competencies.get(u.id) ?? "all" }} clients={clientList} />
                   </ClientActionsMenu>
                 </div>
               </li>
@@ -151,7 +155,7 @@ export default async function UsersPage() {
                 <tr>
                   <th className={tableCls.th}>მომხმარებელი</th>
                   <th className={tableCls.th}>როლი</th>
-                  <th className={cn(tableCls.th, "hidden lg:table-cell")}>სპეციალიზაცია / კომპანია</th>
+                  <th className={cn(tableCls.th, "hidden lg:table-cell")}>კომპეტენციები / კომპანია</th>
                   <th className={cn(tableCls.th, "hidden md:table-cell")}>ტელეფონი</th>
                   <th className={cn(tableCls.th, "hidden sm:table-cell")}>სტატუსი</th>
                   <th className={cn(tableCls.th, "hidden xl:table-cell")}>დამატებულია</th>
@@ -176,7 +180,7 @@ export default async function UsersPage() {
                       <RoleChip role={u.role} />
                     </td>
                     <td className={cn(tableCls.td, "hidden max-w-[280px] lg:table-cell")}>
-                      {u.specializations.length || u.role === "client" ? (
+                      {u.specializations.length || u.role === "client" || u.role === "executor" ? (
                         <span className="flex flex-wrap gap-1">
                           <Links u={u} />
                         </span>

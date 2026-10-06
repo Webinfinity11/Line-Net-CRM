@@ -22,10 +22,10 @@ export default async function ChecklistSettingsPage() {
       </FormDialog>
     } />
     <Link href="/settings/services" className="ln-link inline-flex min-h-[44px] items-center text-[13px]">სერვისები</Link>
-    {templates.length === 0 && <p className="ln-card p-6 text-[14px] text-[#617084]">შაბლონები ჯერ არ არის</p>}
+    {templates.length === 0 && <p className="ln-card p-6 text-[14px] text-muted-foreground">შაბლონები ჯერ არ არის</p>}
     {systems.filter(s => templates.some(t => t.systemType === s.key)).map(system => <section key={system.key} className="ln-card overflow-hidden">
       <h2 className="px-5 py-4 font-bold text-[15px]">{toMtavruli(system.name)}</h2>
-      <div className="divide-y divide-[#eef1f6]">{templates.filter(t => t.systemType === system.key).map(tpl => {
+      <div className="divide-y divide-[#eef1f6] dark:divide-border">{templates.filter(t => t.systemType === system.key).map(tpl => {
         const items = normalizeItems(tpl.items);
         return <div key={tpl.id} className="flex items-center gap-2 px-4 py-2">
           <FormDialog trigger={<button className="ln-link min-h-[44px] min-w-0 flex-1 py-2 text-left" />} triggerLabel={<TemplateSummary name={tpl.name} count={items.length} required={items.filter(i => i.required).length} isDefault={tpl.isDefault} />} title="შაბლონის რედაქტირება" action={updateTemplate.bind(null, tpl.id)}>

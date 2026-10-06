@@ -20,9 +20,9 @@ type FieldProps = {
   className?: string;
   "aria-label"?: string;
 };
-const fieldStyle = "flex h-[40px] min-w-0 w-full items-center gap-[8px] rounded-[8px] border border-[#dbe1ec] bg-white px-[10px] text-[13px] text-[#17212b] outline-none focus-visible:ring-2 focus-visible:ring-[#3457d5] disabled:opacity-50 max-md:min-h-[44px] max-md:text-[16px]";
-const choiceStyle = "flex h-[44px] min-w-0 items-center justify-center rounded-[8px] text-[13px] outline-none hover:bg-[#f1f4f9] focus-visible:ring-2 focus-visible:ring-[#3457d5] disabled:opacity-30 disabled:pointer-events-none";
-const popupStyle = "w-[332px] max-w-[calc(100vw-16px)] max-h-[var(--available-height)] overflow-y-auto rounded-[14px] border border-[#e6ebf2] bg-white p-[10px] text-[#17212b] shadow-lg";
+const fieldStyle = "flex h-[40px] min-w-0 w-full items-center gap-[8px] rounded-[8px] border border-[#dbe1ec] dark:border-input bg-card px-[10px] text-[13px] text-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50 max-md:min-h-[44px] max-md:text-[16px]";
+const choiceStyle = "flex h-[44px] min-w-0 items-center justify-center rounded-[8px] text-[13px] outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-30 disabled:pointer-events-none";
+const popupStyle = "w-[332px] max-w-[calc(100vw-16px)] max-h-[var(--available-height)] overflow-y-auto rounded-[14px] border border-border bg-card p-[10px] text-foreground shadow-lg";
 
 function useField(props: FieldProps) {
   const [local, setLocal] = useState(props.defaultValue ?? "");
@@ -74,7 +74,7 @@ export function DateField(props: FieldProps & { iconOnly?: boolean }) {
     <Popover open={open} onOpenChange={openChange}>
       <PopoverTrigger ref={trigger} id={props.id} disabled={props.disabled} aria-label={props["aria-label"] ?? (props.iconOnly ? "თარიღის არჩევა" : undefined)}
         className={cn(fieldStyle, "h-full min-h-[40px]", props.iconOnly && "justify-center px-0")}>
-        <CalendarDays className="size-[16px] shrink-0 text-[#617084]" />
+        <CalendarDays className="size-[16px] shrink-0 text-muted-foreground" />
         {!props.iconOnly && <span className="truncate">{formatFieldDate(value) || "თარიღი"}</span>}
       </PopoverTrigger>
       <PopoverContent align="start" sideOffset={6} className={popupStyle}>
@@ -84,15 +84,15 @@ export function DateField(props: FieldProps & { iconOnly?: boolean }) {
           <button type="button" aria-label="შემდეგი თვე" className={choiceStyle} onClick={() => setMonth(shiftMonth(month, 1))}><ChevronRight className="size-[18px]" /></button>
         </div>
         <div className="grid grid-cols-7">
-          {WEEKDAYS_KA.map(day => <span key={day} className="py-[8px] text-center text-[11px] text-[#617084]">{day}</span>)}
+          {WEEKDAYS_KA.map(day => <span key={day} className="py-[8px] text-center text-[11px] text-muted-foreground">{day}</span>)}
           {monthGrid(month).map(day => <button key={day} type="button" aria-label={formatFieldDate(day)} aria-pressed={day === value} aria-current={day === today ? "date" : undefined}
             disabled={!dateAllowed(day, props.min, props.max)}
-            className={cn(choiceStyle, day.slice(0, 7) !== month.slice(0, 7) && "text-[#8b98a9]", day === today && "ring-1 ring-inset ring-[#3457d5]", day === value && "bg-[#3457d5] text-white hover:bg-[#2846b7]")}
+            className={cn(choiceStyle, day.slice(0, 7) !== month.slice(0, 7) && "text-[#8b98a9] dark:text-[var(--ln-faint)]", day === today && "ring-1 ring-inset ring-primary", day === value && "bg-primary text-white dark:text-primary-foreground hover:bg-[#326b72] dark:hover:bg-[var(--ln-accent-hover)]")}
             onClick={() => select(day)}>{Number(day.slice(8))}</button>)}
         </div>
-        <div className="flex justify-between border-t border-[#eef1f6] pt-[4px]">
-          <button type="button" className={cn(choiceStyle, "px-[12px] text-[#3457d5]")} disabled={!dateAllowed(today, props.min, props.max)} onClick={() => select(today)}>დღეს</button>
-          {!props.iconOnly && <button type="button" className={cn(choiceStyle, "px-[12px] text-[#617084]")} onClick={() => select("")}>გასუფთავება</button>}
+        <div className="flex justify-between border-t border-[#eef1f6] dark:border-border pt-[4px]">
+          <button type="button" className={cn(choiceStyle, "px-[12px] text-primary")} disabled={!dateAllowed(today, props.min, props.max)} onClick={() => select(today)}>დღეს</button>
+          {!props.iconOnly && <button type="button" className={cn(choiceStyle, "px-[12px] text-muted-foreground")} onClick={() => select("")}>გასუფთავება</button>}
         </div>
       </PopoverContent>
     </Popover>
@@ -108,13 +108,13 @@ export function TimeField(props: FieldProps) {
       <input ref={input} id={props.id} type="text" inputMode="text" placeholder="სს:წწ" value={value}
         onChange={event => change(event.target.value)} required={props.required} disabled={props.disabled}
         pattern="([01][0-9]|2[0-3]):[0-5][0-9]" title="საათი:წუთი (მაგ. 09:30)" aria-label={props["aria-label"] ?? "დრო"}
-        className="h-full min-h-[40px] w-full min-w-0 rounded-[8px] bg-transparent pl-[10px] outline-none focus-visible:ring-2 focus-visible:ring-[#3457d5] max-md:min-h-[44px]" />
+        className="h-full min-h-[40px] w-full min-w-0 rounded-[8px] bg-transparent pl-[10px] outline-none focus-visible:ring-2 focus-visible:ring-primary max-md:min-h-[44px]" />
       <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger disabled={props.disabled} aria-label="დროის არჩევა" className="flex size-[44px] shrink-0 items-center justify-center rounded-[8px] text-[#617084] outline-none focus-visible:ring-2 focus-visible:ring-[#3457d5]"><Clock className="size-[16px]" /></PopoverTrigger>
+        <PopoverTrigger disabled={props.disabled} aria-label="დროის არჩევა" className="flex size-[44px] shrink-0 items-center justify-center rounded-[8px] text-muted-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary"><Clock className="size-[16px]" /></PopoverTrigger>
         <PopoverContent align="end" sideOffset={6} className={cn(popupStyle, "w-[264px] max-h-[min(320px,var(--available-height))]")}>
           <div className="grid grid-cols-3 gap-[4px]">
             {TIME_OPTIONS.map(time => <button type="button" key={time} aria-pressed={value === time}
-              className={cn(choiceStyle, value === time && "bg-[#3457d5] text-white hover:bg-[#2846b7]")}
+              className={cn(choiceStyle, value === time && "bg-primary text-white dark:text-primary-foreground hover:bg-[#326b72] dark:hover:bg-[var(--ln-accent-hover)]")}
               onClick={() => { change(time); setOpen(false); }}>{time}</button>)}
           </div>
         </PopoverContent>

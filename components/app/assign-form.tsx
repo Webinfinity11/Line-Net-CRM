@@ -11,16 +11,17 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Label } from "@/components/ui/label";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import type { SystemType } from "@/db/schema";
-import { useSystemLabel } from "@/components/app/systems-provider";
+import { canHandle, type Competencies } from "@/lib/competency-utils";
 import { compareNames } from "@/lib/order-utils";
 
-export type ExecutorOption = { id: string; name: string; image?: string | null; specializations?: string[]; hours?: number };
+export type ExecutorOption = { id: string; name: string; image?: string | null; competencies: Competencies; competenceLabel: string; hours?: number };
 
 export type AssignProps = {
   orderId: number;
   systemType?: SystemType | null;
   executors: ExecutorOption[];
   normHours: number;
+  assignedIds?: string[];
   defaultAssigneeId?: string | null;
   /** YYYY-MM-DD (Tbilisi) */
   defaultDate: string;
@@ -34,18 +35,18 @@ const DURATIONS = [30, 60, 90, 120, 180, 240, 480];
 
 /**
  * The one assignment form: who, when, how long. Executors are ordered by
- * specialization match, then by today's planned hours (least loaded first).
+ * today's planned hours (least loaded first), within their competencies.
  */
-export function AssignForm({ orderId, systemType, executors, normHours, defaultAssigneeId, defaultDate, defaultTime, defaultMinutes, onDone }: AssignProps) {
-  const systemName = useSystemLabel(systemType);
+export function AssignForm({ orderId, systemType, executors, normHours, assignedIds, defaultAssigneeId, defaultDate, defaultTime, defaultMinutes, onDone }: AssignProps) {
   const router = useRouter();
   const busy = useRef(false);
   const [pending, start] = useTransition();
   const sorted = useMemo(() => {
-    const match = (u: ExecutorOption) => Boolean(systemType && u.specializations?.includes(systemType));
-    return [...executors].sort((a, b) => Number(match(b)) - Number(match(a)) || (a.hours ?? 0) - (b.hours ?? 0) || compareNames(a.name, b.name));
-  }, [executors, systemType]);
+    return executors.filter(u => u.id === defaultAssigneeId || assignedIds?.includes(u.id) || canHandle(systemType, u.competencies))
+      .sort((a, b) => (a.hours ?? 0) - (b.hours ?? 0) || compareNames(a.name, b.name));
+  }, [executors, systemType, defaultAssigneeId, assignedIds]);
   const [assignee, setAssignee] = useState(defaultAssigneeId || sorted[0]?.id || "");
+  const selectedId = sorted.some(u => u.id === assignee) ? assignee : "";
   const [date, setDate] = useState(defaultDate);
   const [time, setTime] = useState(defaultTime ?? "");
   const [minutes, setMinutes] = useState(String(defaultMinutes ?? 120));
@@ -53,11 +54,11 @@ export function AssignForm({ orderId, systemType, executors, normHours, defaultA
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (busy.current || !assignee) return;
+    if (busy.current || !selectedId) return;
     busy.current = true;
     setError(null);
     const fd = new FormData();
-    fd.set("assigneeId", assignee);
+    fd.set("assigneeId", selectedId);
     fd.set("scheduledAt", date && time ? new Date(`${date}T${time}:00+04:00`).toISOString() : "");
     fd.set("plannedMinutes", minutes);
     start(async () => {
@@ -67,7 +68,7 @@ export function AssignForm({ orderId, systemType, executors, normHours, defaultA
           setError(res.error);
           return;
         }
-        const name = executors.find((u) => u.id === assignee)?.name ?? "";
+        const name = executors.find((u) => u.id === selectedId)?.name ?? "";
         toast.success(time ? `დანიშნულია: ${name}, ${date.split("-").reverse().join(".")} ${time}` : `დანიშნულია: ${name}`);
         if (res.data?.warning) toast.warning(res.data.warning);
         router.refresh();
@@ -81,34 +82,34 @@ export function AssignForm({ orderId, systemType, executors, normHours, defaultA
   return (
     <form onSubmit={submit} className="min-w-0 space-y-4 [overflow-wrap:anywhere]">
       <div className="min-w-0 space-y-1.5">
-        <Label htmlFor={`as-who-${orderId}`} className="text-[12px] text-[#4a5e73]">
+        <Label htmlFor={`as-who-${orderId}`} className="text-[12px] text-[#4a5e73] dark:text-[var(--ln-strong)]">
           ვინ
         </Label>
-        <NativeSelect id={`as-who-${orderId}`} className="w-full min-w-0 [&>select]:min-h-[44px]" value={assignee} onChange={(e) => setAssignee(e.target.value)} required>
+        <NativeSelect id={`as-who-${orderId}`} className="w-full min-w-0 [&>select]:min-h-[44px]" value={selectedId} onChange={(e) => setAssignee(e.target.value)} required>
           <NativeSelectOption value="">აირჩიეთ შემსრულებელი</NativeSelectOption>
           {sorted.map((u) => (
             <NativeSelectOption key={u.id} value={u.id}>
-              {u.name} · {u.hours ?? 0}/{normHours} სთ{systemType && u.specializations?.includes(systemType) ? ` · ${systemName}` : ""}
+              {u.name} · {u.hours ?? 0}/{normHours} სთ · {u.competenceLabel}
             </NativeSelectOption>
           ))}
         </NativeSelect>
-        <p className="text-[11px] text-muted-foreground">დაგეგმილი საათები · შესაბამისი სპეციალიზაციის შემსრულებლები სიის თავშია</p>
+        <p className="text-[11px] text-muted-foreground">დაგეგმილი საათები · კატეგორიის შესაბამისი კომპეტენციები</p>
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div className="col-span-2 min-w-0 space-y-1.5">
-          <Label htmlFor={`as-date-${orderId}`} className="text-[12px] text-[#4a5e73]">
+          <Label htmlFor={`as-date-${orderId}`} className="text-[12px] text-[#4a5e73] dark:text-[var(--ln-strong)]">
             როდის
           </Label>
           <DateField id={`as-date-${orderId}`} className="min-h-[44px] w-full max-w-full" value={date} onChange={setDate} />
         </div>
         <div className="min-w-0 space-y-1.5">
-          <Label htmlFor={`as-time-${orderId}`} className="text-[12px] text-[#4a5e73]">
+          <Label htmlFor={`as-time-${orderId}`} className="text-[12px] text-[#4a5e73] dark:text-[var(--ln-strong)]">
             დრო
           </Label>
           <TimeField id={`as-time-${orderId}`} value={time} onChange={setTime} className="min-h-[44px] w-full max-w-full" />
         </div>
         <div className="min-w-0 space-y-1.5">
-          <Label htmlFor={`as-min-${orderId}`} className="text-[12px] text-[#4a5e73]">
+          <Label htmlFor={`as-min-${orderId}`} className="text-[12px] text-[#4a5e73] dark:text-[var(--ln-strong)]">
             რამდენ ხანს
           </Label>
           <NativeSelect id={`as-min-${orderId}`} value={minutes} onChange={(e) => setMinutes(e.target.value)} className="w-full min-w-0 [&>select]:min-h-[44px]">
@@ -121,12 +122,12 @@ export function AssignForm({ orderId, systemType, executors, normHours, defaultA
         </div>
       </div>
       {error && (
-        <p className="text-[12px] text-[#b13f32]" role="alert">
+        <p className="text-[12px] text-[#b13f32] dark:text-[var(--ln-alert)]" role="alert">
           {error}
         </p>
       )}
       <div className="flex flex-wrap items-center gap-3">
-        <Button type="submit" className="min-h-[44px] w-full sm:w-auto" disabled={pending || !assignee}>
+        <Button type="submit" className="min-h-[44px] w-full sm:w-auto" disabled={pending || !selectedId}>
           <UserPlus className="size-4" /> {pending ? "ინახება…" : "დანიშვნა"}
         </Button>
         <span className="text-[11px] text-muted-foreground">{time ? "შეინახება შემსრულებელი და დაგეგმილი დრო" : "დროის გარეშე მხოლოდ შემსრულებელი დაინიშნება"}</span>

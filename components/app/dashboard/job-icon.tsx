@@ -16,7 +16,7 @@ const ICONS: Partial<Record<SystemType, LucideIcon>> = {
 export function JobIcon({ system, className }: { system: SystemType | null; className?: string }) {
   const Icon = (system && ICONS[system]) || Wrench;
   return (
-    <span className={cn("grid size-[30px] shrink-0 place-items-center rounded-[7px] bg-[#f1f4f9] text-[#66809a]", className)} aria-hidden>
+    <span className={cn("grid size-[30px] shrink-0 place-items-center rounded-[7px] bg-muted text-[#66809a] dark:text-muted-foreground", className)} aria-hidden>
       <Icon className="size-4 [stroke-width:1.7]" />
     </span>
   );

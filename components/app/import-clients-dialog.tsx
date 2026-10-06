@@ -38,7 +38,7 @@ export function ImportClientsDialog() {
           <DialogTitle>კლიენტების იმპორტი Excel-დან</DialogTitle>
           <DialogDescription>
             სვეტები: კომპანია, ს/კ, კონტაქტი, ტელეფონი, ელფოსტა, ობიექტი, მისამართი. ერთი სტრიქონი = ერთი ობიექტი; ერთი კომპანია რამდენიმე სტრიქონში შეიძლება იყოს.{" "}
-            <a href="/api/export?type=clients-template" className="text-[#3457d5] hover:underline">
+            <a href="/api/export?type=clients-template" className="text-primary hover:underline">
               შაბლონის ჩამოტვირთვა
             </a>
           </DialogDescription>

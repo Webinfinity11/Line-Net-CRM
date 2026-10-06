@@ -51,14 +51,14 @@ export function Kanban({ orders }: { orders: OrderListItem[] }) {
             onDragLeave={() => setOverCol(null)}
             onDrop={() => drop(status)}
             className={cn(
-              "flex w-72 shrink-0 flex-col rounded-xl border bg-[#f1f4f9]/70 transition-colors dark:bg-neutral-900",
-              overCol === status && dragId !== null && "border-[#3457d5] bg-[#eef2ff] dark:bg-blue-950/30",
+              "flex w-72 shrink-0 flex-col rounded-xl border bg-muted/70 transition-colors dark:bg-neutral-900",
+              overCol === status && dragId !== null && "border-primary bg-accent dark:bg-[#234f54]/30",
             )}
           >
             <div className="flex items-center gap-2 px-3 py-2.5">
               <span className="size-2.5 rounded-full" style={{ background: STATUS_HEX[status] }} />
               <span className="text-sm font-semibold">{STATUS_LABELS[status]}</span>
-              <span className="ml-auto rounded-full bg-white px-2 py-0.5 text-xs text-muted-foreground dark:bg-neutral-800">{col.length}</span>
+              <span className="ml-auto rounded-full bg-card px-2 py-0.5 text-xs text-muted-foreground dark:bg-neutral-800">{col.length}</span>
             </div>
             <div className="flex min-h-[120px] flex-1 flex-col gap-2 px-2 pb-2">
               {col.map((o) => (
@@ -72,7 +72,7 @@ export function Kanban({ orders }: { orders: OrderListItem[] }) {
                     setOverCol(null);
                   }}
                   className={cn(
-                    "ln-card-link block cursor-grab rounded-lg border bg-white p-3 shadow-sm transition-shadow hover:shadow-md active:cursor-grabbing dark:bg-neutral-800",
+                    "ln-card-link block cursor-grab rounded-lg border bg-card p-3 shadow-sm transition-shadow hover:shadow-md active:cursor-grabbing dark:bg-neutral-800",
                     dragId === o.id && "opacity-50",
                   )}
                 >

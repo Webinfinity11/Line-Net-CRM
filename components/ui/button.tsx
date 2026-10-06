@@ -8,16 +8,16 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground shadow-[0_3px_8px_rgba(52,87,213,0.16)] hover:-translate-y-px hover:bg-[#2846b7] hover:shadow-[0_5px_12px_rgba(52,87,213,0.2)] active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 dark:hover:bg-blue-500",
+        default: "bg-primary text-primary-foreground shadow-[0_3px_8px_rgba(57,123,131,0.16)] hover:-translate-y-px hover:bg-[#326b72] hover:shadow-[0_5px_12px_rgba(57,123,131,0.2)] active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 dark:hover:bg-[var(--ln-accent-hover)]",
         outline:
-          "border-[#dbe1ec] bg-white text-[#617084] hover:border-[#c9d3e3] hover:bg-[#f8faff] hover:text-[#17212b] aria-expanded:bg-[#f8faff] dark:border-input dark:bg-input/30 dark:text-foreground dark:hover:bg-input/50",
+          "border-[#dbe1ec] bg-card text-muted-foreground hover:border-[#c9d3e3] dark:hover:border-input hover:bg-[#f6fafb] hover:text-foreground aria-expanded:bg-[#f6fafb] dark:aria-expanded:bg-muted dark:border-input dark:bg-input/30 dark:text-foreground dark:hover:bg-input/50",
         secondary:
-          "bg-[#eef2ff] text-[#3457d5] hover:bg-[#e2e9ff] aria-expanded:bg-[#e2e9ff] dark:bg-blue-950/40 dark:text-blue-200 dark:hover:bg-blue-950/60",
+          "bg-accent text-primary hover:bg-[#dceef0] aria-expanded:bg-[#dceef0] dark:aria-expanded:bg-accent dark:bg-[#234f54]/40 dark:text-[#a5cdd1] dark:hover:bg-[#234f54]/60",
         ghost:
-          "text-[#617084] hover:bg-[#f1f4f9] hover:text-[#17212b] aria-expanded:bg-[#f1f4f9] aria-expanded:text-[#17212b] dark:text-foreground dark:hover:bg-muted/50",
+          "text-muted-foreground hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:text-foreground dark:hover:bg-muted/50",
         destructive:
-          "bg-[#faeeee] text-[#b13f32] hover:bg-[#b13f32] hover:text-white focus-visible:border-[#b13f32]/40 focus-visible:ring-[#b13f32]/20 dark:bg-rose-950/40 dark:text-rose-200 dark:hover:bg-rose-950/60",
-        success: "bg-[#25815a] text-white shadow-sm hover:bg-[#1f6e4d]",
+          "bg-[#faeeee] text-[#b13f32] hover:bg-[#b13f32] hover:text-white focus-visible:border-[#b13f32]/40 dark:focus-visible:border-[var(--ln-alert)]/40 focus-visible:ring-[#b13f32]/20 dark:focus-visible:ring-[var(--ln-alert)]/20 dark:bg-[var(--ln-alert-bg)] dark:text-[var(--ln-alert)] dark:hover:bg-[var(--ln-alert)] dark:hover:text-primary-foreground",
+        success: "bg-[#25815a] dark:bg-[var(--ln-success)] text-white dark:text-primary-foreground shadow-sm hover:bg-[#1f6e4d] dark:hover:bg-[var(--ln-success-hover)]",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {

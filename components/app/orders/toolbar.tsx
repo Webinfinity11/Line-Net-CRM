@@ -10,6 +10,7 @@ import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 /** Columns anyone can switch off; the title and status always stay. */
 const ORDER_COLUMNS = [
   { key: "number", label: "ნომერი" },
+  { key: "client", label: "კლიენტი" },
   { key: "system", label: "კატეგორია" },
   { key: "crew", label: "შემსრულებლები" },
   { key: "due", label: "ვადა" },
@@ -26,6 +27,8 @@ const SORTS: { key: string; label: string }[] = [
 /** Search + sort + filter toggle. The dropdown filters live in `children` and stay folded away. */
 export function OrdersToolbar({
   q,
+  month,
+  months,
   sort,
   total,
   hidden,
@@ -34,6 +37,8 @@ export function OrdersToolbar({
   children,
 }: {
   q: string;
+  month: string;
+  months: { value: string; label: string }[];
   sort: string;
   total: number;
   hidden: Record<string, string>;
@@ -63,7 +68,7 @@ export function OrdersToolbar({
           <input key={k} type="hidden" name={k} value={v} />
         ))}
         <div className="relative w-full min-w-0 sm:w-[320px] max-md:w-auto max-md:flex-1">
-          <button type="submit" aria-label="ძიება" className="absolute inset-y-0 left-0 grid w-9 cursor-pointer place-items-center rounded-l-full text-muted-foreground hover:text-[#3457d5] focus-visible:outline-2 focus-visible:outline-[#3457d5]">
+          <button type="submit" aria-label="ძიება" className="absolute inset-y-0 left-0 grid w-9 cursor-pointer place-items-center rounded-l-full text-muted-foreground hover:text-primary focus-visible:outline-2 focus-visible:outline-primary">
             <Search className="size-4" />
           </button>
           <input
@@ -78,14 +83,18 @@ export function OrdersToolbar({
                 formRef.current?.requestSubmit();
               }
             }}
-            className="h-11 w-full rounded-full border border-[#e6ebf2] bg-[#f8faff] pl-9 pr-3 text-[16px] outline-none transition focus:border-[#7f97e6] focus:bg-white sm:text-[13px]"
+            className="h-11 w-full rounded-full border border-border bg-[#f6fafb] dark:bg-muted pl-9 pr-3 text-[16px] outline-none transition focus:border-ring focus:bg-card sm:text-[13px]"
           />
         </div>
+        <NativeSelect name="month" aria-label="თვე" value={month} className="h-11 w-full sm:w-[200px]" onChange={() => formRef.current?.requestSubmit()}>
+          <option value="">ყველა თვე</option>
+          {months.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+        </NativeSelect>
         <span className="max-md:hidden shrink-0 text-[12px] text-muted-foreground">{total} შეკვეთა</span>
         <div className="flex w-full flex-wrap items-center gap-2 sm:ml-auto sm:w-auto max-md:w-auto max-md:gap-1.5">
           <Button type="button" variant="outline" size="sm" className="h-11 max-md:relative max-md:size-11 max-md:p-0" aria-label="ფილტრები" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
             <SlidersHorizontal className="size-3.5" /> <span className="max-md:hidden">ფილტრები</span>
-            {activeCount > 0 && <span className="max-md:absolute max-md:-right-1 max-md:-top-1 ml-0.5 rounded-full bg-[#eef2ff] px-1.5 text-[10px] font-semibold text-[#3457d5]">{activeCount}</span>}
+            {activeCount > 0 && <span className="max-md:absolute max-md:-right-1 max-md:-top-1 ml-0.5 rounded-full bg-accent px-1.5 text-[10px] font-semibold text-primary">{activeCount}</span>}
           </Button>
           <div className="relative max-md:size-11">
           <ArrowDownWideNarrow aria-hidden className="pointer-events-none absolute left-[14px] top-[14px] size-4 md:hidden" />
@@ -99,7 +108,7 @@ export function OrdersToolbar({
           >
             {SORTS.map((s) => (
               <NativeSelectOption key={s.key} value={s.key}>
-                {s.label}
+                {s.key === "" && ["done", "closed"].includes(params.get("status") ?? "") ? "ბოლოს დასრულებული ზემოთ" : s.label}
               </NativeSelectOption>
             ))}
           </NativeSelect>
@@ -121,7 +130,7 @@ export function ManagerFilter({ value, users }: { value: string; users: { id: st
   const pathname = usePathname();
   const searchParams = useSearchParams();
   return <NativeSelect name="manager" value={value} aria-label="პასუხისმგებელი"
-    className="h-[36px] w-full rounded-[8px] bg-white text-[13px] sm:w-[240px]"
+    className="h-[36px] w-full rounded-[8px] bg-card text-[13px] sm:w-[240px]"
     onChange={event => {
       const params = new URLSearchParams(searchParams.toString());
       if (event.target.value) params.set("manager", event.target.value);

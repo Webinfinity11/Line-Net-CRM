@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Noto_Sans_Georgian } from "next/font/google";
 import localFont from "next/font/local";
+import { ThemeProvider } from "@/components/app/theme-provider";
 import { InstallPrompt } from "@/components/app/install-prompt";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
@@ -29,16 +30,21 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#3457d5",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#397b83" },
+    { media: "(prefers-color-scheme: dark)", color: "#0f1518" },
+  ],
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="ka" className={`${body.variable} ${firago.variable} h-full antialiased`} suppressHydrationWarning>
       <body className="min-h-full flex flex-col bg-background text-foreground font-sans">
-        {children}
-        <InstallPrompt />
-        <Toaster richColors position="top-right" />
+        <ThemeProvider>
+          {children}
+          <InstallPrompt />
+          <Toaster richColors position="top-right" />
+        </ThemeProvider>
       </body>
     </html>
   );

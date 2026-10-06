@@ -100,7 +100,10 @@ function revalidateOrder(id?: number) {
   revalidatePath("/my");
   revalidatePath("/schedule");
   revalidatePath("/portal");
-  if (id) revalidatePath(`/orders/${id}`);
+  if (id) {
+    revalidatePath(`/orders/${id}`);
+    revalidatePath(`/portal/orders/${id}`);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -332,11 +335,11 @@ export async function setStatus(id: number, status: OrderStatus, sendReport = fa
 
   const now = new Date();
   const resetHandover = ["new", "assigned", "in_progress"].includes(status) && ["done", "closed"].includes(existing.status);
-  const completedAt = resetHandover ? null : status === "closed" ? (existing.completedAt ?? now) : existing.completedAt;
   const reopening = existing.status === "closed";
   const changed = await db.transaction(async (tx) => {
     const [current] = await tx.select().from(orders).where(eq(orders.id, id)).for("update");
     if (!current || current.status !== existing.status) return false;
+    const completedAt = resetHandover ? null : status === "closed" ? (current.completedAt ?? now) : current.completedAt;
     if (!staff) {
       const mine = await tx.query.orderAssignees.findFirst({ where: and(eq(orderAssignees.orderId, id), eq(orderAssignees.userId, s.user.id)) });
       if (s.user.role !== "executor" || !mine) return false;
@@ -427,10 +430,10 @@ export async function completeOrder(id: number, note: string): Promise<ActionRes
       .update(orders)
       .set({
         status: finished ? "done" : "in_progress",
-        completedAt: finished ? now : null,
+        completedAt: finished ? (locked.completedAt ?? now) : null,
         completionNote: finished ? (staff ? text.slice(0, 2000) : people.map(p => `${p.user.name}: ${p.doneNote ?? ""}`).join("\n")) : null,
         finishedAt: finished ? now : null,
-        warrantyUntil: finished && locked.warrantyMonths ? addMonthsIso(now, locked.warrantyMonths) : null,
+        warrantyUntil: finished && locked.warrantyMonths ? addMonthsIso(locked.completedAt ?? now, locked.warrantyMonths) : null,
         updatedAt: now,
         triaged: true,
       })
@@ -441,8 +444,11 @@ export async function completeOrder(id: number, note: string): Promise<ActionRes
   });
   if (!result) return { ok: false, error: gateError ?? "შეკვეთა უკვე ჩაბარებულია ან დანიშვნა შეიცვალა" };
   const admins = await db.select({ id: user.id }).from(user).where(and(eq(user.role, "admin"), eq(user.banned, false)));
+  const [manager] = result.managerId
+    ? await db.select({ id: user.id }).from(user).where(and(eq(user.id, result.managerId), eq(user.banned, false)))
+    : [];
   const recipients = completionRecipients({
-    managerId: result.managerId, staffIds: result.managerId ? [] : await staffUserIds(),
+    managerId: manager?.id ?? null, staffIds: result.managerId ? [] : await staffUserIds(),
     adminIds: admins.map((u) => u.id), actorId: s.user.id,
   });
   const details = { number: existing.number, siteName: existing.site?.name, actorName: s.user.name };

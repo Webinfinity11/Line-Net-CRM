@@ -69,7 +69,7 @@ export function Materials({
       </CardHeader>
       <CardContent className="@container space-y-3">
         {materials.length > 0 && (
-          <ul className="divide-y divide-[#eef1f6] sm:hidden">
+          <ul className="divide-y divide-[#eef1f6] dark:divide-border sm:hidden">
             {materials.map((m) => (
               <li key={m.id} className="flex items-start gap-3 py-2.5">
                 <div className="min-w-0 flex-1">
@@ -134,7 +134,7 @@ export function Materials({
                 </div>
                 <div className="flex justify-between gap-3">
                   <span className="text-muted-foreground">სხვაობა (თანხა − მასალები)</span>
-                  <span className={margin === null ? "shrink-0 text-muted-foreground" : margin >= 0 ? "shrink-0 font-semibold text-[#25815a]" : "shrink-0 font-semibold text-[#b13f32]"}>
+                  <span className={margin === null ? "shrink-0 text-muted-foreground" : margin >= 0 ? "shrink-0 font-semibold text-[#25815a] dark:text-[var(--ln-success)]" : "shrink-0 font-semibold text-[#b13f32] dark:text-[var(--ln-alert)]"}>
                     {margin === null ? "—" : formatMoney(margin)}
                   </span>
                 </div>
@@ -220,7 +220,7 @@ export function Materials({
                     <td colSpan={3} className="py-1 text-right text-muted-foreground">
                       სხვაობა მასალების ხარჯის შემდეგ (თანხა − მასალები)
                     </td>
-                    <td className={margin === null ? "py-1 text-right text-muted-foreground" : margin >= 0 ? "py-1 text-right font-semibold text-[#25815a]" : "py-1 text-right font-semibold text-[#b13f32]"}>
+                    <td className={margin === null ? "py-1 text-right text-muted-foreground" : margin >= 0 ? "py-1 text-right font-semibold text-[#25815a] dark:text-[var(--ln-success)]" : "py-1 text-right font-semibold text-[#b13f32] dark:text-[var(--ln-alert)]"}>
                       {margin === null ? "—" : formatMoney(margin)}
                     </td>
                     <td />

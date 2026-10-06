@@ -6,8 +6,8 @@ import { toMtavruli } from "@/lib/mtavruli";
 /** Missing page or an order the user cannot open. */
 export default function AppNotFound() {
   return (
-    <div className="mx-auto mt-10 max-w-md rounded-xl border border-border bg-white p-6 text-center">
-      <span className="mx-auto mb-3 grid size-10 place-items-center rounded-lg bg-[#eef2ff] text-[#3457d5]">
+    <div className="mx-auto mt-10 max-w-md rounded-xl border border-border bg-card p-6 text-center">
+      <span className="mx-auto mb-3 grid size-10 place-items-center rounded-lg bg-accent text-primary">
         <SearchX className="size-5 [stroke-width:1.7]" />
       </span>
       <h2 className="font-heading text-[18px]">{toMtavruli("გვერდი ვერ მოიძებნა")}</h2>

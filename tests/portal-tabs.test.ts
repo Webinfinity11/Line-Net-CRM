@@ -3,7 +3,7 @@ import { countPortalTabs, parsePortalTab, portalTabOf, PORTAL_TABS } from "@/lib
 
 const cases = [
   ["new", "planned"], ["assigned", "planned"], ["in_progress", "progress"],
-  ["done", "done"], ["closed", "done"], ["cancelled", "cancelled"],
+  ["done", "progress"], ["closed", "done"], ["cancelled", "cancelled"],
 ] as const;
 
 describe("portal tabs", () => {
@@ -13,9 +13,9 @@ describe("portal tabs", () => {
   it.each(cases)("keeps untriaged %s in sent", (status) => {
     expect(portalTabOf(status, false)).toBe("sent");
   });
-  it("counts every row exactly once, merging done and closed", () => {
+  it("counts every row exactly once, keeps only closed in done", () => {
     const rows = cases.flatMap(([status]) => [{ status, triaged: true }, { status, triaged: false }]);
-    expect(countPortalTabs(rows)).toEqual({ all: 12, sent: 6, planned: 2, progress: 1, done: 2, cancelled: 1 });
+    expect(countPortalTabs(rows)).toEqual({ all: 12, sent: 6, planned: 2, progress: 2, done: 1, cancelled: 1 });
   });
   it("returns zero counts for an empty filtered result", () => {
     expect(countPortalTabs([])).toEqual({ all: 0, sent: 0, planned: 0, progress: 0, done: 0, cancelled: 0 });

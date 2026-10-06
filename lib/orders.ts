@@ -15,13 +15,18 @@ import {
 import type { SessionUser } from "@/lib/session";
 import { tbilisiDayBounds, tbilisiToday } from "@/lib/schedule-utils";
 import "server-only";
+import { competenciesByUser, competenceLabel } from "./competencies";
+import { systemLabels } from "./systems";
 import { ACTIVE_STATUSES } from "@/lib/i18n";
 import { FINISHED_STATUSES, isOverdue, todayIso } from "@/lib/order-utils";
+
+import { parseMonth } from "@/lib/month-filter";
 
 export { isOverdue, todayIso };
 
 export type OrderFilters = {
   q?: string;
+  month?: string;
   status?: OrderStatus | "active" | "all";
   type?: OrderType;
   priority?: OrderPriority;
@@ -91,8 +96,10 @@ function buildWhere(f: OrderFilters): SQL | undefined {
     // other tables' columns to the outer table alias and produces "orders"."order_id".
     parts.push(sql`exists (select 1 from order_assignees oa where oa.order_id = ${orders.id} and oa.user_id = ${assignee})`);
   }
+  const month = parseMonth(f.month);
+  if (month) parts.push(gte(orders.createdAt, month.from), lt(orders.createdAt, month.to));
   const start = f.range ? rangeStart(f.range) : null;
-  if (start) parts.push(gte(orders.createdAt, start));
+  if (start) parts.push(gte(f.status === "done" || f.status === "closed" ? orders.completedAt : orders.createdAt, start));
   return parts.length ? and(...parts) : undefined;
 }
 
@@ -123,7 +130,9 @@ export async function listOrders(f: OrderFilters = {}, opts: { limit?: number; o
       site: { columns: { id: true, name: true, address: true } },
       assignees: { with: { user: { columns: { id: true, name: true, image: true } } } },
     },
-    orderBy: orderByFor(opts.sort),
+    orderBy: !opts.sort && (f.status === "done" || f.status === "closed")
+      ? [sql`${orders.completedAt} desc nulls last`, desc(orders.createdAt)]
+      : orderByFor(opts.sort),
     limit: opts.limit ?? 200,
     offset: opts.offset ?? 0,
   });
@@ -177,6 +186,14 @@ export async function listMyOrders(userId: string) {
 
 export type MyOrderItem = Awaited<ReturnType<typeof listMyOrders>>[number];
 
+/** Earliest order in this list's scope, unaffected by its current filters. */
+export async function oldestOrderDate(clientId?: number) {
+  const [row] = await db.select({ createdAt: orders.createdAt }).from(orders)
+    .where(clientId === undefined ? eq(orders.triaged, true) : eq(orders.clientId, clientId))
+    .orderBy(asc(orders.createdAt)).limit(1);
+  return row?.createdAt ?? new Date();
+}
+
 export async function countOrders(f: OrderFilters = {}) {
   const [row] = await db.select({ n: count() }).from(orders).where(buildWhere(f));
   return row?.n ?? 0;
@@ -212,8 +229,9 @@ export type OrderDetail = NonNullable<Awaited<ReturnType<typeof getOrder>>>;
  * costs are null; line names, units and quantities remain visible.
  */
 type OrderItem = OrderDetail["items"][number];
-type ExecutorOrderDetail = Omit<OrderDetail, "amount" | "items" | "paidTotal" | "paidAt" | "paymentStatus" | "paymentReviewNeeded" | "payments"> & {
+type ExecutorOrderDetail = Omit<OrderDetail, "amount" | "vatPercent" | "items" | "paidTotal" | "paidAt" | "paymentStatus" | "paymentReviewNeeded" | "payments"> & {
   amount: null;
+  vatPercent: null;
   items: Array<Omit<OrderItem, "unitPrice"> & { unitPrice: null }>;
 };
 export async function getOrderForUser(id: number, u: SessionUser): Promise<{ order: OrderDetail; financeVisible: true } | { order: ExecutorOrderDetail; financeVisible: false } | null> {
@@ -227,6 +245,7 @@ export async function getOrderForUser(id: number, u: SessionUser): Promise<{ ord
   const stripped: ExecutorOrderDetail = {
     ...visible,
     amount: null,
+    vatPercent: null,
     items: order.items.map((item) => ({ ...item, unitPrice: null })),
     materials: order.materials.map((m) => ({ ...m, unitCost: null })),
 
@@ -240,12 +259,17 @@ export async function getInboxCount() {
   return row?.n ?? 0;
 }
 
-export async function listAssignableUsers() {
-  return db
+export async function listAssignableUsers(alreadyAssignedIds: string[] = []) {
+  const rows = await db
     .select({ id: user.id, name: user.name, role: user.role, image: user.image, phone: user.phone, specializations: user.specializations })
     .from(user)
-    .where(and(inArray(user.role, ["executor", "manager", "admin"]), eq(user.banned, false)))
+    .where(or(and(inArray(user.role, ["executor", "manager", "admin"]), eq(user.banned, false)), alreadyAssignedIds.length ? inArray(user.id, alreadyAssignedIds) : undefined))
     .orderBy(asc(user.name));
+  const [competencies, labels] = await Promise.all([competenciesByUser(rows.map(u => u.id)), systemLabels()]);
+  return rows.map(u => {
+    const comp = competencies.get(u.id) ?? "all";
+    return { ...u, competencies: comp, competenceLabel: competenceLabel(comp, labels) };
+  });
 }
 
 export async function listAllUsers() {
@@ -316,7 +340,7 @@ export async function getDashboardStats(range: DateRange = "week", custom?: Cust
   const notInbox = eq(orders.triaged, true);
 
   const today = tbilisiDayBounds(tbilisiToday());
-  const [byStatusRows, createdRow, completedRow, overdueList, loadRows, users, paidRow, unpaidRow, recent, inbox, todayList, weekly, prevRow, warranty, mapPoints, overdueCountRow, urgentUnassigned, awaitingClosure, reviewRow, board, plannedTodayRows, activeTotalRow, awaitingClosureRow, bySystemRows, unassignedRow, todayTotalRow] =
+  const [byStatusRows, createdRow, completedRow, overdueList, loadRows, users, paidRow, unpaidRow, recent, inbox, todayList, weekly, prevRow, warranty, mapPoints, overdueCountRow, urgentUnassigned, awaitingClosure, reviewRow, board, plannedTodayRows, activeTotalRow, awaitingClosureRow, bySystemRows, unassignedRow, todayTotalRow, closedRow, completedTodayRow] =
     await Promise.all([
       db
         .select({ status: orders.status, n: count() })
@@ -327,7 +351,7 @@ export async function getDashboardStats(range: DateRange = "week", custom?: Cust
       db
         .select({ n: count() })
         .from(orders)
-        .where(and(notInbox, inArray(orders.status, ["done", "closed"]), start ? gte(orders.completedAt, start) : undefined)),
+        .where(and(notInbox, inArray(orders.status, ["done", "closed"]), start ? gte(orders.completedAt, start) : undefined, end ? lt(orders.completedAt, end) : undefined)),
       listOrders({ overdue: true, inbox: false }, { limit: 10 }),
       db
         .select({ userId: orderAssignees.userId, active: count() })
@@ -359,11 +383,11 @@ export async function getDashboardStats(range: DateRange = "week", custom?: Cust
       prev
         ? db
             .select({
-              created: sql<number>`count(*)`.mapWith(Number),
-              completed: sql<number>`count(*) filter (where ${orders.completedAt} >= ${prev.start} and ${orders.completedAt} < ${prev.end})`.mapWith(Number),
+              created: sql<number>`count(*) filter (where ${orders.createdAt} >= ${prev.start} and ${orders.createdAt} < ${prev.end})`.mapWith(Number),
+              completed: sql<number>`count(*) filter (where ${orders.status} in ('done','closed') and ${orders.completedAt} >= ${prev.start} and ${orders.completedAt} < ${prev.end})`.mapWith(Number),
             })
             .from(orders)
-            .where(and(notInbox, gte(orders.createdAt, prev.start), lt(orders.createdAt, prev.end)))
+            .where(and(notInbox, or(and(gte(orders.createdAt, prev.start), lt(orders.createdAt, prev.end)), and(gte(orders.completedAt, prev.start), lt(orders.completedAt, prev.end)))))
         : Promise.resolve([{ created: 0, completed: 0 }]),
       db.query.orders.findMany({
         where: and(notInbox, sql`${orders.warrantyUntil} between current_date and current_date + 30`),
@@ -407,10 +431,10 @@ export async function getDashboardStats(range: DateRange = "week", custom?: Cust
         limit: 8,
       }),
       db.select({ n: count() }).from(orders).where(and(notInbox, eq(orders.paymentReviewNeeded, true))),
-      // dashboard work board: current active work plus finished work awaiting closure
+      // dashboard work board: current work and recently completed/closed work
       db.query.orders.findMany({
-        where: and(notInbox, inArray(orders.status, ["new", "assigned", "in_progress", "done"])),
-        columns: { id: true, number: true, title: true, status: true, priority: true, type: true, systemType: true, dueDate: true, scheduledAt: true, plannedMinutes: true, description: true },
+        where: and(notInbox, inArray(orders.status, ["new", "assigned", "in_progress", "done", "closed"])),
+        columns: { id: true, number: true, title: true, status: true, priority: true, type: true, systemType: true, dueDate: true, scheduledAt: true, plannedMinutes: true, description: true, completedAt: true },
         with: {
           client: { columns: { id: true, name: true } },
           site: { columns: { id: true, name: true, address: true } },
@@ -440,6 +464,8 @@ export async function getDashboardStats(range: DateRange = "week", custom?: Cust
         .from(orders)
         .where(and(notInbox, inArray(orders.status, ACTIVE_STATUSES), sql`not exists (select 1 from order_assignees oa where oa.order_id = ${orders.id})`)),
       db.select({ n: count() }).from(orders).where(and(notInbox, gte(orders.scheduledAt, today.start), lt(orders.scheduledAt, today.end), ne(orders.status, "cancelled"))),
+      db.select({ n: count() }).from(orders).where(and(notInbox, eq(orders.status, "closed"))),
+      db.select({ n: count() }).from(orders).where(and(notInbox, inArray(orders.status, ["done", "closed"]), gte(orders.completedAt, today.start), lt(orders.completedAt, today.end))),
     ]);
 
   const counts = Object.fromEntries(byStatusRows.map((r) => [r.status, r.n])) as Partial<Record<OrderStatus, number>>;
@@ -484,6 +510,8 @@ export async function getDashboardStats(range: DateRange = "week", custom?: Cust
       .slice(0, 6)
       .map((r) => ({ system: r.system, n: r.n })),
     todayTotal: todayTotalRow[0]?.n ?? 0,
+    closedCount: closedRow[0]?.n ?? 0,
+    completedToday: completedTodayRow[0]?.n ?? 0,
   };
 }
 
@@ -503,8 +531,8 @@ export async function getStatusSummary() {
       .select({
         createdNow: sql<number>`count(*) filter (where ${orders.createdAt} >= ${weekAgo})`.mapWith(Number),
         createdPrev: sql<number>`count(*) filter (where ${orders.createdAt} >= ${twoWeeksAgo} and ${orders.createdAt} < ${weekAgo})`.mapWith(Number),
-        completedNow: sql<number>`count(*) filter (where ${orders.completedAt} >= ${weekAgo})`.mapWith(Number),
-        completedPrev: sql<number>`count(*) filter (where ${orders.completedAt} >= ${twoWeeksAgo} and ${orders.completedAt} < ${weekAgo})`.mapWith(Number),
+        completedNow: sql<number>`count(*) filter (where ${orders.status} in ('done','closed') and ${orders.completedAt} >= ${weekAgo})`.mapWith(Number),
+        completedPrev: sql<number>`count(*) filter (where ${orders.status} in ('done','closed') and ${orders.completedAt} >= ${twoWeeksAgo} and ${orders.completedAt} < ${weekAgo})`.mapWith(Number),
       })
       .from(orders)
       .where(notInbox),
@@ -545,7 +573,7 @@ async function getWeeklySeries() {
     db
       .select({ day: dayExpr(sql`${orders.completedAt}`), n: count() })
       .from(orders)
-      .where(and(eq(orders.triaged, true), gte(orders.completedAt, start)))
+      .where(and(eq(orders.triaged, true), inArray(orders.status, ["done", "closed"]), gte(orders.completedAt, start)))
       .groupBy(sql`1`),
   ]);
   const created = new Map(createdRows.map((r) => [r.day, r.n]));

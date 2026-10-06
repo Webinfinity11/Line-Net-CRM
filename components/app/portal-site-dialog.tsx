@@ -1,7 +1,8 @@
 "use client";
 
 import { Plus, Pencil } from "lucide-react";
-import { useId } from "react";
+import { useId, useState } from "react";
+import dynamic from "next/dynamic";
 import { createPortalSite, updatePortalSite } from "@/actions/portal";
 import { FormDialog } from "@/components/app/form-dialog";
 import { formFields } from "@/components/app/section-card";
@@ -10,7 +11,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { PortalSite } from "@/lib/portal";
 
-export function PortalSiteDialog({ site, onSaved }: { site?: PortalSite; onSaved?: (site: PortalSite) => void }) {
+const SiteMap = dynamic(() => import("@/components/app/map-view").then(m => m.LeafletMapView), { ssr: false });
+type LocatedSite = PortalSite & { lat?: string | null; lng?: string | null };
+
+export function PortalSiteDialog({ site, onSaved }: { site?: LocatedSite; onSaved?: (site: PortalSite) => void }) {
   const prefix = useId();
   return (
     // The dialog portal still bubbles React submit events to the order form.
@@ -36,6 +40,7 @@ export function PortalSiteDialog({ site, onSaved }: { site?: PortalSite; onSaved
             <Label htmlFor={`${prefix}-address`}>მისამართი</Label>
             <Input id={`${prefix}-address`} name="address" maxLength={300} defaultValue={site?.address ?? ""} placeholder="ქუჩა, ნომერი" />
           </div>
+          <SiteLocation key={`${site?.id}-${site?.lat}-${site?.lng}`} site={site} />
           <div className="space-y-1.5">
             <Label htmlFor={`${prefix}-contact`}>საკონტაქტო პირი ადგილზე</Label>
             <Input id={`${prefix}-contact`} name="contactName" maxLength={120} defaultValue={site?.contactName ?? ""} placeholder="სახელი და გვარი" />
@@ -48,4 +53,17 @@ export function PortalSiteDialog({ site, onSaved }: { site?: PortalSite; onSaved
       </FormDialog>
     </div>
   );
+}
+
+function SiteLocation({ site }: { site?: LocatedSite }) {
+  const [point, setPoint] = useState<{ lat: number; lng: number } | null>(
+    site?.lat != null && site?.lng != null ? { lat: Number(site.lat), lng: Number(site.lng) } : null,
+  );
+  return <div className="space-y-2">
+    <p className="text-[12px] text-muted-foreground">დააწკაპუნეთ რუკაზე ზუსტი ადგილის მოსანიშნავად</p>
+    <SiteMap markers={[]} pick={{ value: point, onChange: setPoint }} zoom={point ? 15 : 12} height={240} />
+    <input type="hidden" name="lat" value={point?.lat ?? ""} />
+    <input type="hidden" name="lng" value={point?.lng ?? ""} />
+    {point && <button type="button" className="ln-link text-[12px]" onClick={() => setPoint(null)}>მონიშვნის მოხსნა</button>}
+  </div>;
 }

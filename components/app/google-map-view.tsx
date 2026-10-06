@@ -14,7 +14,7 @@ const STYLES: google.maps.MapTypeStyle[] = [
   { featureType: "administrative", elementType: "geometry", stylers: [{ color: "#dfe4ec" }] },
   { featureType: "poi", stylers: [{ visibility: "off" }] },
   { featureType: "road", elementType: "geometry", stylers: [{ color: "#ffffff" }] },
-  { featureType: "road.arterial", elementType: "geometry", stylers: [{ color: "#f8faff" }] },
+  { featureType: "road.arterial", elementType: "geometry", stylers: [{ color: "#f6fafb" }] },
   { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#eef1f6" }] },
   { featureType: "transit", stylers: [{ visibility: "off" }] },
   { featureType: "water", elementType: "geometry", stylers: [{ color: "#dbe6f2" }] },
@@ -27,7 +27,7 @@ function escapeHtml(s: string) {
 function pinElement(m: MapMarker, index: number) {
   const el = document.createElement("div");
   el.className = "ln-pin";
-  el.style.background = m.color ?? "#2563eb";
+  el.style.background = m.color ?? "#397b83";
   const span = document.createElement("span");
   span.textContent = m.code ?? String(index + 1);
   el.append(span);
@@ -98,7 +98,7 @@ export function GoogleMapView({ markers, center, zoom = 12, height = 300, showLa
         const marker = new AdvancedMarkerElement({ map, position: { lat: m.lat, lng: m.lng }, content: pinElement(m, i), title: m.label ?? "" });
         if (m.label || m.detail) {
           marker.addListener("click", () => {
-            const title = m.href ? `<a href="${m.href}" style="font-weight:600;color:#3457d5">${escapeHtml(m.label ?? "")}</a>` : `<strong>${escapeHtml(m.label ?? "")}</strong>`;
+            const title = m.href ? `<a href="${m.href}" style="font-weight:600;color:#397b83">${escapeHtml(m.label ?? "")}</a>` : `<strong>${escapeHtml(m.label ?? "")}</strong>`;
             infoRef.current?.setContent(`<div style="font:13px/1.4 system-ui">${title}${m.detail ? `<div style="color:#64748b;margin-top:2px">${escapeHtml(m.detail)}</div>` : ""}</div>`);
             infoRef.current?.open({ map, anchor: marker });
           });
@@ -119,7 +119,7 @@ export function GoogleMapView({ markers, center, zoom = 12, height = 300, showLa
 
   if (failed) {
     return (
-      <div style={{ height }} className={className ?? "grid w-full place-items-center rounded-xl border border-dashed border-[#e6ebf2] text-[12.5px] text-muted-foreground"}>
+      <div style={{ height }} className={className ?? "grid w-full place-items-center rounded-xl border border-dashed border-border text-[12.5px] text-muted-foreground"}>
         რუკა ვერ ჩაიტვირთა. შეამოწმეთ Google Maps-ის გასაღები.
       </div>
     );

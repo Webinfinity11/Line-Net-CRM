@@ -16,12 +16,16 @@ import { orderAssignees, orderAttachments, orders, orderVisits } from "@/db/sche
 import { PgDialect } from "drizzle-orm/pg-core";
 import type { SQL } from "drizzle-orm";
 beforeEach(() => { vi.resetAllMocks(); m.session.mockResolvedValue({ user: { id: "a", name: "გიორგი", role: "executor" } }); });
-function setup(otherDone: boolean, mineDone = false, photos = [{ mimeType: "image/jpeg", uploadedBy: "a" }], checklist: { label: string; required: boolean; done: boolean }[] = []) {
+function setup(otherDone: boolean, mineDone = false, photos = [{ mimeType: "image/jpeg", uploadedBy: "a" }], checklist: { label: string; required: boolean; done: boolean }[] = [], managerActive = true) {
  const people = [{ userId: "a", doneAt: mineDone ? new Date() : null, doneNote: null as string | null, user: { name: "გიორგი" } }, { userId: "b", doneAt: otherDone ? new Date() : null, doneNote: otherDone ? "კაბელი გაყვანილია" : null, user: { name: "ლევანი" } }];
  const order = { id: 4, number: "LN-4", status: "in_progress", assignees: people, warrantyMonths: 0, warrantyUntil: null, managerId: "manager", clientId: 49, site: { name: "ვერე" } };
  m.find.mockResolvedValue(order);
  m.select.mockImplementation(() => ({ from: () => ({ where: async (where: SQL) => {
   const params = new PgDialect().sqlToQuery(where).params;
+  if (params.includes("manager")) {
+   expect(params).toEqual(["manager", false]);
+   return managerActive ? [{ id: "manager" }] : [];
+  }
   if (params.includes("client")) {
    expect(params).toEqual(["client", 49, false]);
    return [{ id: "client" }];
@@ -39,6 +43,13 @@ function setup(otherDone: boolean, mineDone = false, photos = [{ mimeType: "imag
  return writes;
 }
 describe("completeOrder handover", () => {
+ it.each([false, true])("excludes a banned manager on handover (full=%s)", async (full) => {
+  setup(full, false, [{ mimeType: "image/jpeg", uploadedBy: "a" }], [], false);
+  expect((await completeOrder(4, "სამუშაო შესრულდა")).ok).toBe(true);
+  expect(m.notify).toHaveBeenCalledWith(["admin"], expect.objectContaining({ type: "done" }));
+  expect(m.notify.mock.calls.every(([ids]) => !ids.includes("manager"))).toBe(true);
+  expect(revalidatePath).toHaveBeenCalledWith("/portal/orders/4");
+ });
  it("does not allow a direct done status to bypass handover", async () => {
   const writes = setup(false);
   m.session.mockResolvedValue({ user: { id: "manager", role: "manager" } });
@@ -95,6 +106,7 @@ describe("completeOrder handover", () => {
   m.session.mockResolvedValue({ user: { id: "admin", name: "ადმინი", role: "admin" } });
   expect(await setStatus(4, status)).toEqual({ ok: true });
   expect(revalidatePath).toHaveBeenCalledWith("/portal");
+  expect(revalidatePath).toHaveBeenCalledWith("/portal/orders/4");
   const clientCalls = m.notify.mock.calls.filter(([ids]) => ids.includes("client"));
   if (status === "closed") expect(clientCalls).toEqual([[["client"], {
    type: "status", orderId: 4, title: "LN-4 შესრულებულია · ვერე", body: "სამუშაო დადასტურებულია",

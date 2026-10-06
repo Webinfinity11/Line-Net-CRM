@@ -39,43 +39,44 @@ export function OrderDrawer({ order, executors, normHours, today, onClose }: { o
               </div>
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 <StatusBadge status={order.status} />
+                {order.completedLabel && <span className="text-[12px] text-muted-foreground">დასრულდა: {order.completedLabel}</span>}
                 <PriorityLabel priority={order.priority} />
                 {order.overdue && <OverdueBadge />}
               </div>
             </div>
 
-            <SheetDescription className="border-t border-border pt-6 text-[13px] leading-relaxed text-[#4a5e73]">
+            <SheetDescription className="border-t border-border pt-6 text-[13px] leading-relaxed text-[#4a5e73] dark:text-[var(--ln-strong)]">
               {order.description || "აღწერა არ არის დამატებული."}
             </SheetDescription>
 
             <dl className="grid grid-cols-1 gap-x-6 gap-y-5 border-t border-border pt-6 text-[13px] leading-relaxed sm:grid-cols-2 [&>div]:min-w-0">
               <div>
-                <dt className="text-[11px] font-medium text-[#4a5e73]">ტიპი · კატეგორია</dt>
+                <dt className="text-[11px] font-medium text-[#4a5e73] dark:text-[var(--ln-strong)]">ტიპი · კატეგორია</dt>
                 <dd className="mt-1">
                   {TYPE_LABELS[order.type]}
                   {order.systemType ? ` · ${systemName}` : ""}
                 </dd>
               </div>
               <div>
-                <dt className="text-[11px] font-medium text-[#4a5e73]">ვადა</dt>
+                <dt className="text-[11px] font-medium text-[#4a5e73] dark:text-[var(--ln-strong)]">ვადა</dt>
                 <dd className="mt-1 flex items-center gap-2">
                   <CalendarDays className="size-3.5 shrink-0 text-muted-foreground" /> {order.dueDate ? formatDate(order.dueDate) : "—"}
                 </dd>
               </div>
               <div>
-                <dt className="text-[11px] font-medium text-[#4a5e73]">დაგეგმილი დრო</dt>
+                <dt className="text-[11px] font-medium text-[#4a5e73] dark:text-[var(--ln-strong)]">დაგეგმილი დრო</dt>
                 <dd className="mt-1 flex items-center gap-2">
                   <Clock3 className="size-3.5 shrink-0 text-muted-foreground" /> {order.scheduledLabel ?? "დაუგეგმავი"}
                 </dd>
               </div>
               <div>
-                <dt className="text-[11px] font-medium text-[#4a5e73]">მისამართი</dt>
+                <dt className="text-[11px] font-medium text-[#4a5e73] dark:text-[var(--ln-strong)]">მისამართი</dt>
                 <dd className="mt-1 break-words">{order.site?.address ?? order.site?.name ?? "—"}</dd>
               </div>
             </dl>
 
             <div className="border-t border-border pt-6">
-              <div className="mb-3 text-[11px] font-medium text-[#4a5e73]">შემსრულებლები</div>
+              <div className="mb-3 text-[11px] font-medium text-[#4a5e73] dark:text-[var(--ln-strong)]">შემსრულებლები</div>
               {order.assignees.length === 0 ? (
                 <p className="text-[13px] text-muted-foreground">ელოდება შემსრულებლის დანიშვნას</p>
               ) : (
@@ -91,13 +92,14 @@ export function OrderDrawer({ order, executors, normHours, today, onClose }: { o
 
             {canAssign && (
               <div className="border-t border-border pt-6">
-                <div className="mb-4 text-[11px] font-medium text-[#4a5e73]">დანიშვნა და დრო</div>
+                <div className="mb-4 text-[11px] font-medium text-[#4a5e73] dark:text-[var(--ln-strong)]">დანიშვნა და დრო</div>
                 <AssignForm
                   orderId={order.id}
                   systemType={order.systemType}
                   executors={executors}
                   normHours={normHours}
                   defaultAssigneeId={order.assignees[0]?.id ?? null}
+                  assignedIds={order.assignees.map(a => a.id)}
                   defaultDate={order.scheduledAt ? order.scheduledAt.slice(0, 10) : today}
                   defaultTime={order.timeLabel}
                   defaultMinutes={order.plannedMinutes}

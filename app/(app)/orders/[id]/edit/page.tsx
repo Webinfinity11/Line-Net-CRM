@@ -16,8 +16,9 @@ export default async function EditOrderPage({ params }: PageProps<"/orders/[id]/
   const { id } = await params;
   const orderId = Number(id);
   if (!Number.isInteger(orderId)) notFound();
-  const [order, clients, users] = await Promise.all([getOrder(orderId), listClientsWithSites(), listAssignableUsers()]);
+  const [order, clients] = await Promise.all([getOrder(orderId), listClientsWithSites()]);
   if (!order) notFound();
+  const users = await listAssignableUsers(order.assignees.map(a => a.userId));
 
   const triage = !order.triaged;
   // a request from the client portal has no letter behind it: name it for what it is
@@ -97,7 +98,7 @@ export default async function EditOrderPage({ params }: PageProps<"/orders/[id]/
             </div>
           </dl>
           {order.description && (
-            <pre className="mt-3 max-h-[420px] overflow-auto whitespace-pre-wrap rounded-[12px] bg-[#f8faff] p-3 font-sans text-[12.5px] leading-relaxed text-[#4a5e73]">{order.description}</pre>
+            <pre className="mt-3 max-h-[420px] overflow-auto whitespace-pre-wrap rounded-[12px] bg-[#f6fafb] dark:bg-muted p-3 font-sans text-[12.5px] leading-relaxed text-[#4a5e73] dark:text-[var(--ln-strong)]">{order.description}</pre>
           )}
         </aside>
         <div className="min-w-0">{form}</div>

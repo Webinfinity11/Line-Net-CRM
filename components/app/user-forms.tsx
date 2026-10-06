@@ -8,12 +8,15 @@ import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import type { User } from "@/db/schema";
 import { ROLE_LABELS } from "@/lib/i18n";
 import { useSystems } from "@/components/app/systems-provider";
+import type { Competencies } from "@/lib/competency-utils";
 import { cn } from "@/lib/utils";
 
-export function UserFields({ initial, clients }: { initial?: Partial<User>; clients: { id: number; name: string }[] }) {
+export function UserFields({ initial, clients }: { initial?: Partial<User> & { competencies?: Competencies }; clients: { id: number; name: string }[] }) {
   const editing = Boolean(initial?.id);
   const [role, setRole] = useState<string>(initial?.role ?? "executor");
-  const systemOptions = useSystems().filter((s) => s.active || initial?.specializations?.includes(s.key));
+  const [competencyMode, setCompetencyMode] = useState(initial?.competencies && initial.competencies !== "all" ? "selected" : "all");
+  const selectedCompetencies = initial?.competencies === "all" ? [] : initial?.competencies ?? [];
+  const systemOptions = useSystems().filter((s) => s.active || selectedCompetencies.includes(s.key) || initial?.specializations?.includes(s.key));
   return (
     <div className={cn("grid gap-3 sm:grid-cols-2", formFields)}>
       <div className="space-y-1.5 sm:col-span-2">
@@ -53,13 +56,39 @@ export function UserFields({ initial, clients }: { initial?: Partial<User>; clie
         </NativeSelect>
         <p className="text-[11px] text-muted-foreground">შევა კლიენტის კაბინეტში: ნახავს მხოლოდ ამ კომპანიის შეკვეთებს და გამოგზავნის ახალ მოთხოვნას.</p>
       </div>
+      ) : role === "executor" ? (
+      <fieldset className="space-y-2 sm:col-span-2">
+        <legend className="text-sm font-medium">კომპეტენციები</legend>
+        <div className="flex flex-wrap gap-3 text-sm">
+          <label className="flex items-center gap-2">
+            <input type="radio" name="competencyMode" value="all" checked={competencyMode === "all"} onChange={() => setCompetencyMode("all")} className="accent-primary" />
+            ყველა კატეგორია
+          </label>
+          <label className="flex items-center gap-2">
+            <input type="radio" name="competencyMode" value="selected" checked={competencyMode === "selected"} onChange={() => setCompetencyMode("selected")} className="accent-primary" />
+            მხოლოდ არჩეული
+          </label>
+        </div>
+        <div hidden={competencyMode === "all"}>
+          <div className="grid grid-cols-2 gap-2 text-sm">
+            {systemOptions.map(sys => (
+              <label key={sys.key} className="flex cursor-pointer items-center gap-2">
+                <input type="checkbox" name="competencies" value={sys.key} defaultChecked={selectedCompetencies.includes(sys.key)} disabled={competencyMode === "all"} className="size-4 accent-primary" />
+                {sys.name}
+              </label>
+            ))}
+          </div>
+        </div>
+        {/* Keep the legacy profile field; competency filtering uses the new table only. */}
+        {initial?.specializations?.map(slug => <input key={slug} type="hidden" name="specializations" value={slug} />)}
+      </fieldset>
       ) : (
       <div className="space-y-1.5 sm:col-span-2">
         <Label>სპეციალიზაცია (რომელ კატეგორიებზე მუშაობს)</Label>
         <div className="grid grid-cols-2 gap-1.5 rounded-lg border p-2 text-sm">
           {systemOptions.map((sys) => (
             <label key={sys.key} className="flex cursor-pointer items-center gap-2">
-              <input type="checkbox" name="specializations" value={sys.key} defaultChecked={initial?.specializations?.includes(sys.key)} className="size-4 accent-[#3457d5]" />
+              <input type="checkbox" name="specializations" value={sys.key} defaultChecked={initial?.specializations?.includes(sys.key)} className="size-4 accent-primary" />
               {sys.name}
             </label>
           ))}

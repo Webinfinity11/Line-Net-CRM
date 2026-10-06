@@ -64,7 +64,7 @@ function Fields({ initial, defaultSystemType, defaultSubgroupId, subgroups }: { 
         <Textarea className="min-h-24 resize-y" id="s-desc" name="description" rows={2} maxLength={1000} defaultValue={initial?.description ?? ""} placeholder="რას მოიცავს ეს სერვისი" />
       </div>
       <label className="flex items-center gap-2 text-[13px] sm:col-span-2">
-        <input type="checkbox" name="active" defaultChecked={initial ? initial.active : true} className="size-4 accent-[#3457d5]" /> აქტიურია
+        <input type="checkbox" name="active" defaultChecked={initial ? initial.active : true} className="size-4 accent-[#397b83]" /> აქტიურია
       </label>
     </div>
   );
@@ -109,7 +109,7 @@ function ServiceSummary({ service }: { service: Service }) {
 export function EditServiceDialog({ service, subgroups = [] }: { service: Service; subgroups?: SubgroupOption[] }) {
   return (
     <FormDialog
-      trigger={<button type="button" className="min-w-0 flex-1 rounded-lg py-3 text-left outline-none hover:text-[#3457d5] focus-visible:ring-2 focus-visible:ring-[#3457d5]" aria-label={`${service.name} — რედაქტირება`} />}
+      trigger={<button type="button" className="min-w-0 flex-1 rounded-lg py-3 text-left outline-none hover:text-primary focus-visible:ring-2 focus-visible:ring-primary" aria-label={`${service.name} — რედაქტირება`} />}
       triggerLabel={<ServiceSummary service={service} />}
       title="სერვისის რედაქტირება"
       action={updateService.bind(null, service.id)}

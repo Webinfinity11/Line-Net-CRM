@@ -43,7 +43,7 @@ export function SubgroupRow({ row, admin, used, first, last }: { row: SubgroupOp
   }
   return <>
     {admin ? <FormDialog
-      trigger={<button type="button" className="min-h-11 min-w-0 flex-1 cursor-pointer text-left text-[13px] font-semibold text-[#3457d5] hover:underline" />}
+      trigger={<button type="button" className="ln-link min-h-11 min-w-0 flex-1 text-left text-[13px] font-semibold" />}
       triggerLabel={<SubgroupName row={row} />} title="ქვეჯგუფის სახელი"
       action={fd => renameSubgroup(row.id, String(fd.get("name") ?? ""))}>
       <div className="space-y-1.5">

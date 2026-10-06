@@ -83,7 +83,7 @@ export function NotificationBell({ unread, items }: { unread: number; items: Bel
       finally { polling = false; }
     };
     void poll();
-    const timer = window.setInterval(() => void poll(), 3_000);
+    const timer = window.setInterval(() => void poll(), 10_000);
     const onVisibility = () => { void poll(); };
     document.addEventListener("visibilitychange", onVisibility);
     return () => {
@@ -120,7 +120,7 @@ export function NotificationBell({ unread, items }: { unread: number; items: Bel
       <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="relative" aria-label="შეტყობინებები" />}>
         <Bell className="size-5" />
         {unreadCount > 0 && (
-          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#b13f32] px-1 text-[10px] font-semibold text-white">
+          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#b13f32] dark:bg-[var(--ln-alert)] px-1 text-[10px] font-semibold text-white dark:text-primary-foreground">
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}
@@ -132,7 +132,7 @@ export function NotificationBell({ unread, items }: { unread: number; items: Bel
           {unreadCount > 0 && (
             <button
               type="button"
-              className="flex min-h-11 shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-3 text-xs font-medium text-[#3457d5] hover:bg-[#eef2ff] focus-visible:outline-2 focus-visible:outline-[#3457d5]"
+              className="flex min-h-11 shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-3 text-xs font-medium text-primary hover:bg-accent focus-visible:outline-2 focus-visible:outline-primary"
               onClick={() =>
                 start(async () => {
                   const result = await markAllNotificationsRead();
@@ -151,7 +151,7 @@ export function NotificationBell({ unread, items }: { unread: number; items: Bel
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         {permission === "default" && (
-          <DropdownMenuItem className="min-h-11 rounded-lg px-3 py-2 text-xs text-[#3457d5]" onClick={() => enableNotifications.current?.()}>
+          <DropdownMenuItem className="min-h-11 rounded-lg px-3 py-2 text-xs text-primary" onClick={() => enableNotifications.current?.()}>
             ბრაუზერის შეტყობინებების ჩართვა
           </DropdownMenuItem>
         )}
@@ -163,7 +163,7 @@ export function NotificationBell({ unread, items }: { unread: number; items: Bel
           {bellItems.map((n) => (
             <DropdownMenuItem
               key={n.id}
-              className={cn("flex flex-col items-start gap-1.5 rounded-xl px-3 py-3 whitespace-normal", !n.readAt && "bg-[#eef2ff] dark:bg-blue-950/30")}
+              className={cn("flex flex-col items-start gap-1.5 rounded-xl px-3 py-3 whitespace-normal", !n.readAt && "bg-accent dark:bg-[#234f54]/30")}
               onClick={() => {
                 start(async () => {
                   await readItem(n);
@@ -179,7 +179,7 @@ export function NotificationBell({ unread, items }: { unread: number; items: Bel
           ))}
         </div>
         <DropdownMenuSeparator />
-        <DropdownMenuItem render={<Link href="/notifications" />} className="min-h-11 justify-center rounded-xl text-sm font-medium text-[#3457d5]">
+        <DropdownMenuItem render={<Link href="/notifications" />} className="min-h-11 justify-center rounded-xl text-sm font-medium text-primary">
           ყველას ნახვა
         </DropdownMenuItem>
         </DropdownMenuGroup>

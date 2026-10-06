@@ -14,10 +14,10 @@ export function OrderHistory({ entries }: { entries: HistoryEntry[] }) {
   if (entries.length === 0) return <p className="text-[12.5px] text-muted-foreground">ისტორია ცარიელია</p>;
   return (
     <>
-      <ol className="space-y-2.5 border-l border-[#eef1f6] pl-4 text-[12.5px]">
+      <ol className="space-y-2.5 border-l border-[#eef1f6] dark:border-border pl-4 text-[12.5px]">
         {shown.map((e) => (
           <li key={e.id} className="relative">
-            <span className="absolute -left-[21px] top-1.5 size-2 rounded-full bg-[#dbe1ec]" />
+            <span className="absolute -left-[21px] top-1.5 size-2 rounded-full bg-[#dbe1ec] dark:bg-input" />
             <div>
               {e.text}
               {e.count > 1 && <span className="ml-1 text-[11px] text-muted-foreground">×{e.count}</span>}

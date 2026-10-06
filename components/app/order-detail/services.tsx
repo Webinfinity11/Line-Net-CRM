@@ -55,14 +55,28 @@ export function OrderServices({ orderId, items, catalogue, readOnly, vatPercent,
     });
   }
 
-  function save(itemId: number, quantity: number, unitPrice?: number) {
+  function save(itemId: number, quantity: number, unitPrice?: number, unit?: string) {
     start(async () => {
       const res = financeVisible
-        ? await updateOrderItem(itemId, quantity, unitPrice)
-        : await updateOrderItem(itemId, quantity);
+        ? await updateOrderItem(itemId, quantity, unitPrice, unit)
+        : await updateOrderItem(itemId, quantity, undefined, unit);
       if (!res.ok) toast.error(res.error);
       router.refresh();
     });
+  }
+
+  function unitEditor(item: (typeof items)[number]) {
+    const disabled = readOnly || Boolean(executorId && item.createdBy !== executorId);
+    return (
+      <div className="mt-1 max-w-44" onBlur={(event) => {
+        if (disabled || event.currentTarget.contains(event.relatedTarget)) return;
+        const unit = event.currentTarget.querySelector<HTMLInputElement>('input[name="unit"]')?.value;
+        if (unit !== undefined && unit.trim() !== item.unit) save(item.id, Number(item.quantity), undefined, unit);
+      }}>
+        <UnitInput key={item.unit} name="unit" defaultValue={item.unit} disabled={disabled}
+          label="საზომი ერთეული" aria-label={`${item.name} ერთეული`} className="text-[16px] sm:text-[13px]" />
+      </div>
+    );
   }
 
   return (
@@ -81,7 +95,7 @@ export function OrderServices({ orderId, items, catalogue, readOnly, vatPercent,
             {/* phone: one card per line */}
             <ul className="space-y-2 sm:hidden">
               {items.map((i) => (
-                <li key={i.id} className="border-b border-[#eef1f6] py-3">
+                <li key={i.id} className="border-b border-[#eef1f6] dark:border-border py-3">
                   <div className="flex items-start justify-between gap-2">
                     <span className="text-[13px] font-medium">{i.name}{i.creator?.role === "executor" && <small className="block text-muted-foreground">დაამატა: {i.creator.name}</small>}</span>
                     {!readOnly && (!executorId || i.createdBy === executorId) && (
@@ -115,6 +129,7 @@ export function OrderServices({ orderId, items, catalogue, readOnly, vatPercent,
                         onBlur={(e) => save(i.id, Number(i.quantity), Number(e.target.value))}
                       />
                     </label>}
+                    {unitEditor(i)}
                   </div>
                   {financeVisible && <div className="tabular mt-2 text-right text-[13px] font-semibold">{formatMoney(Number(i.quantity) * Number(i.unitPrice))}</div>}
                 </li>
@@ -134,10 +149,10 @@ export function OrderServices({ orderId, items, catalogue, readOnly, vatPercent,
                 </thead>
                 <tbody>
                   {items.map((i) => (
-                    <tr key={i.id} className="border-t border-[#eef1f6]">
+                    <tr key={i.id} className="border-t border-[#eef1f6] dark:border-border">
                       <td className="py-2">
                         {i.name}{i.creator?.role === "executor" && <small className="block text-muted-foreground">დაამატა: {i.creator.name}</small>}
-                        <span className="ml-1 text-[11px] text-muted-foreground">{i.unit}</span>
+                        {unitEditor(i)}
                       </td>
                       <td className="py-2 text-right">
                         <input
@@ -147,7 +162,7 @@ export function OrderServices({ orderId, items, catalogue, readOnly, vatPercent,
                           defaultValue={Number(i.quantity)}
                           disabled={readOnly || Boolean(executorId && i.createdBy !== executorId)}
                           aria-label={`${i.name} რაოდენობა`}
-                          className="tabular h-8 w-20 rounded-md border border-[#dbe1ec] bg-transparent px-2 text-right"
+                          className="tabular h-8 w-20 rounded-md border border-[#dbe1ec] dark:border-input bg-transparent px-2 text-right"
                           onBlur={(e) => save(i.id, Number(e.target.value), financeVisible ? Number(i.unitPrice) : undefined)}
                         />
                       </td>
@@ -159,7 +174,7 @@ export function OrderServices({ orderId, items, catalogue, readOnly, vatPercent,
                           defaultValue={Number(i.unitPrice)}
                           disabled={readOnly || Boolean(executorId && i.createdBy !== executorId)}
                           aria-label={`${i.name} ფასი`}
-                          className="tabular h-8 w-24 rounded-md border border-[#dbe1ec] bg-transparent px-2 text-right"
+                          className="tabular h-8 w-24 rounded-md border border-[#dbe1ec] dark:border-input bg-transparent px-2 text-right"
                           onBlur={(e) => save(i.id, Number(i.quantity), Number(e.target.value))}
                         />
                       </td>}
@@ -177,7 +192,7 @@ export function OrderServices({ orderId, items, catalogue, readOnly, vatPercent,
               </table>
             </div>
 
-            {sums && <div className="space-y-1.5 border-t border-[#eef1f6] pt-3">
+            {sums && <div className="space-y-1.5 border-t border-[#eef1f6] dark:border-border pt-3">
               {sums.rate > 0 && (
                 <>
                   <div className="flex items-center justify-between text-[12.5px] text-muted-foreground">

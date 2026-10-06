@@ -2,6 +2,7 @@
 
 import { ChevronsLeft, ChevronsRight, LogOut, Plus, UserCircle } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { signOut } from "@/lib/auth-client";
@@ -43,11 +44,11 @@ export function NavLinks({
             title={collapsed ? item.label : undefined}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "relative flex items-center transition-colors duration-150",
+              "relative flex cursor-pointer items-center transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-[#79afb6]",
               collapsed
                 ? "size-11 justify-center rounded-[14px]"
                 : "gap-2.5 rounded-full px-3 py-2 text-[13px]",
-              active ? "bg-[#3457d5] font-medium text-white shadow-[0_6px_16px_rgba(52,87,213,0.35)]" : "text-[#9fb0c0] hover:bg-white/[0.07] hover:text-white",
+              active ? "bg-[#397b83] font-medium text-white shadow-[0_6px_16px_rgba(57,123,131,0.35)]" : "text-[#9fb0c0] hover:bg-white/[0.07] hover:text-white",
             )}
           >
             <Icon className={cn("size-[18px] shrink-0", active ? "[stroke-width:2]" : "[stroke-width:1.7]")} />
@@ -90,7 +91,7 @@ export function SidebarFooter({ user, collapsed = false, onNavigate }: { user: S
           href="/profile"
           onClick={onNavigate}
           title={`${user.name} · ${t.nav2.profile}`}
-          className={cn("grid size-11 place-items-center rounded-[14px] transition-colors", profileActive ? "bg-white/10" : "hover:bg-white/[0.07]")}
+          className={cn("grid size-11 cursor-pointer place-items-center rounded-[14px] transition-colors focus-visible:outline-2 focus-visible:outline-[#79afb6]", profileActive ? "bg-white/10" : "hover:bg-white/[0.07]")}
         >
           <UserAvatar name={user.name} image={user.image} size="md" />
           <span className="sr-only">{t.nav2.profile}</span>
@@ -113,7 +114,7 @@ export function SidebarFooter({ user, collapsed = false, onNavigate }: { user: S
         href="/profile"
         onClick={onNavigate}
         className={cn(
-          "flex items-center gap-2.5 rounded-full px-3 py-2 text-sm transition-colors",
+          "flex cursor-pointer items-center gap-2.5 rounded-full px-3 py-2 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-[#79afb6]",
           profileActive ? "bg-white/10 text-white" : "text-[#9fb0c0] hover:bg-white/[0.07] hover:text-white",
         )}
       >
@@ -167,11 +168,11 @@ export function Sidebar(props: { user: SessionUser; inboxCount: number; unseenCo
         href="/"
         title={open ? undefined : t.nav.dashboard}
         className={cn(
-          "flex h-16 shrink-0 cursor-pointer items-center rounded-[14px] transition-colors hover:bg-white/[0.07] active:bg-white/10 outline-none focus-visible:ring-2 focus-visible:ring-[#3457d5]/60",
+          "flex h-16 shrink-0 cursor-pointer items-center rounded-[14px] transition-colors hover:bg-white/[0.07] active:bg-white/10 outline-none focus-visible:ring-2 focus-visible:ring-[#397b83]/60",
           open ? "gap-2.5 px-4" : "justify-center px-2",
         )}
       >
-        <div className="flex size-9 shrink-0 items-center justify-center rounded-[12px] bg-[#3457d5] font-heading text-xs font-bold text-white shadow-[0_6px_16px_rgba(52,87,213,0.28)]">LN</div>
+        <div className="flex size-[36px] shrink-0 items-center justify-center rounded-[12px] bg-white p-[5px] shadow-[0_6px_16px_rgba(57,123,131,0.28)]"><Image src="/brand/mark.png" alt="" width={26} height={26} className="h-[26px] w-[26px] object-contain" /></div>
         {open ? (
           <div className="min-w-0 leading-tight">
             <div className="truncate font-heading text-[15px] text-white">{t.appName}</div>
@@ -188,7 +189,7 @@ export function Sidebar(props: { user: SessionUser; inboxCount: number; unseenCo
             href="/orders/new"
             title={open ? undefined : t.order.new}
             className={cn(
-              "flex items-center justify-center gap-2 rounded-full bg-[#3457d5] font-heading text-[13px] font-bold tracking-[-0.005em] text-white shadow-[0_8px_20px_rgba(52,87,213,0.4)] transition-colors hover:bg-[#2846b7]",
+              "flex items-center justify-center gap-2 rounded-full bg-[#397b83] font-heading text-[13px] font-bold tracking-[-0.005em] text-white shadow-[0_8px_20px_rgba(57,123,131,0.4)] transition-colors hover:bg-[#326b72]",
               open ? "h-10 px-4" : "h-11 w-11",
             )}
           >

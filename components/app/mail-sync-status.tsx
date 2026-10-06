@@ -25,14 +25,14 @@ export function MailSyncStatus({ state, canManage }: { state: MailSyncState; can
       <div className="ln-card ln-enter p-5 max-md:p-4">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-2xl space-y-1.5">
-            <h2 className="flex items-center gap-2 font-heading text-[15px]"><Mail className="size-4 text-[#3457d5] [stroke-width:1.7]" /> {toMtavruli('Outlook ფოსტა')}</h2>
+            <h2 className="flex items-center gap-2 font-heading text-[15px]"><Mail className="size-4 text-primary [stroke-width:1.7]" /> {toMtavruli('Outlook ფოსტა')}</h2>
             <p className="text-[12.5px] text-muted-foreground">შეგიძლიათ გამოიყენოთ უფასო Outlook.com ან Hotmail ფოსტა — Microsoft 365-ის ფასიანი გამოწერა საჭირო არ არის.</p>
             <p className="text-[11.5px] text-muted-foreground">პირველად დაკავშირების შემდეგ მიღებული წერილები შეიქმნება დაუმუშავებელ შეკვეთებად და ხელმისაწვდომი იქნება CRM-ის ადმინისტრატორებისა და მენეჯერებისთვის.</p>
           </div>
           <div className="w-full sm:w-auto">{canManage && connectButton}</div>
         </div>
         {!state.canConnect && canManage && (
-          <div className="mt-3 rounded-[12px] border border-[#f0d9a8] bg-[#fff4df] p-3 text-[11.5px] text-[#96610b]">
+          <div className="mt-3 rounded-[12px] border border-[#f0d9a8] dark:border-[var(--ln-warn-line)] bg-[#fff4df] dark:bg-[var(--ln-warn-bg)] p-3 text-[11.5px] text-[#96610b] dark:text-[var(--ln-warn)]">
             <p className="font-medium">კავშირი ჯერ მოსამზადებელია — Azure-ის აპლიკაცია არ არის გამართული.</p>
             {state.missing.connect.length > 0 && (
               <p className="mt-1.5">
@@ -43,7 +43,7 @@ export function MailSyncStatus({ state, canManage }: { state: MailSyncState; can
             <p className="mt-1.5 opacity-80">ინსტრუქცია: docs/06-outlook-personal-setup.md (პირადი Outlook) ან docs/03-microsoft-365-setup.md (კომპანიის ყუთი).</p>
           </div>
         )}
-        {!state.canConnect && !canManage && <p className="mt-3 text-[11.5px] text-[#96610b]">კავშირი ჯერ მოსამზადებელია — მიმართეთ ადმინისტრატორს.</p>}
+        {!state.canConnect && !canManage && <p className="mt-3 text-[11.5px] text-[#96610b] dark:text-[var(--ln-warn)]">კავშირი ჯერ მოსამზადებელია — მიმართეთ ადმინისტრატორს.</p>}
         {!canManage && <p className="mt-3 text-[11.5px] text-muted-foreground">დაკავშირებისთვის მიმართეთ CRM-ის ადმინისტრატორს.</p>}
       </div>
     );
@@ -53,7 +53,7 @@ export function MailSyncStatus({ state, canManage }: { state: MailSyncState; can
     <div className="ln-card ln-enter space-y-3 p-5 max-md:p-4 max-md:break-words">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0 space-y-1">
-          <p className="flex items-center gap-2 text-[13px] font-medium"><Mail className="size-4 shrink-0 text-[#3457d5] [stroke-width:1.7]" /><span className="break-all">{state.mailbox}</span></p>
+          <p className="flex items-center gap-2 text-[13px] font-medium"><Mail className="size-4 shrink-0 text-primary [stroke-width:1.7]" /><span className="break-all">{state.mailbox}</span></p>
           <p className="text-[11.5px] text-muted-foreground">ბოლო შემოწმება: {state.lastRunAt ? formatDate(state.lastRunAt, true) : "ჯერ არ შემოწმებულა"}</p>
           <p className="text-[11.5px] text-muted-foreground">{state.automatic ? "ავტომატური შემოწმება ყოველ 5 წუთში, სერვერის მუშაობისას." : "სერვერის შიდა ავტომატური შემოწმება გამორთულია. შეგიძლიათ გამოიყენოთ „შემოწმება ახლა“."}</p>
         </div>
@@ -74,7 +74,7 @@ export function MailSyncStatus({ state, canManage }: { state: MailSyncState; can
           </>}
         </div>
       </div>
-      {state.lastError && <p role="alert" className="text-xs text-[#b13f32] dark:text-rose-400">{state.lastError}</p>}
+      {state.lastError && <p role="alert" className="text-xs text-[#b13f32] dark:text-[var(--ln-alert)]">{state.lastError}</p>}
     </div>
   );
 }

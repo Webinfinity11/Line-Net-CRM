@@ -55,9 +55,9 @@ function SiteRows() {
   const [rows, setRows] = useState([0]);
   const [seq, setSeq] = useState(1);
   return (
-    <div className="rounded-[14px] border border-[#eef1f6] p-3">
+    <div className="rounded-[14px] border border-[#eef1f6] dark:border-border p-3">
       <div className="mb-2 flex items-center justify-between gap-2">
-        <span className="font-heading text-[13px] font-semibold text-[#4a5e73]">ობიექტები</span>
+        <span className="font-heading text-[13px] font-semibold text-[#4a5e73] dark:text-[var(--ln-strong)]">ობიექტები</span>
         <span className="text-[11px] text-muted-foreground">ობიექტის საკონტაქტო პირი და ტელეფონი შეკვეთაში ჩანს; კოორდინატები მისამართით იძებნება, თუ შესაძლებელია.</span>
       </div>
       <div className="space-y-2">

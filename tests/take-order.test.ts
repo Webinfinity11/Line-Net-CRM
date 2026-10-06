@@ -44,9 +44,10 @@ describe("takeOrder", () => {
   const { patches, inserts } = transaction(); expect(await takeOrder(4)).toEqual({ ok: true });
   expect(m.require).toHaveBeenCalledWith(["executor"]);
   expect(m.sync).toHaveBeenCalledWith(expect.anything(), 4, [], [me.id], me.id, false, "self_assigned");
-  expect(patches).toEqual([{ table: orders, value: { status: "in_progress", arrivedAt: expect.any(Date), updatedAt: expect.any(Date) } }]);
+  expect(patches).toEqual([{ table: orders, value: { status: "assigned", updatedAt: expect.any(Date) } }]);
   expect(m.notify).toHaveBeenCalledExactlyOnceWith(["manager"], { type: "taken", title: "აიღო: გიორგი · LN-00004 · ობიექტი", body: "მონტაჟი", orderId: 4 });
-  expect(inserts).toEqual([{ table: orderVisits, value: { orderId: 4, userId: me.id, startedAt: expect.any(Date) } }, { table: orderEvents, value: { orderId: 4, userId: me.id, type: "visit_started", data: { visitId: 42 } } }]);
+  // taking does not start a visit: the order waits in „დასაწყები“ until „დაწყება“
+  expect(inserts.filter(i => i.table === orderVisits || i.table === orderEvents)).toEqual([]);
   expect(m.claim).not.toHaveBeenCalled(); expect(m.staff).not.toHaveBeenCalled();
   for (const path of ["/my", "/my/board", "/orders/4", "/orders", "/inbox"]) expect(m.refresh).toHaveBeenCalledWith(path);
  });
@@ -54,7 +55,7 @@ describe("takeOrder", () => {
   transaction({ managerId: null, title: "", siteId: null }); expect((await takeOrder(4)).ok).toBe(true);
   expect(m.notify).toHaveBeenCalledWith(["admin", "staff"], expect.objectContaining({ type: "taken", title: "აიღო: გიორგი · LN-00004 · —", body: "ა".repeat(80) }));
  });
- it.each(["assigned", "in_progress"])("starts work from %s status", async status => { const { patches } = transaction({ status }); expect((await takeOrder(4)).ok).toBe(true); expect(patches[0].value).toMatchObject({ status: "in_progress" }); });
+ it.each(["assigned", "in_progress"])("keeps %s status and starts no visit", async status => { const { patches, inserts } = transaction({ status }); expect((await takeOrder(4)).ok).toBe(true); expect(patches[0].value).not.toHaveProperty("status"); expect(inserts.filter(i => i.table === orderVisits)).toEqual([]); });
 });
 describe("addColleague", () => {
  it("rejects an unassigned caller", async () => { transaction(); expect((await addColleague(4, "colleague")).ok).toBe(false); noAssignment(); });
@@ -64,8 +65,10 @@ describe("addColleague", () => {
  it.each(["done", "closed", "cancelled"])("rejects %s", async status => { transaction({ current: [me.id], status }); expect((await addColleague(4, "colleague")).ok).toBe(false); noAssignment(); });
  it("rejects untriaged orders", async () => { transaction({ current: [me.id], triaged: false }); expect((await addColleague(4, "colleague")).ok).toBe(false); noAssignment(); });
  it("assigns and notifies colleague and manager after commit", async () => {
-  transaction({ current: [me.id], status: "assigned" }); expect(await addColleague(4, "colleague")).toEqual({ ok: true });
+  const { patches, inserts } = transaction({ current: [me.id], status: "assigned" }); expect(await addColleague(4, "colleague")).toEqual({ ok: true });
   expect(m.sync).toHaveBeenCalledWith(expect.anything(), 4, [me.id], [me.id, "colleague"], me.id, false);
+  expect(patches).toEqual([{ table: orders, value: { updatedAt: expect.any(Date) } }]);
+  expect(inserts.filter(i => i.table === orderVisits)).toEqual([]);
   expect(m.notify).toHaveBeenCalledTimes(2);
   expect(m.notify).toHaveBeenCalledWith(["colleague"], expect.objectContaining({ type: "assigned", orderId: 4 }), { excludeUserId: me.id });
   expect(m.notify).toHaveBeenCalledWith(["manager"], { type: "taken", title: "გიორგი-მა დაამატა ლევანი · LN-00004", orderId: 4 });

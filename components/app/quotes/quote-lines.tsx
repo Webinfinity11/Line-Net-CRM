@@ -90,7 +90,7 @@ export function QuoteLines({
             {/* phone: one card per line */}
             <ul className="space-y-2 sm:hidden">
               {items.map((i) => (
-                <li key={i.id} className="rounded-[12px] border border-[#eef1f6] p-3">
+                <li key={i.id} className="rounded-[12px] border border-[#eef1f6] dark:border-border p-3">
                   <div className="flex items-start justify-between gap-2">
                     <span className="text-[13px] font-medium">{i.name}</span>
                     {!readOnly && (
@@ -143,7 +143,7 @@ export function QuoteLines({
                 </thead>
                 <tbody>
                   {items.map((i) => (
-                    <tr key={i.id} className="border-t border-[#eef1f6]">
+                    <tr key={i.id} className="border-t border-[#eef1f6] dark:border-border">
                       <td className="py-2">
                         {i.name}
                         <span className="ml-1 text-[11px] text-muted-foreground">{i.unit}</span>
@@ -156,7 +156,7 @@ export function QuoteLines({
                           defaultValue={Number(i.quantity)}
                           disabled={readOnly}
                           aria-label={`${i.name} რაოდენობა`}
-                          className="tabular h-8 w-20 rounded-md border border-[#dbe1ec] bg-transparent px-2 text-right"
+                          className="tabular h-8 w-20 rounded-md border border-[#dbe1ec] dark:border-input bg-transparent px-2 text-right"
                           onBlur={(e) => save(i.id, Number(e.target.value), Number(i.unitPrice))}
                         />
                       </td>
@@ -168,7 +168,7 @@ export function QuoteLines({
                           defaultValue={Number(i.unitPrice)}
                           disabled={readOnly}
                           aria-label={`${i.name} ფასი`}
-                          className="tabular h-8 w-24 rounded-md border border-[#dbe1ec] bg-transparent px-2 text-right"
+                          className="tabular h-8 w-24 rounded-md border border-[#dbe1ec] dark:border-input bg-transparent px-2 text-right"
                           onBlur={(e) => save(i.id, Number(i.quantity), Number(e.target.value))}
                         />
                       </td>
@@ -186,7 +186,7 @@ export function QuoteLines({
               </table>
             </div>
 
-            <dl className="space-y-1.5 border-t border-[#eef1f6] pt-3 text-[12.5px]">
+            <dl className="space-y-1.5 border-t border-[#eef1f6] dark:border-border pt-3 text-[12.5px]">
               <div className="flex items-center justify-between">
                 <dt className="text-muted-foreground">ჯამი დღგ-ს გარეშე</dt>
                 <dd className="tabular font-medium">{formatMoney(subtotal)}</dd>

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { PrintButton } from "@/components/app/print-button";
 import { vatBreakdown } from "@/lib/finance";
@@ -45,7 +46,7 @@ export default async function ActPage({ params }: PageProps<"/orders/[id]/act">)
 
       <header className="mb-6 flex flex-wrap items-start justify-between gap-3 border-b-2 border-neutral-900 pb-3">
         <div>
-          <div className="text-xl font-bold">Line Net</div>
+          <Image src="/brand/logo.png" alt="ლაინნეტი" width={1372} height={1653} unoptimized loading="eager" className="mb-[8px] h-[48px] w-auto" />
           <div className="text-[11px] text-neutral-600">{[seller.name, `ს/კ ${seller.idCode}`, seller.address, seller.phone, seller.email].join(" · ")}</div>
         </div>
         <div className="text-right">

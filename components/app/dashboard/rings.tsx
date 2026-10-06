@@ -14,7 +14,7 @@ function RingCard({ title, period, view, segments, value, percent, caption, note
 }) {
   const total = segments.reduce((sum, segment) => sum + segment.value, 0);
   return (
-    <Reveal as="section" view={view} ariaLabel={title} className="ln-card ln-lift min-w-0 flex-1 p-6 max-md:p-4 xl:basis-[400px]">
+    <Reveal as="section" view={view} ariaLabel={title} className="ln-card min-w-0 flex-1 p-6 max-md:p-4 xl:basis-[400px]">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="font-heading text-[15px]">{toMtavruli(title)}</h2>
         <span className="text-[11.5px] text-muted-foreground">{period}</span>
@@ -50,7 +50,7 @@ export function DashboardRings({ counts, timeliness, period }: {
       <RingCard title="შეკვეთების სტატუსები" view="status-ring" period={period} segments={statuses} value={total} caption="სულ შეკვეთა" note="პერიოდში შექმნილი შეკვეთების მიმდინარე სტატუსები." />
       <RingCard title="დროზე შესრულება" view="timeliness-ring" period={period}
         segments={[
-          { label: "ვადაში", value: timeliness.onTime, color: "#3457d5" },
+          { label: "ვადაში", value: timeliness.onTime, color: "#397b83" },
           { label: "დაგვიანებით", value: timeliness.late, color: "#b13f32" },
           { label: "ვადა არ აქვს", value: timeliness.unknown, color: "#93a0b0" },
         ]}

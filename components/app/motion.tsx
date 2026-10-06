@@ -136,8 +136,8 @@ export function CountUp({ value, format, className, duration }: { value: number;
 export function DrawnArea({
   points,
   height = 96,
-  stroke = "#3457d5",
-  fill = "#3457d5",
+  stroke = "#397b83",
+  fill = "#397b83",
   className,
   labels,
 }: {
@@ -219,7 +219,7 @@ export function DrawnArea({
 export function GrowBar({ pct, color, delay = 0, className }: { pct: number; color: string; delay?: number; className?: string }) {
   const { ref, shown } = useRevealed<HTMLDivElement>(0.3);
   return (
-    <div ref={ref} className={cn("h-full overflow-hidden rounded-full bg-[#f1f4f9]", className)}>
+    <div ref={ref} className={cn("h-full overflow-hidden rounded-full bg-muted", className)}>
       <div
         className="h-full rounded-full transition-[width] duration-[900ms] ease-[cubic-bezier(0.16,0.84,0.44,1)] motion-reduce:transition-none"
         style={{ width: shown ? `${Math.max(0, Math.min(100, pct))}%` : "0%", background: color, transitionDelay: `${delay}ms` }}
@@ -237,7 +237,7 @@ export function Ring({ segments, children, label }: { segments: { value: number;
   return (
     <div className="relative mx-auto size-[172px] shrink-0">
       <svg ref={ref} viewBox="0 0 172 172" className="size-[172px]" role="img" aria-label={label}>
-        <circle cx="86" cy="86" r="66" fill="none" stroke="#eef1f5" strokeWidth="16" />
+        <circle cx="86" cy="86" r="66" fill="none" stroke="var(--ln-ring-track, #eef1f5)" strokeWidth="16" />
         <g transform="rotate(-90 86 86)">
           {segments.map((segment, index) => {
             const length = total > 0 ? Math.max(0, segment.value) / total * circumference : 0;

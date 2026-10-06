@@ -84,15 +84,15 @@ export function Timeline({
         <div key={lane.key}>
           <div className="mb-2 flex items-center gap-2">
             {!lane.unassigned && <UserAvatar name={lane.name} image={lane.image} size="sm" />}
-            <span className={cn("text-[13px] font-medium", lane.unassigned && "text-[#b13f32]")}>{lane.name}</span>
+            <span className={cn("text-[13px] font-medium", lane.unassigned && "text-[#b13f32] dark:text-[var(--ln-alert)]")}>{lane.name}</span>
             {lane.load && (
-              <span className={cn("tabular ml-auto text-[11px]", lane.load.over ? "font-medium text-[#b13f32]" : "text-muted-foreground")}>
+              <span className={cn("tabular ml-auto text-[11px]", lane.load.over ? "font-medium text-[#b13f32] dark:text-[var(--ln-alert)]" : "text-muted-foreground")}>
                 {lane.load.hours} / {normHours} სთ
               </span>
             )}
           </div>
           {lane.blocks.length === 0 ? (
-            <p className="rounded-[12px] border border-dashed border-[#e6ebf2] px-3 py-3 text-center text-[12px] text-muted-foreground">თავისუფალია</p>
+            <p className="rounded-[12px] border border-dashed border-border px-3 py-3 text-center text-[12px] text-muted-foreground">თავისუფალია</p>
           ) : (
             <ul className="space-y-2">
               {lane.blocks.map((b) => (
@@ -102,19 +102,19 @@ export function Timeline({
                     className="flex min-h-[56px] cursor-pointer items-center gap-3 rounded-[12px] px-3 py-2.5 transition-[filter] hover:brightness-95 active:brightness-90"
                     style={{ background: STATUS_TINT[b.status], borderLeft: `3px solid ${STATUS_HEX[b.status]}` }}
                   >
-                    <span className="tabular w-[92px] shrink-0 text-[12px] font-medium text-[#4a5e73]">
+                    <span className="tabular w-[92px] shrink-0 text-[12px] font-medium text-[#4a5e73] dark:text-[var(--ln-strong)]">
                       {formatMinutes(b.startMin)}–{formatMinutes(b.endMin)}
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-[13px] font-medium">{b.title}</span>
                       {b.client && <span className="block truncate text-[11.5px] text-muted-foreground">{b.client}</span>}
                       {b.clashWith.length > 0 && (
-                        <span className="mt-0.5 flex items-center gap-1 text-[11px] font-medium text-[#96610b]">
+                        <span className="mt-0.5 flex items-center gap-1 text-[11px] font-medium text-[#96610b] dark:text-[var(--ln-warn)]">
                           <AlertTriangle className="size-3" /> ემთხვევა: {b.clashWith.join(", ")}
                         </span>
                       )}
                     </span>
-                    <span aria-hidden="true" className="shrink-0 text-[20px] text-[#3457d5]">›</span>
+                    <span aria-hidden="true" className="shrink-0 text-[20px] text-primary">›</span>
                   </Link>
                 </li>
               ))}
@@ -132,17 +132,17 @@ export function Timeline({
     <div className="overflow-x-auto [--lane-w:160px] [--time-w:48px] md:[--lane-w:220px] md:[--time-w:65px]">
       <div className="min-w-max pb-4">
         {/* lane headers */}
-        <div className="grid gap-x-2 border-b border-[#e6ebf2] pb-3" style={{ gridTemplateColumns: columns }}>
+        <div className="grid gap-x-2 border-b border-border pb-3" style={{ gridTemplateColumns: columns }}>
           <div />
           {lanes.map((lane) => (
-            <div key={lane.key} className={cn("min-w-0 px-1", lane.unassigned && "rounded-md border border-dashed border-[#e0b4a8] bg-[#fff8f5] px-2 py-1")}>
+            <div key={lane.key} className={cn("min-w-0 px-1", lane.unassigned && "rounded-md border border-dashed border-[#e0b4a8] dark:border-[var(--ln-alert-line)] bg-[#fff8f5] dark:bg-[var(--ln-alert-bg)] px-2 py-1")}>
               <div className="flex items-center gap-2">
                 {lane.unassigned ? (
-                  <span className="inline-grid size-6 place-items-center rounded-full bg-[#fff1ed] text-[10px] font-semibold text-[#b13f32]">!</span>
+                  <span className="inline-grid size-6 place-items-center rounded-full bg-[#fff1ed] dark:bg-[var(--ln-alert-bg)] text-[10px] font-semibold text-[#b13f32] dark:text-[var(--ln-alert)]">!</span>
                 ) : (
                   <UserAvatar name={lane.name} image={lane.image} size="sm" />
                 )}
-                <span className={cn("truncate text-[13px] font-medium", lane.unassigned && "text-[#b13f32]")}>{lane.name}</span>
+                <span className={cn("truncate text-[13px] font-medium", lane.unassigned && "text-[#b13f32] dark:text-[var(--ln-alert)]")}>{lane.name}</span>
                 {lane.load && (
                   <span className="ml-auto shrink-0 text-[11px] text-muted-foreground tabular">
                     {lane.load.hours} / {normHours} სთ
@@ -150,10 +150,10 @@ export function Timeline({
                 )}
               </div>
               {lane.load && (
-                <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-[#eef1f6]" role="progressbar" aria-label={`${lane.name}, დაგეგმილია ${lane.load.hours} საათი ${normHours} საათიდან`} aria-valuenow={lane.load.pct} aria-valuemin={0} aria-valuemax={100}>
+                <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-[#eef1f6] dark:bg-muted" role="progressbar" aria-label={`${lane.name}, დაგეგმილია ${lane.load.hours} საათი ${normHours} საათიდან`} aria-valuenow={lane.load.pct} aria-valuemin={0} aria-valuemax={100}>
                   <div
                     className="h-full rounded-full transition-[width] duration-300"
-                    style={{ width: `${lane.load.pct}%`, background: lane.load.over ? "#c75e50" : lane.load.pct > 75 ? "#bd9c56" : "#738fca" }}
+                    style={{ width: `${lane.load.pct}%`, background: lane.load.over ? "#c75e50" : lane.load.pct > 75 ? "#bd9c56" : "var(--ln-accent)" }}
                   />
                 </div>
               )}
@@ -181,14 +181,14 @@ export function Timeline({
           {lanes.map((lane) => (
             <div
               key={lane.key}
-              className="relative border-l border-dashed border-[#e6ebf2]"
+              className="relative border-l border-dashed border-border dark:bg-[repeating-linear-gradient(to_bottom,transparent_0,transparent_55px,var(--border)_55px,var(--border)_56px)]!"
               style={{
                 height: canvasH,
                 backgroundImage: `repeating-linear-gradient(to bottom, transparent 0, transparent ${HOUR_PX - 1}px, #eceff5 ${HOUR_PX - 1}px, #eceff5 ${HOUR_PX}px)`,
               }}
             >
               {lane.blocks.length === 0 && (
-                <div className="absolute inset-x-0 top-3 text-center text-[11px] text-[#8b98a9]">თავისუფალია</div>
+                <div className="absolute inset-x-0 top-3 text-center text-[11px] text-[#8b98a9] dark:text-[var(--ln-faint)]">თავისუფალია</div>
               )}
               {clusters(lane.blocks).map((group) => {
                 if (group.length > 1) {
@@ -197,7 +197,7 @@ export function Timeline({
                   return (
                     <div
                       key={`c-${group[0].id}`}
-                      className="ln-pop absolute overflow-hidden rounded-[6px] border border-[#f0d9a8] bg-[#fff4df] p-2 text-[11px] leading-[1.45]"
+                      className="ln-pop absolute overflow-hidden rounded-[6px] border border-[#f0d9a8] dark:border-[var(--ln-warn-line)] bg-[#fff4df] dark:bg-[var(--ln-warn-bg)] p-2 text-[11px] leading-[1.45]"
                       style={{
                         top: y(start) + 1,
                         // tall enough for every line even when the jobs are short
@@ -207,7 +207,7 @@ export function Timeline({
                         zIndex: 1,
                       }}
                     >
-                      <div className="mb-1 flex items-center gap-1 font-medium text-[#96610b]">
+                      <div className="mb-1 flex items-center gap-1 font-medium text-[#96610b] dark:text-[var(--ln-warn)]">
                         <AlertTriangle className="size-3 shrink-0" />
                         <span className="tabular truncate">
                           {formatMinutes(start)}–{formatMinutes(end)} · {group.length} ერთდროული
@@ -219,11 +219,11 @@ export function Timeline({
                             <Link
                               href={`/orders/${b.id}`}
                               title={`${b.number} · ${b.title}${b.client ? ` · ${b.client}` : ""}`}
-                              className="group flex h-5 cursor-pointer items-center gap-1.5 rounded-[4px] px-1 hover:bg-white/70 active:bg-white focus-visible:outline-2 focus-visible:outline-[#3457d5]"
+                              className="ln-link group flex h-5 cursor-pointer items-center gap-1.5 rounded-[4px] px-1 hover:bg-white/70 dark:hover:bg-muted/70 active:bg-card focus-visible:outline-2 focus-visible:outline-primary"
                             >
                               <span className="size-1.5 shrink-0 rounded-full" style={{ background: STATUS_HEX[b.status] }} aria-hidden />
-                              <span className="tabular shrink-0 text-[#617084]">{formatMinutes(b.startMin)}</span>
-                              <span className="min-w-0 truncate font-medium text-[#3457d5] group-hover:underline">{b.title}</span>
+                              <span className="tabular shrink-0 text-muted-foreground">{formatMinutes(b.startMin)}</span>
+                              <span className="min-w-0 truncate font-medium text-primary group-hover:underline">{b.title}</span>
                             </Link>
                           </li>
                         ))}
@@ -238,8 +238,8 @@ export function Timeline({
                     key={b.id}
                     href={`/orders/${b.id}`}
                     className={cn(
-                      "ln-pop absolute cursor-pointer overflow-hidden rounded-[6px] p-2 pr-6 text-[11px] leading-[1.45] text-foreground transition-[transform,box-shadow] duration-150 hover:-translate-y-px hover:brightness-95 active:brightness-90 hover:shadow-[0_4px_12px_rgba(38,57,104,0.12)] focus-visible:outline-2 focus-visible:outline-[#3457d5]",
-                      clash ? "border border-[#f0c36a]" : "border border-transparent",
+                      "ln-pop absolute cursor-pointer overflow-hidden rounded-[6px] p-2 pr-6 text-[11px] leading-[1.45] text-foreground transition-[transform,box-shadow] duration-150 hover:-translate-y-px hover:brightness-95 active:brightness-90 hover:shadow-[0_4px_12px_rgba(38,57,104,0.12)] focus-visible:outline-2 focus-visible:outline-primary",
+                      clash ? "border border-[#f0c36a] dark:border-[var(--ln-warn-line)] dark:bg-[var(--ln-warn-bg)]!" : "border border-transparent",
                     )}
                     style={{
                       top: y(b.startMin) + 1,
@@ -251,14 +251,14 @@ export function Timeline({
                     }}
                     title={`${b.number} · ${b.title}`}
                   >
-                    <span aria-hidden="true" className="absolute right-2 top-2 text-[20px] text-[#3457d5]">›</span>
-                    <div className="tabular font-medium text-[#4a5e73]">
+                    <span aria-hidden="true" className="absolute right-2 top-2 text-[20px] text-primary">›</span>
+                    <div className="tabular font-medium text-[#4a5e73] dark:text-[var(--ln-strong)]">
                       {formatMinutes(b.startMin)}–{formatMinutes(b.endMin)}
                     </div>
                     <div className="line-clamp-2 font-medium">{b.title}</div>
-                    {b.client && <div className="truncate text-[#617084]">{b.client}</div>}
+                    {b.client && <div className="truncate text-muted-foreground">{b.client}</div>}
                     {clash && (
-                      <div className="mt-0.5 flex items-center gap-1 text-[10px] font-medium text-[#96610b]">
+                      <div className="mt-0.5 flex items-center gap-1 text-[10px] font-medium text-[#96610b] dark:text-[var(--ln-warn)]">
                         <AlertTriangle className="size-3" /> ემთხვევა: {b.clashWith.join(", ")}
                       </div>
                     )}
@@ -270,8 +270,8 @@ export function Timeline({
           {showNow && (
             <div className="pointer-events-none absolute left-0 right-0 z-10" style={{ top: y(nowMin) + 8 }} aria-hidden>
               <div className="flex items-center">
-                <span className="w-[var(--time-w)] pr-2 text-right text-[10px] font-medium text-[#3457d5] tabular">{formatMinutes(nowMin)}</span>
-                <span className="h-px flex-1 bg-[#3457d5]" />
+                <span className="w-[var(--time-w)] pr-2 text-right text-[10px] font-medium text-muted-foreground tabular">{formatMinutes(nowMin)}</span>
+                <span className="h-px flex-1 bg-[#397b83] dark:bg-primary" />
               </div>
             </div>
           )}

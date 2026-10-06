@@ -125,7 +125,7 @@ export function CompleteDialog({
             {details && details.checklist.length > 0 && <ChecklistItems orderId={orderId} items={details.checklist} disabled={busy || pending} onChanged={reload} onBusy={setBusy} />}
           </div>
           {error && (
-            <p className="text-sm text-[#b13f32]" role="alert">
+            <p className="text-sm text-[#b13f32] dark:text-[var(--ln-alert)]" role="alert">
               {error}
             </p>
           )}
@@ -137,7 +137,7 @@ export function CompleteDialog({
               {pending ? "ინახება…" : "ჩაბარება"}
             </Button>
           </div>
-          {problems.length > 0 && <ul className="space-y-1 text-[12px] text-[#617084]" aria-live="polite">{problems.map(problem => <li key={problem}>{problem}</li>)}</ul>}
+          {problems.length > 0 && <ul className="space-y-1 text-[12px] text-muted-foreground" aria-live="polite">{problems.map(problem => <li key={problem}>{problem}</li>)}</ul>}
         </form>
       </DialogContent>
     </Dialog>

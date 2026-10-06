@@ -5,7 +5,7 @@ import Link from "next/link";
 import { OverdueBadge, PriorityLabel, StatusBadge, SystemBadge } from "@/components/app/badges";
 import { MyVisitControls } from "@/components/app/my-visit-controls";
 import { PageHeader } from "@/components/app/page-header";
-import { formatDate, formatDuration, t } from "@/lib/i18n";
+import { formatDate, formatDuration } from "@/lib/i18n";
 import { unreadCommentOrderIds } from "@/lib/notify";
 import { listMyOrders, type MyOrderItem } from "@/lib/orders";
 import { isOverdue, orderContact, telHref } from "@/lib/order-utils";
@@ -13,7 +13,14 @@ import { tbilisiDayBounds, tbilisiTime, tbilisiToday } from "@/lib/schedule-util
 import { requireUser } from "@/lib/session";
 import { cn } from "@/lib/utils";
 
-export const metadata = { title: "ჩემი შეკვეთები" };
+const TAB_TITLES: Record<string, string> = {
+  new: "დასაწყები დავალებები", active: "მიმდინარე დავალებები",
+  done: "ჩაბარებული დავალებები", closed: "დახურული დავალებები",
+};
+export async function generateMetadata({ searchParams }: PageProps<"/my">) {
+  const { tab } = await searchParams;
+  return { title: typeof tab === "string" ? TAB_TITLES[tab] ?? "ჩემი დავალებები" : "ჩემი დავალებები" };
+}
 
 function mapsHref(o: MyOrderItem) {
   if (o.site?.lat && o.site?.lng) return `https://maps.google.com/?q=${o.site.lat},${o.site.lng}`;
@@ -32,26 +39,26 @@ function OrderCard({ o, meId, highlight, chat }: { o: MyOrderItem; meId: string;
   const place = [o.client?.name, o.address ?? o.site?.address ?? o.site?.name].filter(Boolean).join(" · ");
   return (
     <article
-      className={cn("ln-card border border-transparent p-4", highlight && "border-[#a5b5ed] md:border-[#7fc4a3]", unseen && !highlight && "border-[#a5b5ed]")}
+      className={cn("ln-card border border-transparent p-4", highlight && "border-[#a5cdd1] dark:border-primary md:border-[#7fc4a3] dark:md:border-[var(--ln-success-line)]", unseen && !highlight && "border-[#a5cdd1] dark:border-primary")}
       aria-label={`${o.number} ${o.title}`}
     >
       <Link
         href={`/orders/${o.id}`}
         aria-label={`${o.number} ${o.title}`}
-        className="relative -mx-4 -mt-4 block cursor-pointer rounded-t-[inherit] py-4 pl-4 pr-[44px] transition-colors hover:bg-[#f8faff] active:bg-[#eef2ff] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3457d5] after:pointer-events-none after:absolute after:right-4 after:top-1/2 after:-translate-y-1/2 after:text-[24px] after:text-[#3457d5] after:content-['›']"
+        className="relative -mx-4 -mt-4 block cursor-pointer rounded-t-[inherit] py-4 pl-4 pr-[44px] transition-colors hover:bg-[#f6fafb] dark:hover:bg-muted active:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary after:pointer-events-none after:absolute after:right-4 after:top-1/2 after:-translate-y-1/2 after:text-[24px] after:text-primary after:content-['›']"
       >
         <div className="mb-2 flex flex-wrap items-center gap-1.5 md:mb-1.5">
           <span className="font-mono text-[11px] text-muted-foreground">{o.number}</span>
           <StatusBadge status={o.status} />
           <SystemBadge system={o.systemType} className="order-last max-w-full whitespace-normal break-words px-1.5 py-0 text-[10px] md:order-none md:whitespace-nowrap" />
           {overdue && <OverdueBadge />}
-          {unseen && <span className="rounded-[5px] border border-[#dbe3fd] bg-[#eef2ff] px-1.5 py-[2px] text-[10px] font-medium text-[#3457d5]">ახალი დანიშვნა</span>}
+          {unseen && <span className="rounded-[5px] border border-[#cde5e8] dark:border-primary bg-accent px-1.5 py-[2px] text-[10px] font-medium text-primary">ახალი დანიშვნა</span>}
         </div>
         <span className="ln-link block break-words font-heading text-[17px] font-bold leading-snug tracking-[-0.01em]">
           {o.title}
         </span>
         {place && (
-          <div className="mt-1.5 flex items-start gap-1.5 text-[14px] text-[#4a5a6c]">
+          <div className="mt-1.5 flex items-start gap-1.5 text-[14px] text-[#4a5a6c] dark:text-[var(--ln-strong)]">
             <MapPin className="mt-0.5 size-4 shrink-0" />
             <span className="line-clamp-2 min-w-0 break-words">{place}</span>
           </div>
@@ -73,7 +80,7 @@ function OrderCard({ o, meId, highlight, chat }: { o: MyOrderItem; meId: string;
           <PriorityLabel priority={o.priority} />
         </div>
 
-        <div className="mt-3 border-t border-[#e6ebf2] pt-3"><p className="text-[13px] font-semibold text-[#3457d5]">{progress.title}</p><p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">{progress.detail}</p><p className="mt-1 text-[12px]">გუნდში ჩაბარებულია: {o.assignees.filter(a => a.doneAt).length} / {o.assignees.length}</p></div>
+        <div className="mt-3 border-t border-border pt-3"><p className="text-[13px] font-semibold text-primary">{progress.title}</p><p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">{progress.detail}</p><p className="mt-1 text-[12px]">გუნდში ჩაბარებულია: {o.assignees.filter(a => a.doneAt).length} / {o.assignees.length}</p></div>
         <ul className="mt-2 text-[12px]">{o.assignees.map(a => <li key={a.userId}>{a.user.name} · {assigneeStage(a, o.visits)}</li>)}</ul>
       </Link>
       {chat && (
@@ -81,10 +88,10 @@ function OrderCard({ o, meId, highlight, chat }: { o: MyOrderItem; meId: string;
           href={`/orders/${o.id}#comments`}
           aria-label="ახალი შეტყობინება ჩატში"
           title="ახალი შეტყობინება ჩატში"
-          className="relative inline-flex size-[44px] items-center justify-center rounded-lg border border-[#dbe1ec] text-[#3457d5] transition-colors hover:bg-[#f8faff] active:bg-[#eef2ff]"
+          className="relative inline-flex size-[44px] items-center justify-center rounded-lg border border-[#dbe1ec] dark:border-border text-primary transition-colors hover:bg-[#f6fafb] dark:hover:bg-muted active:bg-accent"
         >
           <MessageCircle className="size-4" />
-          <span className="absolute right-2 top-2 size-2 rounded-full bg-[#3457d5]" />
+          <span className="absolute right-2 top-2 size-2 rounded-full bg-[#397b83]" />
         </Link>
       )}
       {active && (
@@ -139,10 +146,10 @@ export default async function MyOrdersPage({ searchParams }: PageProps<"/my">) {
 
   return (
     <div className="mx-auto max-w-2xl space-y-4">
-      <Link href="/my/board" className="text-[13px] text-[#3457d5]">ყველა შეკვეთა</Link>
-      <PageHeader title={t.nav.my} subtitle={`${tbilisiTime(new Date())} · დღეს დარჩენილი ${leftToday} ვიზიტი`} />
+      <Link href="/my/board" className="ln-link text-[13px]">ყველა დავალება</Link>
+      <PageHeader title={TAB_TITLES[tab]} subtitle={`${tbilisiTime(new Date())} · დღეს დარჩენილი ${leftToday} ვიზიტი`} />
 
-      <div className={cn("sticky top-16 z-10 bg-[#f4f6fa] py-2 dark:bg-neutral-900", me.role === "executor" && "hidden md:block")}>
+      <div className={cn("sticky top-16 z-10 bg-background py-2", me.role === "executor" && "hidden md:block")}>
       <nav aria-label="შეკვეთების სტატუსი" className="ln-card grid grid-cols-4 gap-1 p-1.5">
         {TABS.map((x) => {
           const on = x.key === tab;
@@ -153,11 +160,11 @@ export default async function MyOrdersPage({ searchParams }: PageProps<"/my">) {
               aria-current={on ? "page" : undefined}
               className={cn(
                 "flex min-h-11 min-w-0 flex-col items-center justify-center gap-1 rounded-[14px] px-1 py-2 transition-colors sm:flex-row sm:gap-1.5",
-                on ? "bg-[#3457d5] text-white" : "text-[#4a5e73] hover:bg-[#f4f6fa]",
+                on ? "bg-[#397b83] text-white" : "text-[#4a5e73] dark:text-[var(--ln-strong)] hover:bg-background",
               )}
             >
               <span className="max-w-full truncate text-[12px] font-medium sm:text-[13px]">{x.label}</span>
-              <span className={cn("tabular min-w-[22px] rounded-full px-1.5 text-center text-[11px] font-semibold leading-[18px]", on ? "bg-white/20" : "bg-[#f1f4f9] text-[#617084]")}>
+              <span className={cn("tabular min-w-[22px] rounded-full px-1.5 text-center text-[11px] font-semibold leading-[18px]", on ? "bg-white/20" : "bg-muted text-muted-foreground")}>
                 {buckets[x.key].length}
               </span>
             </Link>
@@ -168,13 +175,13 @@ export default async function MyOrdersPage({ searchParams }: PageProps<"/my">) {
 
       {items.length === 0 ? (
         <div className="ln-card px-6 py-14 text-center text-sm text-muted-foreground">
-          {all.length === 0 ? "დანიშნული შეკვეთები არ გაქვთ. როცა მენეჯერი შეკვეთას დაგინიშნავთ, აქ გამოჩნდება და შეტყობინებას მიიღებთ." : current.empty}
+          {all.length === 0 ? "დანიშნული დავალებები არ გაქვთ. დაუნიშნავი სამუშაო ნახეთ „ყველა დავალებაში“ და აიღეთ ღილაკით „ავიღებ“." : current.empty}
         </div>
       ) : (
         shown.map((g) => (
           <section key={g.title ?? "all"} className="space-y-2">
             {titled && g.title && (
-              <h2 className="text-[13px] font-semibold text-[#617084]">
+              <h2 className="text-[13px] font-semibold text-muted-foreground">
                 {g.title} · {g.items.length}
               </h2>
             )}

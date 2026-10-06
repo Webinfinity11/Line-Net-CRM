@@ -29,7 +29,7 @@ export function TemplateFields({ initial, systems }: { systems: SystemOption[]; 
       </div>
       <div className="space-y-2 pt-6 text-sm">
         <label className="flex min-h-[44px] items-center gap-2">
-          <input type="checkbox" name="isDefault" defaultChecked={initial?.isDefault ?? false} className="accent-[#3457d5]" /> ნაგულისხმევი ამ კატეგორიისთვის
+          <input type="checkbox" name="isDefault" defaultChecked={initial?.isDefault ?? false} className="accent-[#397b83]" /> ნაგულისხმევი ამ კატეგორიისთვის
         </label>
 
       </div>
@@ -46,7 +46,7 @@ export function TemplateSummary({ name, count, required, isDefault }: { name: st
   return (
     <>
       <span className="block break-words text-[14px] font-bold">{name}</span>
-      <span className="block text-[12px] text-[#617084]">{count} პუნქტი · {required} სავალდებულო{isDefault ? " · ნაგულისხმევი" : ""}</span>
+      <span className="block text-[12px] text-muted-foreground">{count} პუნქტი · {required} სავალდებულო{isDefault ? " · ნაგულისხმევი" : ""}</span>
     </>
   );
 }

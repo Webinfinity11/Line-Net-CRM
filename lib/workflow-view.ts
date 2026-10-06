@@ -15,7 +15,7 @@ export function executorProgress(order:WorkOrder,userId:string) {
  if(bucket==="active") return {title:"თქვენი სამუშაო მიმდინარეობს",detail:"დაამატეთ შესრულებული სერვისები და საჭირო მასალა; დასრულებისას ჩააბარეთ თქვენი ნაწილი."};
  return {title:"თქვენი სამუშაო დასაწყებია",detail:"ობიექტზე მისვლისას დააჭირეთ „დაწყებას“. კოლეგის დაწყება თქვენს ვიზიტს არ იწყებს."};
 }
-export const WORKFLOW_STEPS=["გაგზავნილია","მიღებულია","დაგეგმილია","მიმდინარეობს","შემოწმება","დასრულებულია"];
+export const WORKFLOW_STEPS=["გაგზავნილია","მიღებულია","დაგეგმილია","მიმდინარეობს","სამუშაო შესრულებულია, მიმდინარეობს შემოწმება","დასრულებულია"];
 export function customerProgress(status:OrderStatus,triaged:boolean,scheduled:boolean) {
  if(status==="cancelled") return {step:-1,detail:"შეკვეთა გაუქმებულია. საჭიროების შემთხვევაში შექმენით ახალი მოთხოვნა."};
  if(status==="closed") return {step:5,detail:"სამუშაო შემოწმებულია და შეკვეთა დახურულია."};

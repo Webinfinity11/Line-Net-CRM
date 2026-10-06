@@ -43,7 +43,7 @@ export function TypeBadge({ type, className }: { type: OrderType; className?: st
     <span
       className={cn(
         base,
-        "bg-[#f1f4f9] text-[#617084] dark:bg-neutral-800 dark:text-neutral-300",
+        "bg-muted text-muted-foreground dark:bg-neutral-800 dark:text-neutral-300",
         className,
       )}
     >
@@ -64,7 +64,7 @@ export function PriorityLabel({ priority, className }: { priority: OrderPriority
 
 export function OverdueBadge({ className }: { className?: string }) {
   return (
-    <span className={cn(base, "bg-[#faeeee] text-[#b13f32]", className)}>
+    <span className={cn(base, "bg-[#faeeee] dark:bg-[var(--ln-alert-bg)] text-[#b13f32] dark:text-[var(--ln-alert)]", className)}>
       <Clock3 className="size-3 shrink-0" aria-hidden /> ვადაგადაცილებული
     </span>
   );

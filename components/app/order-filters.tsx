@@ -34,11 +34,11 @@ export function OrderFilters({
         if (typeof value === "string" && value) params.set(key, value);
       }
       router.push(`/orders${params.size ? `?${params}` : ""}`, { scroll: false });
-    }} className="max-md:[&>div]:w-full max-md:[&>div]:max-w-none max-md:[&_select]:h-11 max-md:[&_input]:min-h-[44px] max-md:[&_button]:min-h-[44px] max-md:[&>label]:min-h-[44px] flex flex-wrap items-center gap-2 rounded-xl border border-[#e6ebf2] bg-white p-3 dark:bg-neutral-900">
+    }} className="max-md:[&>div]:w-full max-md:[&>div]:max-w-none max-md:[&_select]:h-11 max-md:[&_input]:min-h-[44px] max-md:[&_button]:min-h-[44px] max-md:[&>label]:min-h-[44px] flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card p-3 dark:bg-neutral-900">
       {values.view === "kanban" && <input type="hidden" name="view" value="kanban" />}
       {values.sort && <input type="hidden" name="sort" value={values.sort} />}
       <input type="hidden" name="q" value={values.q} />
-      {["manager", "payment"].map(key => searchParams.get(key) ? <input key={key} type="hidden" name={key} value={searchParams.get(key)!} /> : null)}
+      {["manager", "payment", "month"].map(key => searchParams.get(key) ? <input key={key} type="hidden" name={key} value={searchParams.get(key)!} /> : null)}
       {values.view !== "kanban" && (
         <NativeSelect name="status" defaultValue={values.status} onChange={submit} className="h-11 w-auto text-sm">
           <NativeSelectOption value="active">აქტიური</NativeSelectOption>

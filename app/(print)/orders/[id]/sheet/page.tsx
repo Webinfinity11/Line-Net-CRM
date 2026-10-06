@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { PrintButton } from "@/components/app/print-button";
 import { PAYMENT_LABELS, PRIORITY_LABELS, STATUS_LABELS, TYPE_LABELS, formatDate, formatMoney } from "@/lib/i18n";
@@ -32,7 +33,7 @@ export default async function WorkSheetPage({ params }: PageProps<"/orders/[id]/
 
       <header className="mb-5 flex items-start justify-between border-b-2 border-neutral-900 pb-3">
         <div>
-          <div className="text-xl font-bold">Line Net</div>
+          <Image src="/brand/logo.png" alt="ლაინნეტი" width={1372} height={1653} unoptimized loading="eager" className="mb-[8px] h-[48px] w-auto" />
           <div className="text-xs text-neutral-600">შპს ლაინნეტი · ს/კ 404486757 · თბილისი, ბახტრიონის 30 · 0322 022 022 · info@line-net.ge</div>
         </div>
         <div className="text-right">

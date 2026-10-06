@@ -7,8 +7,8 @@ import { toMtavruli } from "@/lib/mtavruli";
 /** Recoverable data error state for app pages. */
 export default function AppError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return (
-    <div className="mx-auto mt-10 max-w-md rounded-xl border border-[#f4e2d7] bg-white p-6 text-center" role="alert">
-      <span className="mx-auto mb-3 grid size-10 place-items-center rounded-lg bg-[#fff0ed] text-[#b13f32]">
+    <div className="mx-auto mt-10 max-w-md rounded-xl border border-[#f4e2d7] dark:border-[var(--ln-alert-line)] bg-card p-6 text-center" role="alert">
+      <span className="mx-auto mb-3 grid size-10 place-items-center rounded-lg bg-[#fff0ed] dark:bg-[var(--ln-alert-bg)] text-[#b13f32] dark:text-[var(--ln-alert)]">
         <TriangleAlert className="size-5 [stroke-width:1.7]" />
       </span>
       <h2 className="font-heading text-[18px]">{toMtavruli('მონაცემების ჩატვირთვა ვერ მოხერხდა')}</h2>

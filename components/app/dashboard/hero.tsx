@@ -61,7 +61,7 @@ export function DashboardHero({
 
       <div
         className={cn(
-          "mt-5 border-t border-[#eef1f6] pt-5",
+          "mt-5 border-t border-[#eef1f6] dark:border-border pt-5",
           aside
             ? "grid gap-x-8 gap-y-5 sm:grid-cols-[auto_minmax(200px,380px)] sm:items-end sm:justify-between xl:grid-cols-[auto_minmax(200px,380px)_auto] xl:items-center"
             : "flex flex-wrap items-end justify-between gap-x-8 gap-y-4",
@@ -74,7 +74,7 @@ export function DashboardHero({
             <span
               className={cn(
                 "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[12px] font-medium",
-                changePct === null || flat ? "bg-[#f1f4f9] text-muted-foreground" : up ? "bg-[#eaf6ef] text-[#25815a]" : "bg-[#faeeee] text-[#b13f32]",
+                changePct === null || flat ? "bg-muted text-muted-foreground" : up ? "bg-[#eaf6ef] dark:bg-[var(--ln-success-bg)] text-[#25815a] dark:text-[var(--ln-success)]" : "bg-[#faeeee] dark:bg-[var(--ln-alert-bg)] text-[#b13f32] dark:text-[var(--ln-alert)]",
               )}
             >
               <Icon className="size-3.5" />
@@ -87,7 +87,7 @@ export function DashboardHero({
             {done.unpaid > 0 && (
               <>
                 {" · "}
-                <Link href="/orders?payment=unpaid" className="text-[#b13f32] hover:underline">გადაუხდელი {formatMoney(done.unpaid)}</Link>
+                <Link href="/orders?payment=unpaid" className="ln-link">გადაუხდელი {formatMoney(done.unpaid)}</Link>
               </>
             )}
           </p>
@@ -98,10 +98,10 @@ export function DashboardHero({
             <span>{cashLabel}</span>
             <span className="tabular">{formatMoney(cash.reduce((s, c) => s + c.amount, 0))}</span>
           </div>
-          <DrawnArea points={cash.map((c) => c.amount)} height={56} stroke="#3457d5" fill="#3457d5" />
+          <DrawnArea points={cash.map((c) => c.amount)} height={56} stroke="#397b83" fill="#397b83" />
         </div>
 
-        {aside && <div className="min-w-0 border-t border-[#eef1f6] pt-4 sm:col-span-2 xl:col-span-1 xl:border-t-0 xl:border-l xl:pl-6 xl:pt-0">{aside}</div>}
+        {aside && <div className="min-w-0 border-t border-[#eef1f6] dark:border-border pt-4 sm:col-span-2 xl:col-span-1 xl:border-t-0 xl:border-l xl:pl-6 xl:pt-0">{aside}</div>}
       </div>
     </section>
   );

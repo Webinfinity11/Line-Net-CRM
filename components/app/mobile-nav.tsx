@@ -32,7 +32,7 @@ export function MobileNav({ user, inboxCount, unseenCount, executorCounts }: { u
   if (items.length < 2) return null;
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-30 flex border-t border-[#e6ebf2] bg-white/95 pb-[env(safe-area-inset-bottom,0px)] backdrop-blur md:hidden"
+      className="fixed inset-x-0 bottom-0 z-30 flex border-t border-border bg-card/95 pb-[env(safe-area-inset-bottom,0px)] backdrop-blur md:hidden"
       aria-label="მთავარი მენიუ"
     >
       {items.map((item) => {
@@ -46,12 +46,12 @@ export function MobileNav({ user, inboxCount, unseenCount, executorCounts }: { u
             key={item.href}
             href={item.href}
             aria-current={active ? "page" : undefined}
-            className={cn("relative flex min-h-[56px] flex-1 flex-col items-center justify-center gap-1 px-1 text-[10px] transition-colors", (executor || client) && "min-w-0 py-[4px]", active ? "text-[#3457d5]" : "text-[#617084]")}
+            className={cn("relative cursor-pointer hover:bg-[#f6fafb] dark:hover:bg-muted active:bg-accent focus-visible:outline-2 focus-visible:outline-primary flex min-h-[56px] flex-1 flex-col items-center justify-center gap-1 px-1 text-[10px] transition-colors", (executor || client) && "min-w-0 py-[4px]", active ? "text-primary" : "text-muted-foreground")}
           >
-            <span className={cn("relative", create && "-mt-[22px] flex size-[44px] shrink-0 items-center justify-center rounded-full bg-[#3457d5] text-white")}>
+            <span className={cn("relative", create && "-mt-[22px] flex size-[44px] shrink-0 items-center justify-center rounded-full bg-primary text-white dark:text-primary-foreground")}>
               {create ? <Plus className="size-[24px]" /> : <Icon className={cn("size-[22px]", active && "[stroke-width:2]")} />}
               {(executor || item.badge) ? (
-                <span className={cn("absolute -right-2 -top-1.5 flex items-center justify-center rounded-full text-[9px] font-semibold text-white ring-2 ring-white", executor ? "h-[16px] min-w-[16px] bg-[#617084] px-[3px]" : "size-[16px] bg-[#b13f32]")}>{item.badge}</span>
+                <span className={cn("absolute -right-2 -top-1.5 flex items-center justify-center rounded-full text-[9px] font-semibold text-white dark:text-primary-foreground ring-2 ring-card", executor ? "h-[16px] min-w-[16px] bg-muted-foreground px-[3px]" : "size-[16px] bg-[#b13f32] dark:bg-[var(--ln-alert)]")}>{item.badge}</span>
               ) : null}
             </span>
             <span className={cn("max-w-full", executor || client ? "whitespace-nowrap" : "truncate")}>{create ? "ახალი" : item.label}</span>

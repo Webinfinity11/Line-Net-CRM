@@ -186,7 +186,7 @@ export default async function MaintenancePage() {
 
       <p className="text-[11.5px] leading-relaxed text-muted-foreground">
         ავტომატური შემოწმების ჩართვისას გრაფიკები ყოველდღე მოწმდება; შეკვეთები მითითებული წინსწრებით იქმნება. ასე შექმნილი შეკვეთები{" "}
-        <Link href="/orders?status=all" className="text-[#3457d5] hover:underline">
+        <Link href="/orders?status=all" className="text-primary hover:underline">
           შეკვეთების სიაში
         </Link>{" "}
         ჩანს წყაროთი „გრაფიკი“.

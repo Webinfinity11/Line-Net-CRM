@@ -21,6 +21,7 @@ import type { SessionUser } from "@/lib/session";
 import { isStaffRole } from "./nav";
 import { NotificationBell, type BellItem } from "./notification-bell";
 import { NavLinks, SidebarFooter } from "./sidebar";
+import { ThemeMenu } from "./theme-menu";
 import { UserAvatar } from "./user-avatar";
 
 export function Topbar({
@@ -48,7 +49,7 @@ export function Topbar({
   }
 
   return (
-    <header className="sticky top-0 z-20 flex h-16 items-center gap-3 bg-[#f4f6fa]/90 px-4 backdrop-blur dark:bg-neutral-900/90 md:px-6">
+    <header className="sticky top-0 z-20 flex h-16 items-center gap-3 bg-background/90 px-4 backdrop-blur md:px-6">
       {staff && <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger render={<Button variant="ghost" size="icon" className="max-md:size-11 md:hidden" aria-label="მენიუ" />}>
           <Menu className="size-5" />
@@ -68,7 +69,7 @@ export function Topbar({
           <input
             name="q"
             placeholder="ძებნა: შეკვეთა, კლიენტი, მისამართი…"
-            className="h-10 w-full rounded-full border border-transparent bg-white pl-10 pr-4 text-sm shadow-[0_1px_2px_rgba(16,24,40,0.04)] outline-none transition focus:border-[#a5b5ed] focus:shadow-[0_2px_8px_rgba(52,87,213,0.1)] focus:ring-2 focus:ring-[#3457d5]/15 dark:bg-neutral-800"
+            className="h-10 w-full rounded-full border border-transparent bg-card pl-10 pr-4 text-sm shadow-[0_1px_2px_rgba(16,24,40,0.04)] outline-none transition focus:border-[#a5cdd1] dark:focus:border-primary focus:shadow-[0_2px_8px_rgba(57,123,131,0.1)] focus:ring-2 focus:ring-primary/15"
           />
         </form>
       ) : (
@@ -80,7 +81,7 @@ export function Topbar({
 
       <DropdownMenu>
         <DropdownMenuTrigger
-          render={<button aria-label="პროფილის მენიუ" className="flex items-center gap-2 rounded-lg py-1 pl-1 pr-2 transition-colors max-md:min-h-11 max-md:min-w-11 max-md:justify-center max-md:pr-1 hover:bg-[#f8faff] dark:hover:bg-neutral-800" />}
+          render={<button aria-label="პროფილის მენიუ" className="flex items-center gap-2 rounded-lg py-1 pl-1 pr-2 transition-colors max-md:min-h-11 max-md:min-w-11 max-md:justify-center max-md:pr-1 hover:bg-[#f6fafb] dark:hover:bg-muted" />}
         >
           <UserAvatar name={user.name} image={user.image} size="md" />
           <div className="hidden text-left leading-tight md:block">
@@ -104,6 +105,8 @@ export function Topbar({
               {t.nav.logout}
             </DropdownMenuItem>
           </DropdownMenuGroup>
+          <DropdownMenuSeparator />
+          <ThemeMenu />
         </DropdownMenuContent>
       </DropdownMenu>
       </div>

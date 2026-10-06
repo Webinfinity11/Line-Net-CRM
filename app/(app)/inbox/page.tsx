@@ -35,12 +35,12 @@ export default async function InboxPage({ searchParams }: PageProps<"/inbox">) {
       <PageHeader title={t.nav.inbox} subtitle={items.length ? `${items.length} დაუმუშავებელი მოთხოვნა` : "ელფოსტიდან და კლიენტის კაბინეტიდან შემოსული შეკვეთები"} />
 
       {outcome === "connected" && (
-        <p role="status" className="ln-card p-4 text-[12.5px] text-[#25815a]">
+        <p role="status" className="ln-card p-4 text-[12.5px] text-[#25815a] dark:text-[var(--ln-success)]">
           Outlook ფოსტა დაკავშირებულია. ახალი წერილები გამოჩნდება შემდეგი შემოწმებისას.
         </p>
       )}
       {connectionError && (
-        <p role="alert" className="ln-card p-4 text-[12.5px] text-[#b13f32]">
+        <p role="alert" className="ln-card p-4 text-[12.5px] text-[#b13f32] dark:text-[var(--ln-alert)]">
           {connectionError}
         </p>
       )}
@@ -60,7 +60,7 @@ export default async function InboxPage({ searchParams }: PageProps<"/inbox">) {
             const SourceIcon = portal ? Building2 : Mail;
             return (
             <li key={o.id} className="ln-card flex flex-wrap items-start gap-4 p-4">
-              <span className="grid size-10 shrink-0 place-items-center rounded-full bg-[#eef2ff] text-[#3457d5]" title={portal ? "კლიენტის კაბინეტიდან" : "ელფოსტიდან"}>
+              <span className="grid size-10 shrink-0 place-items-center rounded-full bg-accent text-primary" title={portal ? "კლიენტის კაბინეტიდან" : "ელფოსტიდან"}>
                 <SourceIcon className="size-[18px] [stroke-width:1.7]" />
               </span>
               <div className="min-w-0 flex-1">
@@ -77,7 +77,7 @@ export default async function InboxPage({ searchParams }: PageProps<"/inbox">) {
                     </span>
                   ) : null}
                 </div>
-                {o.description && <p className="mt-2 line-clamp-2 text-[12.5px] text-[#617084]">{o.description}</p>}
+                {o.description && <p className="mt-2 line-clamp-2 text-[12.5px] text-muted-foreground">{o.description}</p>}
                 <div className="mt-2"><OrderManager id={o.id} manager={o.manager} at={o.managerAt} me={user.id} /></div>
               </div>
               <div className="flex w-full shrink-0 flex-wrap gap-2 sm:w-auto">

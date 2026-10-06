@@ -12,7 +12,7 @@ export function navFor(role: UserRole, counts: { inbox: number; unseen: number }
   if (role === "executor") {
     return [
       { href: "/my", label: t.nav.my, icon: ClipboardCheck, badge: counts.unseen, phone: true },
-      { href: "/my/board", label: "ყველა შეკვეთა", icon: LayoutGrid, phone: true },
+      { href: "/my/board", label: "ყველა დავალება", icon: LayoutGrid, phone: true },
     ];
   }
   if (role === "client") {

@@ -2,7 +2,7 @@ import type { SystemType } from "@/db/schema";
 import { JobIcon } from "./job-icon";
 
 /** Tiny inline trend line. Pure SVG: no library, no layout shift. */
-export function Sparkline({ values, color = "#3457d5", width = 96, height = 26 }: { values: number[]; color?: string; width?: number; height?: number }) {
+export function Sparkline({ values, color = "#397b83", width = 96, height = 26 }: { values: number[]; color?: string; width?: number; height?: number }) {
   if (values.length < 2) return null;
   const max = Math.max(...values, 1);
   const step = width / (values.length - 1);
@@ -20,7 +20,7 @@ export function Sparkline({ values, color = "#3457d5", width = 96, height = 26 }
 
 function Bar({ pct, color, delay = 0 }: { pct: number; color: string; delay?: number }) {
   return (
-    <div className="h-[7px] overflow-hidden rounded-full bg-[#f1f4f9]">
+    <div className="h-[7px] overflow-hidden rounded-full bg-muted">
       <div className="ln-bar h-full rounded-full" style={{ width: `${Math.max(pct, 3)}%`, background: color, animationDelay: `${delay}ms` }} />
     </div>
   );
@@ -40,7 +40,7 @@ export function SystemBars({ rows, labels }: { rows: { system: SystemType | null
               <span className="truncate text-[12.5px]">{r.system ? (labels[r.system] ?? r.system) : "კატეგორიის გარეშე"}</span>
               <span className="tabular shrink-0 text-[12.5px] font-semibold">{r.n}</span>
             </div>
-            <Bar pct={(r.n / max) * 100} color="#3457d5" delay={i * 70} />
+            <Bar pct={(r.n / max) * 100} color="#397b83" delay={i * 70} />
           </div>
         </li>
       ))}

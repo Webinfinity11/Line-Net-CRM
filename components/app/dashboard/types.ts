@@ -6,6 +6,7 @@ export type BoardOrder = {
   number: string;
   title: string;
   status: OrderStatus;
+  completedLabel?: string | null;
   priority: OrderPriority;
   type: OrderType;
   systemType: SystemType | null;
@@ -25,7 +26,7 @@ export type BoardOrder = {
 
 export type BoardFilter = "all" | "unassigned" | "overdue" | "review";
 
-export type Executor = { id: string; name: string; image: string | null; specializations?: string[]; hours?: number };
+export type Executor = import("@/components/app/assign-form").ExecutorOption;
 
 export type Visit = { id: number; time: string; client: string; executor: string; site: string };
 
@@ -46,4 +47,5 @@ export type TodayBlock = {
   startMin: number;
   minutes: number;
   status: OrderStatus;
+  completedLabel?: string | null;
 };

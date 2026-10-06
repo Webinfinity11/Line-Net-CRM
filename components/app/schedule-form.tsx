@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import type { ServiceSchedule } from "@/db/schema";
 import { FREQUENCY_LABELS } from "@/lib/i18n";
 import { useSystems } from "@/components/app/systems-provider";
+import { canHandle, type Competencies } from "@/lib/competency-utils";
 import { UserAvatar } from "./user-avatar";
 
 export function ScheduleFields({
@@ -17,12 +18,14 @@ export function ScheduleFields({
   initial,
 }: {
   clients: { id: number; name: string; sites: { id: number; name: string }[] }[];
-  users: { id: string; name: string; image?: string | null; specializations?: string[] }[];
+  users: { id: string; name: string; image?: string | null; role: string; competencies: Competencies; competenceLabel: string }[];
   initial?: Partial<ServiceSchedule>;
 }) {
   const [clientId, setClientId] = useState(initial?.clientId ? String(initial.clientId) : "");
   const systemOptions = useSystems().filter((s) => s.active || s.key === initial?.systemType);
   const [system, setSystem] = useState<string>(initial?.systemType ?? systemOptions[0]?.key ?? "");
+  const [assigneeIds, setAssigneeIds] = useState(initial?.assigneeIds ?? []);
+  const candidates = users.filter(u => initial?.assigneeIds?.includes(u.id) || (u.role === "executor" && canHandle(system, u.competencies)));
   const sites = useMemo(() => clients.find((c) => String(c.id) === clientId)?.sites ?? [], [clients, clientId]);
 
   return (
@@ -51,7 +54,11 @@ export function ScheduleFields({
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="s-system">კატეგორია *</Label>
-        <NativeSelect id="s-system" name="systemType" value={system} onChange={(e) => setSystem(e.target.value)}>
+        <NativeSelect id="s-system" name="systemType" value={system} onChange={(e) => {
+          const next = e.target.value;
+          setSystem(next);
+          setAssigneeIds(ids => ids.filter(id => initial?.assigneeIds?.includes(id) || users.some(u => u.id === id && u.role === "executor" && canHandle(next, u.competencies))));
+        }}>
           {systemOptions.map((sys) => (
             <NativeSelectOption key={sys.key} value={sys.key}>
               {sys.name}
@@ -93,12 +100,12 @@ export function ScheduleFields({
       <div className="space-y-1.5 sm:col-span-2">
         <Label>ნაგულისხმევი შემსრულებლები</Label>
         <div className="max-h-40 space-y-1 overflow-y-auto rounded-lg border p-2">
-          {users.map((u) => (
+          {candidates.map((u) => (
             <label key={u.id} className="flex cursor-pointer items-center gap-2 text-sm">
-              <input type="checkbox" name="assigneeIds" value={u.id} defaultChecked={initial?.assigneeIds?.includes(u.id)} className="accent-[#3457d5]" />
+              <input type="checkbox" name="assigneeIds" value={u.id} checked={assigneeIds.includes(u.id)} onChange={e => setAssigneeIds(ids => e.target.checked ? [...ids, u.id] : ids.filter(id => id !== u.id))} className="accent-primary" />
               <UserAvatar name={u.name} image={u.image} />
               {u.name}
-              {u.specializations?.includes(system) && <span className="text-[11px] text-[#25815a]">სპეც.</span>}
+              <span className="text-[11px] text-muted-foreground">{u.competenceLabel}</span>
             </label>
           ))}
         </div>

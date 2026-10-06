@@ -27,6 +27,7 @@ export type OrderRow = {
   client: string | null;
   site: string | null;
   dueLabel: string | null;
+  completedLabel?: string | null;
   overdue: boolean;
   assignees: { id: string; name: string; image: string | null }[];
   amount: string | null;
@@ -46,10 +47,10 @@ function ChatLink({ id, className }: { id: number; className?: string }) {
       href={`/orders/${id}#comments`}
       aria-label="ახალი შეტყობინება ჩატში"
       title="ახალი შეტყობინება ჩატში"
-      className={cn("relative inline-flex shrink-0 items-center justify-center rounded-full text-[#3457d5]", className)}
+      className={cn("relative inline-flex shrink-0 items-center justify-center rounded-full text-primary", className)}
     >
       <MessageCircle className="size-4" />
-      <span className="absolute right-1/2 top-1/2 size-2 -translate-y-[10px] translate-x-[10px] rounded-full bg-[#3457d5]" />
+      <span className="absolute right-1/2 top-1/2 size-2 -translate-y-[10px] translate-x-[10px] rounded-full bg-primary" />
     </Link>
   );
 }
@@ -85,8 +86,8 @@ function RowMenu({ o, onAssign }: { o: OrderRow; onAssign: (o: OrderRow) => void
 function OrderCardRow({ o, onAssign }: { o: OrderRow; onAssign: (o: OrderRow) => void }) {
   const lead = o.assignees[0];
   return (
-    <li className="relative border-t border-[#eef1f6] first:border-t-0">
-      <Link href={`/orders/${o.id}`} className={cn("block cursor-pointer px-4 py-3.5 pr-12 hover:bg-[#f8faff] active:bg-[#eef2ff]", o.unreadChat && "min-h-[108px]")}>
+    <li className="relative border-t border-[#eef1f6] dark:border-border first:border-t-0">
+      <Link href={`/orders/${o.id}`} className={cn("ln-card-link block px-4 py-3.5 pr-12", o.unreadChat && "min-h-[108px]")}>
         <span className="flex items-start gap-2">
           <span className="min-w-0 flex-1">
             <span className="block text-[15px] font-semibold leading-snug text-foreground">{o.title}</span>
@@ -96,10 +97,10 @@ function OrderCardRow({ o, onAssign }: { o: OrderRow; onAssign: (o: OrderRow) =>
               {o.site ? ` · ${o.site}` : ""}
             </span>
           </span>
-          <ChevronRight aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-[#3457d5]" />
         </span>
         <span className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[12.5px]">
           <StatusBadge status={o.status} />
+          {o.completedLabel && <span className="text-muted-foreground">დასრულდა: {o.completedLabel}</span>}
           <PriorityLabel priority={o.priority} />
           {o.overdue && <OverdueBadge />}
           <span className="text-muted-foreground">
@@ -158,7 +159,7 @@ export function OrdersTable({
   return (
     <div className="space-y-2">
       {selected.size > 0 && (
-        <div className="sticky top-[68px] z-10 hidden flex-wrap items-center gap-3 sm:flex rounded-lg border border-[#dbe3fd] bg-[#eef2ff] px-4 py-2 text-[12px] text-[#3457d5]">
+        <div className="sticky top-[68px] z-10 hidden flex-wrap items-center gap-3 sm:flex rounded-lg border border-[#cde5e8] dark:border-primary bg-accent px-4 py-2 text-[12px] text-primary">
           <span className="font-medium">არჩეულია {selected.size}</span>
           <Button size="sm" onClick={() => setBulkOpen(true)}>
             <UserPlus className="size-3.5" /> ჯგუფური დანიშვნა
@@ -181,13 +182,14 @@ export function OrdersTable({
           </ul>
           <div className="hidden overflow-x-auto sm:block">
             <table className="w-full text-[13px]">
-              <thead className="bg-[#f8faff]">
+              <thead className="bg-[#f6fafb] dark:bg-muted">
                 <tr>
                   <th className="hidden w-10 px-3 py-3 sm:table-cell sm:px-4">
                     <Checkbox checked={allSelected} onCheckedChange={toggleAll} aria-label="ყველას მონიშვნა" />
                   </th>
                   <th data-col="number" className={cn(th, "hidden sm:table-cell")}>{t.order.number}</th>
                   <th className={th}>{t.order.title}</th>
+                  <th data-col="client" className={th}>კლიენტი</th>
                   <th data-col="system" className={cn(th, "hidden lg:table-cell")}>{t.order.system}</th>
                   <th data-col="crew" className={cn(th, "hidden md:table-cell")}>{t.order.assignees}</th>
                   <th data-col="due" className={cn(th, "hidden md:table-cell")}>{t.order.dueDate}</th>
@@ -200,21 +202,21 @@ export function OrdersTable({
                 {rows.map((o) => {
                   const lead = o.assignees[0];
                   return (
-                    <tr key={o.id} className={cn("border-t border-[#eef1f6]", selected.has(o.id) && "bg-[#f4f7ff]")}>
+                    <tr key={o.id} className={cn("border-t border-[#eef1f6] dark:border-border", selected.has(o.id) && "bg-[#f2f8f9] dark:bg-accent")}>
                       <td className="hidden px-3 py-[14px] sm:table-cell sm:px-4">
                         <Checkbox checked={selected.has(o.id)} onCheckedChange={() => toggle(o.id)} aria-label={`${o.number} მონიშვნა`} />
                       </td>
                       <td data-col="number" className={cn(td, "hidden whitespace-nowrap font-mono text-[11px] text-muted-foreground sm:table-cell")}>{o.number}</td>
                       <td className={cn(td, "min-w-0 max-w-[160px] sm:max-w-[260px]")}>
                         <div className="flex min-w-0 items-start gap-1.5">
-                        <Link href={`/orders/${o.id}`} className="group block min-w-0 flex-1 cursor-pointer">
+                        <Link href={`/orders/${o.id}`} className="ln-link block min-w-0 flex-1">
                           <span className="flex min-w-0 flex-wrap items-center gap-1.5">
-                            <span className="min-w-0 truncate font-medium text-[#3457d5] group-hover:underline">{o.title}</span>
+                            <span className="min-w-0 truncate font-medium">{o.title}</span>
                             <PriorityLabel priority={o.priority} />
                             {o.overdue && <OverdueBadge />}
                           </span>
                           <span className="mt-0.5 block truncate text-[11px] text-muted-foreground">
-                            {[o.client, o.site].filter(Boolean).join(" · ") || "—"}
+                            {o.site || "—"}
                           </span>
                           <span className="mt-0.5 block truncate text-[11px] text-muted-foreground md:hidden">
                             {lead ? firstName(lead.name) : "დაუნიშნავი"}
@@ -224,6 +226,7 @@ export function OrdersTable({
                         {o.unreadChat && <ChatLink id={o.id} className="-my-1 size-6" />}
                         </div>
                       </td>
+                      <td data-col="client" className={cn(td, "max-w-[180px] break-words")}>{o.client ?? "—"}</td>
                       <td data-col="system" className={cn(td, "hidden max-w-[150px] lg:table-cell")}>
                         <span className="block truncate">
                           <SystemBadge system={o.systemType} />
@@ -258,6 +261,7 @@ export function OrdersTable({
                       </td>
                       <td className={cn(td, "whitespace-nowrap")}>
                         <StatusBadge status={o.status} />
+                        {o.completedLabel && <span className="mt-1 block text-[11px] text-muted-foreground">დასრულდა: {o.completedLabel}</span>}
                       </td>
                       <td data-col="amount" className={cn(td, "hidden whitespace-nowrap text-right lg:table-cell")}>
                         <span className="tabular block">{formatMoney(o.amount)}</span>
@@ -275,7 +279,7 @@ export function OrdersTable({
           </>
         )}
         {pages > 1 && (
-          <nav className="flex items-center justify-end gap-2 border-t border-[#eef1f6] px-4 py-2.5 text-[12px]" aria-label="გვერდები">
+          <nav className="flex items-center justify-end gap-2 border-t border-[#eef1f6] dark:border-border px-4 py-2.5 text-[12px]" aria-label="გვერდები">
             <span className="text-muted-foreground">
               გვერდი <span className="tabular font-medium text-foreground">{page}</span> / {pages}
             </span>
@@ -293,6 +297,7 @@ export function OrdersTable({
         open={bulkOpen}
         onOpenChange={setBulkOpen}
         orderIds={[...selected]}
+        systemTypes={[...selected].map(id => rows.find(row => row.id === id)?.systemType ?? null)}
         executors={executors}
         normHours={normHours}
         defaultDate={today}
@@ -312,6 +317,7 @@ export function OrdersTable({
               executors={executors}
               normHours={normHours}
               defaultAssigneeId={assignRow.assignees[0]?.id ?? null}
+              assignedIds={assignRow.assignees.map(a => a.id)}
               defaultDate={assignRow.scheduledDate ?? today}
               defaultTime={assignRow.scheduledTime}
               defaultMinutes={assignRow.plannedMinutes}

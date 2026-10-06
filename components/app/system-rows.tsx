@@ -79,7 +79,7 @@ export function SystemRow({ row, first, last }: { row: SystemAdminRow; first: bo
   }
 
   return (
-    <div className={cn("flex items-center gap-2 border-t border-[#eef1f6] py-3 first:border-t-0 sm:py-[6px]", !row.active && "opacity-60")}>
+    <div className={cn("flex items-center gap-2 border-t border-[#eef1f6] dark:border-border py-3 first:border-t-0 sm:py-[6px]", !row.active && "opacity-60")}>
       <div className="min-w-0 flex-1 sm:flex sm:items-center sm:gap-4">
         <FormDialog
           trigger={
@@ -87,7 +87,7 @@ export function SystemRow({ row, first, last }: { row: SystemAdminRow; first: bo
               type="button"
               disabled={pending}
               aria-label={`${row.name} — სახელის შეცვლა`}
-              className="flex h-11 w-full min-w-0 items-center rounded-lg px-2 text-left text-[16px] outline-none hover:text-[#3457d5] focus-visible:ring-2 focus-visible:ring-[#3457d5] sm:flex-1 sm:text-[14px]"
+              className="flex h-11 w-full min-w-0 items-center rounded-lg px-2 text-left text-[16px] outline-none hover:text-primary focus-visible:ring-2 focus-visible:ring-primary sm:flex-1 sm:text-[14px]"
             />
           }
           triggerLabel={<CategoryName name={row.name} />}
@@ -104,7 +104,7 @@ export function SystemRow({ row, first, last }: { row: SystemAdminRow; first: bo
         <div className="flex flex-wrap items-center gap-x-2 px-2 text-[11.5px] text-muted-foreground sm:w-[260px] sm:shrink-0 sm:flex-nowrap sm:px-0">
           {usage > 0 ? (
             <span className="flex items-center gap-x-1 whitespace-nowrap">
-              <Link href={`/settings/services?cat=${encodeURIComponent(row.slug)}`} className="inline-flex min-h-11 items-center text-[#3457d5] hover:underline sm:min-h-0">
+              <Link href={`/settings/services?cat=${encodeURIComponent(row.slug)}`} className="inline-flex min-h-11 items-center text-primary hover:underline sm:min-h-0">
                 {row.services} სერვისი
               </Link>
               <span>· {row.orders} შეკვეთა</span>

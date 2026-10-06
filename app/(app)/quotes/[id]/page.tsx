@@ -122,7 +122,7 @@ export default async function QuotePage({ params }: PageProps<"/quotes/[id]">) {
                     <dt className="text-[11px] text-muted-foreground">კლიენტი / ობიექტი</dt>
                     <dd className="font-medium">
                       {quote.client ? (
-                        <Link href={`/clients/${quote.client.id}`} className="hover:text-[#3457d5]">
+                        <Link href={`/clients/${quote.client.id}`} className="hover:text-primary">
                           {quote.client.name}
                         </Link>
                       ) : (
@@ -136,7 +136,7 @@ export default async function QuotePage({ params }: PageProps<"/quotes/[id]">) {
                   <CalendarDays className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
                   <div>
                     <dt className="text-[11px] text-muted-foreground">ძალაშია თარიღამდე</dt>
-                    <dd className={cn("font-medium", expired && "text-[#b13f32]")}>{quote.validUntil ? formatDate(quote.validUntil) : "ვადის გარეშე"}</dd>
+                    <dd className={cn("font-medium", expired && "text-[#b13f32] dark:text-[var(--ln-alert)]")}>{quote.validUntil ? formatDate(quote.validUntil) : "ვადის გარეშე"}</dd>
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
@@ -156,9 +156,9 @@ export default async function QuotePage({ params }: PageProps<"/quotes/[id]">) {
                     </dd>
                   </div>
                 ) : null}
-                <div className="border-t border-[#eef1f6] pt-3">
+                <div className="border-t border-[#eef1f6] dark:border-border pt-3">
                   <dt className="text-[11px] text-muted-foreground">სულ გადასახდელი{vatRate > 0 ? ` (დღგ ${vatRate}%)` : ""}</dt>
-                  <dd className="tabular mt-1 font-heading text-[24px] font-semibold text-[#25815a]">{formatMoney(total)}</dd>
+                  <dd className="tabular mt-1 font-heading text-[24px] font-semibold text-[#25815a] dark:text-[var(--ln-success)]">{formatMoney(total)}</dd>
                 </div>
               </dl>
             </CardContent>
@@ -170,7 +170,7 @@ export default async function QuotePage({ params }: PageProps<"/quotes/[id]">) {
                 <CardTitle>შეკვეთა</CardTitle>
               </CardHeader>
               <CardContent>
-                <Link href={`/orders/${quote.order.id}`} className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#3457d5] hover:underline">
+                <Link href={`/orders/${quote.order.id}`} className="inline-flex items-center gap-1.5 text-[13px] font-medium text-primary hover:underline">
                   {quote.order.number} <ArrowUpRight className="size-3.5" />
                 </Link>
                 <p className="mt-1.5 text-[11.5px] text-muted-foreground">შეთავაზების პოზიციები შეკვეთაზეა გადატანილი.</p>

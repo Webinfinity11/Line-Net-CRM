@@ -93,8 +93,8 @@ export function PortalOrderForm({ sites }: { sites: SiteOption[] }) {
           <Field className="sm:col-span-2" label="დეტალები" htmlFor="p-desc">
             <Textarea id="p-desc" name="description" rows={4} maxLength={5000} placeholder="რა მოხდა, როდის გაწყობთ ვიზიტი, ვის დავურეკოთ ადგილზე" />
           </Field>
-          <label className="flex items-center gap-2.5 rounded-[12px] bg-[#f8faff] px-3 py-2.5 text-[13px] sm:col-span-2">
-            <input name="urgent" type="checkbox" className="size-4 accent-[#3457d5]" />
+          <label className="flex items-center gap-2.5 rounded-[12px] bg-[#f6fafb] dark:bg-muted px-3 py-2.5 text-[13px] sm:col-span-2">
+            <input name="urgent" type="checkbox" className="size-4 accent-[#397b83]" />
             სასწრაფოა
           </label>
           <div className="flex flex-wrap gap-2 sm:col-span-2">

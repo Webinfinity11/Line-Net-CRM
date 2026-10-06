@@ -43,7 +43,7 @@ export default async function SystemsPage() {
         {rows.map((s, i) => (
           <SystemRow key={s.key} row={{ slug: s.key, name: s.name, sort: s.sort, active: s.active, services: serviceCounts.get(s.key) ?? 0, orders: orderCounts.get(s.key) ?? 0 }} first={i === 0} last={i === rows.length - 1} />
         ))}
-        <p className="mt-4 border-t border-[#eef1f6] pt-3 text-[11.5px] leading-relaxed text-muted-foreground">
+        <p className="mt-4 border-t border-[#eef1f6] dark:border-border pt-3 text-[11.5px] leading-relaxed text-muted-foreground">
           სახელის შესაცვლელად დააჭირეთ ჯგუფს, ახალს კი „ახალი ჯგუფი“ ამატებს. რიგი, გამორთვა და წაშლა — ⋯ მენიუში. გამორთული ჯგუფი ძველ ჩანაწერებში რჩება.
         </p>
       </SectionCard>

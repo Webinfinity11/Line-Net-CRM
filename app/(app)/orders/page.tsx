@@ -1,3 +1,4 @@
+import { monthOptions, parseMonth } from "@/lib/month-filter";
 import { LayoutGrid, List, Plus } from "lucide-react";
 import Link from "next/link";
 import { Kanban } from "@/components/app/kanban";
@@ -15,6 +16,7 @@ import { unreadCommentOrderIds } from "@/lib/notify";
 import { isOverdue } from "@/lib/order-utils";
 import {
   PAGE_SIZE,
+  oldestOrderDate,
   getStatusSummary,
   listAssignableUsers,
   listClientsWithSites,
@@ -32,7 +34,7 @@ import { cn } from "@/lib/utils";
 export const metadata = { title: "შეკვეთები" };
 
 const SORTS = new Set(["created", "due", "priority", "amount"]);
-const CARD_STATUSES: OrderStatus[] = ["new", "assigned", "in_progress", "done"];
+const CARD_STATUSES: OrderStatus[] = ["new", "assigned", "in_progress", "done", "closed"];
 
 function str(v: string | string[] | undefined) {
   return typeof v === "string" ? v : undefined;
@@ -54,6 +56,7 @@ export default async function OrdersPage({ searchParams }: PageProps<"/orders">)
   const payment = str(sp.payment) === "unpaid" ? "unpaid" : undefined;
   const filters: Filters = {
     payment,
+    month: parseMonth(str(sp.month)) ? str(sp.month) : undefined,
     q: str(sp.q),
     manager: str(sp.manager) === "mine" ? me.id : str(sp.manager),
     status:
@@ -74,7 +77,7 @@ export default async function OrdersPage({ searchParams }: PageProps<"/orders">)
 
   const page = Math.max(1, Number(str(sp.page)) || 1);
   const today = tbilisiToday();
-  const [pageData, users, clients, summary, plannedToday, normHours, unreadChat] = await Promise.all([
+  const [pageData, users, clients, summary, plannedToday, normHours, unreadChat, oldest] = await Promise.all([
     view === "kanban"
       ? listOrders(filters, { limit: 500 }).then((rows) => ({ rows, total: rows.length, page: 1, pages: 1, pageSize: rows.length }))
       : listOrdersPage(filters, page, PAGE_SIZE, sort),
@@ -84,11 +87,12 @@ export default async function OrdersPage({ searchParams }: PageProps<"/orders">)
     plannedMinutesByUser(today),
     getWorkHoursPerDay(),
     unreadCommentOrderIds(me.id),
+    oldestOrderDate(),
   ]);
 
   const executors = users
     .filter((u) => u.role === "executor")
-    .map((u) => ({ id: u.id, name: u.name, image: u.image, specializations: u.specializations ?? [], hours: Math.round(((plannedToday[u.id] ?? 0) / 60) * 10) / 10 }));
+    .map((u) => ({ id: u.id, name: u.name, image: u.image, competencies: u.competencies, competenceLabel: u.competenceLabel, hours: Math.round(((plannedToday[u.id] ?? 0) / 60) * 10) / 10 }));
 
   const rows: OrderRow[] = pageData.rows.map((o) => ({
     id: o.id,
@@ -99,6 +103,7 @@ export default async function OrdersPage({ searchParams }: PageProps<"/orders">)
     systemType: o.systemType,
     client: o.client?.name ?? null,
     site: o.site?.name ?? o.address ?? null,
+    completedLabel: o.status === "done" || o.status === "closed" ? formatDate(o.completedAt) : null,
     dueLabel: o.dueDate ? formatDate(o.dueDate) : null,
     overdue: isOverdue(o),
     assignees: o.assignees.map((a) => ({ id: a.user.id, name: a.user.name, image: a.user.image })),
@@ -142,7 +147,7 @@ export default async function OrdersPage({ searchParams }: PageProps<"/orders">)
     const s = q.toString();
     return s ? `/orders?${s}` : "/orders";
   };
-  const hiddenForSearch = Object.fromEntries([...params.entries()].filter(([k]) => k !== "q" && k !== "sort"));
+  const hiddenForSearch = Object.fromEntries([...params.entries()].filter(([k]) => k !== "q" && k !== "sort" && k !== "month"));
   const activeCount = ["type", "system", "priority", "assignee", "client", "overdue"].filter((k) => params.get(k)).length + (view !== "kanban" && status && status !== "active" ? 1 : 0);
 
   return (
@@ -154,17 +159,17 @@ export default async function OrdersPage({ searchParams }: PageProps<"/orders">)
         subtitle={`სულ ${pageData.total} შეკვეთა`}
         actions={
           <>
-            <div className="flex rounded-lg border border-[#e6ebf2] bg-white p-0.5">
+            <div className="flex rounded-lg border border-border bg-card p-0.5">
               <Link
                 href={hrefWith({ view: null })}
-                className={cn("rounded-md p-1.5 max-md:size-11 max-md:grid max-md:place-items-center", view === "list" ? "bg-[#3457d5] text-white" : "text-muted-foreground hover:bg-[#f8faff]")}
+                className={cn("rounded-md p-1.5 max-md:size-11 max-md:grid max-md:place-items-center", view === "list" ? "bg-primary text-white dark:text-primary-foreground" : "text-muted-foreground hover:bg-[#f6fafb] dark:hover:bg-muted")}
                 title="სია"
               >
                 <List className="size-4" />
               </Link>
               <Link
                 href={hrefWith({ view: "kanban" })}
-                className={cn("rounded-md p-1.5 max-md:size-11 max-md:grid max-md:place-items-center", view === "kanban" ? "bg-[#3457d5] text-white" : "text-muted-foreground hover:bg-[#f8faff]")}
+                className={cn("rounded-md p-1.5 max-md:size-11 max-md:grid max-md:place-items-center", view === "kanban" ? "bg-primary text-white dark:text-primary-foreground" : "text-muted-foreground hover:bg-[#f6fafb] dark:hover:bg-muted")}
                 title="Kanban"
               >
                 <LayoutGrid className="size-4" />
@@ -182,6 +187,8 @@ export default async function OrdersPage({ searchParams }: PageProps<"/orders">)
       <StatusCards counts={summary.counts} flow={summary.flow} activeStatus={CARD_STATUSES.includes(status as OrderStatus) ? status : undefined} hrefFor={(s) => hrefWith({ status: s, view: null })} />
 
       <OrdersToolbar
+        month={filters.month ?? ""}
+        months={monthOptions(oldest, new Date())}
         q={filters.q ?? ""}
         sort={sort ?? ""}
         total={pageData.total}
@@ -198,7 +205,7 @@ export default async function OrdersPage({ searchParams }: PageProps<"/orders">)
         />
       </OrdersToolbar>
 
-      {payment && <Link href={hrefWith({ payment: null })} aria-label="გადაუხდელის ფილტრის მოხსნა" className="inline-flex min-h-[44px] items-center gap-2 rounded-full bg-[#faeeee] px-3 text-[12px] text-[#b13f32]">გადაუხდელი <span aria-hidden="true">×</span></Link>}
+      {payment && <Link href={hrefWith({ payment: null })} aria-label="გადაუხდელის ფილტრის მოხსნა" className="inline-flex min-h-[44px] items-center gap-2 rounded-full bg-[#faeeee] dark:bg-[var(--ln-alert-bg)] px-3 text-[12px] text-[#b13f32] dark:text-[var(--ln-alert)]">გადაუხდელი <span aria-hidden="true">×</span></Link>}
 
       <FilterChips sp={sp} users={users} clients={clients.map((c) => ({ id: c.id, name: c.name }))} />
 

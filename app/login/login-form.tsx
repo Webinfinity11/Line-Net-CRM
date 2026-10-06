@@ -33,7 +33,7 @@ export function LoginForm({ next: rawNext, microsoft }: { next: string; microsof
   }
 
   return (
-    <Card className="shadow-xl shadow-blue-900/5">
+    <Card className="shadow-xl shadow-[#326b72]/5">
       <CardContent className="pt-6">
         <form onSubmit={submit} className="space-y-4">
           <div className="space-y-1.5">

@@ -31,7 +31,7 @@ export function RevenueTrendCard({ trend }: { trend: RevenueTrend }) {
   const total = points.reduce((s, v) => s + v, 0);
 
   return (
-    <Reveal as="section" className="ln-card ln-lift min-w-0 p-6 max-md:p-4" delay={0} ariaLabel="შემოსავლის ტრენდი" view="trend">
+    <Reveal as="section" className="ln-card min-w-0 p-6 max-md:p-4" delay={0} ariaLabel="შემოსავლის ტრენდი" view="trend">
       <CardHead icon={TrendingUp} title="შემოსავლის ტრენდი" aside="12 თვე" />
       <div className="flex flex-wrap items-end gap-x-6 gap-y-2">
         <div>
@@ -40,27 +40,27 @@ export function RevenueTrendCard({ trend }: { trend: RevenueTrend }) {
         </div>
         <div>
           <div className="text-[11px] text-muted-foreground">საუკეთესო თვე</div>
-          <div className="tabular font-heading text-[16px] font-semibold text-[#25815a]">{formatMoney(trend.best)}</div>
+          <div className="tabular font-heading text-[16px] font-semibold text-[#25815a] dark:text-[var(--ln-success)]">{formatMoney(trend.best)}</div>
         </div>
       </div>
-      <DrawnArea className="mt-4" points={points} height={130} stroke="#3457d5" fill="#3457d5" labels={labels} />
+      <DrawnArea className="mt-4" points={points} height={130} stroke="#397b83" fill="#397b83" labels={labels} />
     </Reveal>
   );
 }
 
 /** How old the unpaid money is. The eye should land on the right-hand buckets. */
 export function AgingCard({ aging }: { aging: Aging }) {
-  const tones = ["#7f97e6", "#e0b563", "#d98a5a", "#b13f32"];
+  const tones = ["#79afb6", "#e0b563", "#d98a5a", "#b13f32"];
   const total = Math.max(1, aging.total);
 
   return (
-    <Reveal as="section" className="ln-card ln-lift min-w-0 p-6 max-md:p-4" delay={80} ariaLabel="გადაუხდელები" view="aging">
+    <Reveal as="section" className="ln-card min-w-0 p-6 max-md:p-4" delay={80} ariaLabel="გადაუხდელები" view="aging">
       <CardHead icon={Wallet} title="გადაუხდელები" aside="ყველა შეკვეთა" />
       <CountUp value={aging.total} format={formatMoney} className="font-heading text-[26px] font-semibold leading-none tracking-[-0.6px]" />
       <p className="mt-1.5 text-[11.5px] text-muted-foreground">
         {aging.overdue > 0 ? (
           <>
-            აქედან 30 დღეზე ძველი <span className="font-medium text-[#b13f32]">{formatMoney(aging.overdue)}</span>
+            აქედან 30 დღეზე ძველი <span className="font-medium text-[#b13f32] dark:text-[var(--ln-alert)]">{formatMoney(aging.overdue)}</span>
           </>
         ) : (
           "30 დღეზე ძველი დავალიანება არ არის"
@@ -84,7 +84,7 @@ export function AgingCard({ aging }: { aging: Aging }) {
               {b.days}
               {b.count > 0 && <span className="ml-1.5 text-[11px]">· {b.count}</span>}
             </dt>
-            <dd className={cn("tabular font-medium", i === 3 && b.amount > 0 && "text-[#b13f32]")}>{formatMoney(b.amount)}</dd>
+            <dd className={cn("tabular font-medium", i === 3 && b.amount > 0 && "text-[#b13f32] dark:text-[var(--ln-alert)]")}>{formatMoney(b.amount)}</dd>
           </div>
         ))}
       </dl>
@@ -92,7 +92,7 @@ export function AgingCard({ aging }: { aging: Aging }) {
       {aging.oldest && (
         <Link
           href={`/orders/${aging.oldest.id}`}
-          className="mt-4 flex items-center justify-between gap-2 rounded-[12px] bg-[#f8faff] px-3 py-2.5 text-[12px] transition-colors hover:bg-[#eef2ff]"
+          className="ln-row-link mt-4 flex items-center justify-between gap-2 rounded-[12px] bg-[#f6fafb] dark:bg-muted px-3 py-2.5 text-[12px] transition-colors"
         >
           <span className="min-w-0">
             <span className="block truncate font-medium">{aging.oldest.client ?? aging.oldest.title}</span>
@@ -100,7 +100,7 @@ export function AgingCard({ aging }: { aging: Aging }) {
               {aging.oldest.number} · {aging.oldest.days} დღე
             </span>
           </span>
-          <span className="tabular shrink-0 font-semibold text-[#b13f32]">{formatMoney(aging.oldest.amount)}</span>
+          <span className="tabular shrink-0 font-semibold text-[#b13f32] dark:text-[var(--ln-alert)]">{formatMoney(aging.oldest.amount)}</span>
         </Link>
       )}
     </Reveal>
@@ -111,10 +111,10 @@ export function AgingCard({ aging }: { aging: Aging }) {
 export function CrewCard({ crew, normHours }: { crew: CrewRow[]; normHours: number }) {
   const top = crew.slice(0, 5);
   return (
-    <Reveal as="section" className="ln-card ln-lift min-w-0 p-6 max-md:p-4" delay={160} ariaLabel="ტექნიკოსების შედეგი" view="crew">
+    <Reveal as="section" className="ln-card min-w-0 p-6 max-md:p-4" delay={160} ariaLabel="ტექნიკოსების შედეგი" view="crew">
       <CardHead icon={HardHat} title="ტექნიკოსები" aside="ამ თვეში" />
       {top.length === 0 ? (
-        <p className="rounded-[12px] border border-dashed border-[#e6ebf2] px-4 py-6 text-center text-[12.5px] text-muted-foreground">ამ თვეში დანიშნული სამუშაო ჯერ არ არის.</p>
+        <p className="rounded-[12px] border border-dashed border-border px-4 py-6 text-center text-[12.5px] text-muted-foreground">ამ თვეში დანიშნული სამუშაო ჯერ არ არის.</p>
       ) : (
         <ul className="space-y-4">
           {top.map((c, i) => (
@@ -122,11 +122,11 @@ export function CrewCard({ crew, normHours }: { crew: CrewRow[]; normHours: numb
               <div className="mb-1.5 flex items-center gap-2.5">
                 <UserAvatar name={c.name} image={c.image} size="md" />
                 <span className="min-w-0 flex-1 truncate text-[13px] font-medium">{c.name}</span>
-                <CountUp value={c.revenue} format={formatMoney} className="shrink-0 text-[13px] font-semibold text-[#25815a]" duration={900} />
+                <CountUp value={c.revenue} format={formatMoney} className="shrink-0 text-[13px] font-semibold text-[#25815a] dark:text-[var(--ln-success)]" duration={900} />
               </div>
               <div className="flex items-center gap-2.5">
                 <div className="h-1.5 min-w-0 flex-1">
-                  <GrowBar pct={c.utilPct} color={c.utilPct > 90 ? "#b13f32" : c.utilPct > 60 ? "#3457d5" : "#8fa6dd"} delay={200 + i * 90} />
+                  <GrowBar pct={c.utilPct} color={c.utilPct > 90 ? "#b13f32" : c.utilPct > 60 ? "#397b83" : "#8dbdc3"} delay={200 + i * 90} />
                 </div>
                 <span className="tabular shrink-0 text-[11px] text-muted-foreground">
                   {c.hours} სთ · {c.completed} შესრ.
@@ -136,7 +136,7 @@ export function CrewCard({ crew, normHours }: { crew: CrewRow[]; normHours: numb
           ))}
         </ul>
       )}
-      <p className="mt-4 border-t border-[#eef1f6] pt-3 text-[11px] text-muted-foreground">დატვირთვა ითვლება დღის ნორმაზე ({normHours} სთ) და თვის გასულ დღეებზე.</p>
+      <p className="mt-4 border-t border-[#eef1f6] dark:border-border pt-3 text-[11px] text-muted-foreground">დატვირთვა ითვლება დღის ნორმაზე ({normHours} სთ) და თვის გასულ დღეებზე.</p>
     </Reveal>
   );
 }

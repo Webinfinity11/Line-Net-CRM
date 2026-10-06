@@ -184,11 +184,11 @@ export function Comments({ orderId, comments, meId }: { orderId: number; comment
                 <div
                   className={cn(
                     "min-w-0 max-w-[85%] rounded-[16px] px-3 py-2 text-sm",
-                    mine ? "bg-[#eef2ff]" : "bg-[#f1f4f9]",
+                    mine ? "bg-accent" : "bg-muted",
                     m.pending && "opacity-70",
                   )}
                 >
-                  <div className="mb-0.5 truncate text-[11px] text-[#617084]">
+                  <div className="mb-0.5 truncate text-[11px] text-muted-foreground">
                     {m.user?.name ?? "—"} · {formatDate(m.createdAt, true)}
                   </div>
                   <div className="whitespace-pre-wrap break-words">{m.body}</div>

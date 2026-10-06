@@ -30,6 +30,8 @@ function revalidate(orderId: number) {
   revalidatePath("/orders");
   revalidatePath("/my");
   revalidatePath("/schedule");
+  revalidatePath("/portal");
+  revalidatePath(`/portal/orders/${orderId}`);
   revalidatePath("/");
 }
 

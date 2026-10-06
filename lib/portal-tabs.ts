@@ -16,8 +16,8 @@ export function portalTabOf(status: OrderStatus, triaged: boolean): Exclude<Port
   switch (status) {
     case "new":
     case "assigned": return "planned";
-    case "in_progress": return "progress";
-    case "done":
+    case "in_progress":
+    case "done": return "progress";
     case "closed": return "done";
     case "cancelled": return "cancelled";
   }

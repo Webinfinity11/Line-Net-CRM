@@ -247,6 +247,12 @@ export const systems = pgTable(
   (t) => [index("systems_sort_idx2").on(t.sort)],
 );
 
+/** No rows means every category; existing executors keep their access. */
+export const executorCompetencies = pgTable("executor_competencies", {
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  systemSlug: text("system_slug").notNull().references(() => systems.slug, { onDelete: "cascade" }),
+}, (t) => [primaryKey({ columns: [t.userId, t.systemSlug] }), index("executor_competencies_system_idx").on(t.systemSlug)]);
+
 export const serviceSubgroups = pgTable("service_subgroups", {
   id: serial("id").primaryKey(),
   systemSlug: text("system_slug").notNull().references(() => systems.slug, { onDelete: "cascade" }),
@@ -639,6 +645,7 @@ export const outlookConnection = pgTable("outlook_connection", {
 // ---------------------------------------------------------------------------
 
 export const userRelations = relations(user, ({ many }) => ({
+  competencies: many(executorCompetencies),
   assignments: many(orderAssignees),
   comments: many(orderComments),
 }));
@@ -782,7 +789,13 @@ export type QuoteItem = typeof quoteItems.$inferSelect;
 export type QuoteStatus = (typeof quoteStatusEnum.enumValues)[number];
 
 
+export const executorCompetenciesRelations = relations(executorCompetencies, ({ one }) => ({
+  user: one(user, { fields: [executorCompetencies.userId], references: [user.id] }),
+  system: one(systems, { fields: [executorCompetencies.systemSlug], references: [systems.slug] }),
+}));
+
 export const systemsRelations = relations(systems, ({ many }) => ({
+  competencies: many(executorCompetencies),
   subgroups: many(serviceSubgroups),
 }));
 export const serviceSubgroupsRelations = relations(serviceSubgroups, ({ one, many }) => ({

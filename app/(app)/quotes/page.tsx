@@ -19,10 +19,10 @@ export const metadata = { title: "შეთავაზებები" };
 // the same weight as the order status cards, or two screens of the same product
 // look as though one of them forgot to colour its headers
 const STATUSES: { key: QuoteStatus; tint: string }[] = [
-  { key: "draft", tint: "#e7ebf2" },
-  { key: "sent", tint: "#dbe7ff" },
-  { key: "accepted", tint: "#d8f0e3" },
-  { key: "declined", tint: "#f8d9d4" },
+  { key: "draft", tint: "var(--ln-status-closed-bg, #e7ebf2)" },
+  { key: "sent", tint: "var(--ln-status-new-bg, #dceef0)" },
+  { key: "accepted", tint: "var(--ln-status-done-bg, #d8f0e3)" },
+  { key: "declined", tint: "var(--ln-status-cancelled-bg, #f8d9d4)" },
 ];
 
 export default async function QuotesPage({ searchParams }: PageProps<"/quotes">) {
@@ -61,14 +61,14 @@ export default async function QuotesPage({ searchParams }: PageProps<"/quotes">)
               href={active ? href(undefined) : href(s.key)}
               aria-current={active ? "page" : undefined}
               title={active ? "ფილტრის მოხსნა" : `ფილტრი: ${QUOTE_STATUS_LABELS[s.key]}`}
-              className={cn("ln-card ln-card-link overflow-hidden", active && "ring-2 ring-[#3457d5]")}
+              className={cn("ln-card ln-card-link overflow-hidden", active && "ring-2 ring-primary")}
             >
-              <div className="px-3 py-1.5 text-[11.5px] font-medium text-[#17212b] sm:px-4 sm:py-2 sm:text-[12px]" style={{ background: s.tint }}>
+              <div className="px-3 py-1.5 text-[11.5px] font-medium text-foreground sm:px-4 sm:py-2 sm:text-[12px]" style={{ background: s.tint }}>
                 {QUOTE_STATUS_LABELS[s.key]}
               </div>
               <div className="flex items-baseline justify-between gap-2 px-3 py-2.5 sm:px-4 sm:py-3">
                 <span className="tabular font-heading text-[24px] font-semibold leading-none sm:text-[28px]">{counts[s.key]}</span>
-                {active ? <span className="text-[11px] font-medium text-[#3457d5]">ფილტრი ჩართულია</span> : null}
+                {active ? <span className="text-[11px] font-medium text-primary">ფილტრი ჩართულია</span> : null}
               </div>
             </Link>
           );
@@ -83,7 +83,7 @@ export default async function QuotesPage({ searchParams }: PageProps<"/quotes">)
             name="q"
             defaultValue={q ?? ""}
             placeholder="ძებნა ნომრით ან სათაურით"
-            className="h-11 w-full rounded-full border border-[#e6ebf2] bg-[#f8faff] pl-9 pr-3 text-[16px] outline-none transition focus:border-[#a5b5ed] focus:bg-white sm:h-9 sm:text-[13px]"
+            className="h-11 w-full rounded-full border border-border bg-[#f6fafb] dark:bg-muted pl-9 pr-3 text-[16px] outline-none transition focus:border-[#a5cdd1] dark:focus:border-primary focus:bg-card sm:h-9 sm:text-[13px]"
           />
         </div>
         <Button type="submit" variant="outline" size="sm" className="h-11 sm:h-9">
@@ -118,7 +118,7 @@ export default async function QuotesPage({ searchParams }: PageProps<"/quotes">)
                         {row.number} · {row.client?.name ?? "კლიენტის გარეშე"}
                         {row.site ? ` · ${row.site.name}` : ""}
                       </div>
-                      <div className={cn(expired && "font-medium text-[#b13f32]")}>
+                      <div className={cn(expired && "font-medium text-[#b13f32] dark:text-[var(--ln-alert)]")}>
                         {row.validUntil ? `ძალაშია ${formatDate(row.validUntil)}-მდე` : "ვადის გარეშე"}
                       </div>
                       <QuoteStatusBadge status={row.status} />
@@ -175,7 +175,7 @@ export default async function QuotesPage({ searchParams }: PageProps<"/quotes">)
                         {formatMoney(total)}
                         {vatRate > 0 ? <div className="text-[11px] font-normal text-muted-foreground">დღგ {vatRate}%</div> : null}
                       </td>
-                      <td className={cn(tableCls.td, "whitespace-nowrap", expired && "font-semibold text-[#b13f32]")}>
+                      <td className={cn(tableCls.td, "whitespace-nowrap", expired && "font-semibold text-[#b13f32] dark:text-[var(--ln-alert)]")}>
                         {row.validUntil ? formatDate(row.validUntil) : "—"}
                       </td>
                       <td className={tableCls.td}>
@@ -183,7 +183,7 @@ export default async function QuotesPage({ searchParams }: PageProps<"/quotes">)
                       </td>
                       <td className={tableCls.td}>
                         {row.order ? (
-                          <Link href={`/orders/${row.order.id}`} className="inline-flex items-center gap-1 text-[12px] text-[#3457d5] hover:underline">
+                          <Link href={`/orders/${row.order.id}`} className="inline-flex items-center gap-1 text-[12px] text-primary hover:underline">
                             {row.order.number} <ArrowUpRight className="size-3" />
                           </Link>
                         ) : (

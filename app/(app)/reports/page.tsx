@@ -83,7 +83,7 @@ export default async function ReportsPage({ searchParams }: PageProps<"/reports"
                   right={
                     <>
                       <div className="tabular font-medium">{formatMoney(r.amount)}</div>
-                      {r.unpaid > 0 && <div className="tabular text-[11.5px] text-[#b13f32]">{formatMoney(r.unpaid)}</div>}
+                      {r.unpaid > 0 && <div className="tabular text-[11.5px] text-[#b13f32] dark:text-[var(--ln-alert)]">{formatMoney(r.unpaid)}</div>}
                     </>
                   }
                 />
@@ -107,17 +107,17 @@ export default async function ReportsPage({ searchParams }: PageProps<"/reports"
                       <td className={tableCls.tdRight}>{r.total}</td>
                       <td className={tableCls.tdRight}>{r.completed}</td>
                       <td className={tableCls.tdRight}>{formatMoney(r.amount)}</td>
-                      <td className={cn(tableCls.tdRight, r.unpaid > 0 && "font-medium text-[#b13f32]")}>{formatMoney(r.unpaid)}</td>
+                      <td className={cn(tableCls.tdRight, r.unpaid > 0 && "font-medium text-[#b13f32] dark:text-[var(--ln-alert)]")}>{formatMoney(r.unpaid)}</td>
                     </tr>
                   ))}
                 </tbody>
                 <tfoot>
-                  <tr className="border-t border-[#eef1f6] bg-[#f8faff]">
+                  <tr className="border-t border-[#eef1f6] dark:border-border bg-[#f6fafb] dark:bg-muted">
                     <td className={cn(tableCls.td, "text-[11px] text-muted-foreground")}>სულ</td>
                     <td className={cn(tableCls.tdRight, "font-semibold")}>{clientTotals.total}</td>
                     <td className={tableCls.tdRight} />
                     <td className={cn(tableCls.tdRight, "font-semibold")}>{formatMoney(clientTotals.amount)}</td>
-                    <td className={cn(tableCls.tdRight, "font-semibold text-[#b13f32]")}>{formatMoney(clientTotals.unpaid)}</td>
+                    <td className={cn(tableCls.tdRight, "font-semibold text-[#b13f32] dark:text-[var(--ln-alert)]")}>{formatMoney(clientTotals.unpaid)}</td>
                   </tr>
                 </tfoot>
               </table>
@@ -139,7 +139,7 @@ export default async function ReportsPage({ searchParams }: PageProps<"/reports"
                   key={r.userId}
                   title={r.name}
                   meta={`${r.total} შეკვეთა · ${r.completed} შესრულებული`}
-                  right={r.overdue > 0 ? <span className="font-medium text-[#b13f32]">{r.overdue} ვადაგად.</span> : <span className="text-muted-foreground">—</span>}
+                  right={r.overdue > 0 ? <span className="font-medium text-[#b13f32] dark:text-[var(--ln-alert)]">{r.overdue} ვადაგად.</span> : <span className="text-muted-foreground">—</span>}
                 />
               ))}
             </DataList>
@@ -159,7 +159,7 @@ export default async function ReportsPage({ searchParams }: PageProps<"/reports"
                       <td className={cn(tableCls.td, "font-medium")}>{r.name}</td>
                       <td className={tableCls.tdRight}>{r.total}</td>
                       <td className={tableCls.tdRight}>{r.completed}</td>
-                      <td className={cn(tableCls.tdRight, r.overdue > 0 && "font-medium text-[#b13f32]")}>{r.overdue}</td>
+                      <td className={cn(tableCls.tdRight, r.overdue > 0 && "font-medium text-[#b13f32] dark:text-[var(--ln-alert)]")}>{r.overdue}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -185,7 +185,7 @@ export default async function ReportsPage({ searchParams }: PageProps<"/reports"
                   right={
                     <>
                       <div className="tabular font-medium">{formatMoney(r.amount)}</div>
-                      <div className={cn("tabular text-[11.5px]", r.paid > 0 ? "text-[#25815a]" : "text-muted-foreground")}>{formatMoney(r.paid)}</div>
+                      <div className={cn("tabular text-[11.5px]", r.paid > 0 ? "text-[#25815a] dark:text-[var(--ln-success)]" : "text-muted-foreground")}>{formatMoney(r.paid)}</div>
                     </>
                   }
                 />
@@ -209,17 +209,17 @@ export default async function ReportsPage({ searchParams }: PageProps<"/reports"
                       <td className={tableCls.tdRight}>{r.total}</td>
                       <td className={tableCls.tdRight}>{r.completed}</td>
                       <td className={tableCls.tdRight}>{formatMoney(r.amount)}</td>
-                      <td className={cn(tableCls.tdRight, r.paid > 0 ? "text-[#25815a]" : "text-muted-foreground")}>{formatMoney(r.paid)}</td>
+                      <td className={cn(tableCls.tdRight, r.paid > 0 ? "text-[#25815a] dark:text-[var(--ln-success)]" : "text-muted-foreground")}>{formatMoney(r.paid)}</td>
                     </tr>
                   ))}
                 </tbody>
                 <tfoot>
-                  <tr className="border-t border-[#eef1f6] bg-[#f8faff]">
+                  <tr className="border-t border-[#eef1f6] dark:border-border bg-[#f6fafb] dark:bg-muted">
                     <td className={cn(tableCls.td, "text-[11px] text-muted-foreground")}>სულ</td>
                     <td className={cn(tableCls.tdRight, "font-semibold")}>{systemTotals.total}</td>
                     <td className={tableCls.tdRight} />
                     <td className={cn(tableCls.tdRight, "font-semibold")}>{formatMoney(systemTotals.amount)}</td>
-                    <td className={cn(tableCls.tdRight, "font-semibold", systemTotals.paid > 0 ? "text-[#25815a]" : "text-muted-foreground")}>{formatMoney(systemTotals.paid)}</td>
+                    <td className={cn(tableCls.tdRight, "font-semibold", systemTotals.paid > 0 ? "text-[#25815a] dark:text-[var(--ln-success)]" : "text-muted-foreground")}>{formatMoney(systemTotals.paid)}</td>
                   </tr>
                 </tfoot>
               </table>
@@ -240,11 +240,11 @@ export default async function ReportsPage({ searchParams }: PageProps<"/reports"
                   right={
                     // the phone loses the column headers, so each number says what it is
                     <>
-                      <div className={cn("tabular", m.revenue > 0 ? "text-[#25815a]" : "text-muted-foreground")}>
+                      <div className={cn("tabular", m.revenue > 0 ? "text-[#25815a] dark:text-[var(--ln-success)]" : "text-muted-foreground")}>
                         <span className="mr-1 text-[10.5px] font-normal text-muted-foreground">შემოსული</span>
                         {formatMoney(m.revenue)}
                       </div>
-                      <div className={cn("tabular text-[11.5px]", m.profit < 0 ? "text-[#b13f32]" : "text-muted-foreground")}>
+                      <div className={cn("tabular text-[11.5px]", m.profit < 0 ? "text-[#b13f32] dark:text-[var(--ln-alert)]" : "text-muted-foreground")}>
                         <span className="mr-1 text-[10.5px] text-muted-foreground">სხვაობა</span>
                         {formatMoney(m.profit)}
                       </div>
@@ -276,19 +276,19 @@ export default async function ReportsPage({ searchParams }: PageProps<"/reports"
                       </td>
                       <td className={tableCls.tdRight}>{m.created}</td>
                       <td className={tableCls.tdRight}>{m.completed}</td>
-                      <td className={cn(tableCls.tdRight, m.revenue > 0 ? "text-[#25815a]" : "text-muted-foreground")}>{formatMoney(m.revenue)}</td>
+                      <td className={cn(tableCls.tdRight, m.revenue > 0 ? "text-[#25815a] dark:text-[var(--ln-success)]" : "text-muted-foreground")}>{formatMoney(m.revenue)}</td>
                       <td className={tableCls.tdRight}>{formatMoney(m.cost)}</td>
-                      <td className={cn(tableCls.tdRight, "font-medium", m.profit < 0 ? "text-[#b13f32]" : m.profit > 0 ? "text-[#25815a]" : "text-muted-foreground")}>{formatMoney(m.profit)}</td>
+                      <td className={cn(tableCls.tdRight, "font-medium", m.profit < 0 ? "text-[#b13f32] dark:text-[var(--ln-alert)]" : m.profit > 0 ? "text-[#25815a] dark:text-[var(--ln-success)]" : "text-muted-foreground")}>{formatMoney(m.profit)}</td>
                     </tr>
                   );
                 })}
               </tbody>
               <tfoot>
-                <tr className="border-t border-[#eef1f6] bg-[#f8faff]">
+                <tr className="border-t border-[#eef1f6] dark:border-border bg-[#f6fafb] dark:bg-muted">
                   <td colSpan={5} className={cn(tableCls.td, "text-right text-[11px] text-muted-foreground")}>
                     დებიტორული დავალიანება (სულ)
                   </td>
-                  <td className={cn(tableCls.tdRight, "font-semibold text-[#b13f32]")}>{formatMoney(monthly.outstanding)}</td>
+                  <td className={cn(tableCls.tdRight, "font-semibold text-[#b13f32] dark:text-[var(--ln-alert)]")}>{formatMoney(monthly.outstanding)}</td>
                 </tr>
               </tfoot>
             </table>

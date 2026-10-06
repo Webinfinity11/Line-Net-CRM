@@ -60,7 +60,7 @@ export function ServicesCatalogue({ catalogue, systems, subgroups, admin }: {
       </>} />
     <div className="flex flex-wrap items-center gap-2">
       <input value={q} onChange={e => setFilter("q", e.target.value)} placeholder="ძებნა: ჯგუფი, ქვეჯგუფი, პოზიცია" aria-label="ძებნა: ჯგუფი, ქვეჯგუფი, პოზიცია"
-        className="h-11 min-w-0 basis-full rounded-full border border-[#e6ebf2] bg-white px-4 text-[16px] outline-none focus:border-[#3457d5] sm:flex-1 sm:basis-0 sm:text-[13px]" />
+        className="h-11 min-w-0 basis-full rounded-full border border-border bg-card px-4 text-[16px] outline-none focus:border-primary sm:flex-1 sm:basis-0 sm:text-[13px]" />
       <NativeSelect aria-label="ჯგუფი" value={cat} onChange={e => setFilter("cat", e.target.value)}
         className="h-[44px] w-full sm:w-[240px] [&_button]:h-11 [&_button]:rounded-full [&_button]:bg-white [&_button]:text-[16px] sm:[&_button]:text-[13px]">
         <option value="">ყველა ({all.length})</option>
@@ -81,13 +81,13 @@ export function ServicesCatalogue({ catalogue, systems, subgroups, admin }: {
         });
         return <section key={g.key} aria-label={g.name}>
           <div className="mb-2 flex flex-wrap items-center gap-2 px-1 text-[12px] text-muted-foreground">
-            <h2 className="min-w-0 basis-full break-words text-sm font-semibold sm:basis-0 sm:flex-1">{g.name} <span className="tabular text-[#8b98a9]">{g.items.length}</span></h2>
+            <h2 className="min-w-0 basis-full break-words text-sm font-semibold sm:basis-0 sm:flex-1">{g.name} <span className="tabular text-[#8b98a9] dark:text-[var(--ln-faint)]">{g.items.length}</span></h2>
             {g.key !== NO_SERVICE_CATEGORY && <>
               <NewServiceDialog compact defaultSystemType={g.key} subgroups={subgroups} />
               {admin && <NewSubgroupMenu systemSlug={g.key} />}
             </>}
           </div>
-          <div className="ln-card divide-y divide-[#eef1f6] px-4">
+          <div className="ln-card divide-y divide-[#eef1f6] dark:divide-border px-4">
             {sections.map(section => <div key={section.key} className="py-2">
               <div className="flex min-h-11 items-center gap-2">
                 {section.subgroup ? <SubgroupRow row={section.subgroup} admin={admin}
@@ -96,7 +96,7 @@ export function ServicesCatalogue({ catalogue, systems, subgroups, admin }: {
                   : <h3 className="min-w-0 flex-1 text-[13px] font-semibold">{section.name}</h3>}
                 {section.subgroup && <NewServiceDialog compact defaultSystemType={g.key} defaultSubgroupId={section.subgroup.id} subgroups={subgroups} />}
               </div>
-              <div className="divide-y divide-[#eef1f6]">
+              <div className="divide-y divide-[#eef1f6] dark:divide-border">
                 {section.items.length === 0 && <p className="py-3 text-[12.5px] text-muted-foreground">სერვისი ჯერ არ არის.</p>}
                 {section.items.map(s => <div key={s.id} className={`flex items-center gap-2 ${!s.active ? "opacity-60" : ""}`}>
                   <EditServiceDialog service={s} subgroups={subgroups} />

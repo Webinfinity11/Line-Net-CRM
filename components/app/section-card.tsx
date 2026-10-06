@@ -16,10 +16,10 @@ export const tableCls = {
   wrap: "ln-card overflow-hidden",
   scroll: "overflow-x-auto",
   table: "w-full text-[13px]",
-  head: "bg-[#f8faff]",
+  head: "bg-[#f6fafb] dark:bg-muted",
   th: "px-4 py-3 text-left text-[11px] font-medium text-muted-foreground",
   thRight: "px-4 py-3 text-right text-[11px] font-medium text-muted-foreground",
-  row: "border-t border-[#eef1f6] transition-colors",
+  row: "border-t border-[#eef1f6] dark:border-border transition-colors",
   td: "px-4 py-[14px]",
   tdRight: "px-4 py-[14px] text-right whitespace-nowrap tabular",
 };
@@ -64,7 +64,7 @@ export function SectionCard({
  * Pair it with a `hidden sm:block` table so each viewport gets the right shape.
  */
 export function DataList({ children, className }: { children: ReactNode; className?: string }) {
-  return <ul className={cn("divide-y divide-[#eef1f6] sm:hidden", className)}>{children}</ul>;
+  return <ul className={cn("divide-y divide-[#eef1f6] dark:divide-border sm:hidden", className)}>{children}</ul>;
 }
 
 /** One row of a DataList: title with optional link, meta lines, a right-hand value and optional actions. */
@@ -94,7 +94,7 @@ export function DataRow({
               href={href}
               className={cn(
                 "ln-link",
-                rowLink && "ln-row-link-anchor after:absolute after:inset-0 after:rounded-[12px] after:content-[''] focus-visible:after:outline-2 focus-visible:after:outline-[#3457d5]",
+                rowLink && "ln-row-link-anchor after:absolute after:inset-0 after:rounded-[12px] after:content-[''] focus-visible:after:outline-2 focus-visible:after:outline-primary",
               )}
             >
               {title}
@@ -117,8 +117,8 @@ export function DataRow({
 /** Dashed placeholder: one icon, one sentence, at most one action. */
 export function EmptyState({ icon: Icon, message, action, className }: { icon: LucideIcon; message: string; action?: ReactNode; className?: string }) {
   return (
-    <div className={cn("rounded-[14px] border border-dashed border-[#e6ebf2] px-4 py-10 text-center", className)}>
-      <Icon className="mx-auto mb-2.5 size-6 text-[#c2ccd8] [stroke-width:1.6]" />
+    <div className={cn("rounded-[14px] border border-dashed border-border px-4 py-10 text-center", className)}>
+      <Icon className="mx-auto mb-2.5 size-6 text-[#c2ccd8] dark:text-[var(--ln-faint)] [stroke-width:1.6]" />
       <p className="text-[12.5px] text-muted-foreground">{message}</p>
       {action ? <div className="mt-3 flex justify-center">{action}</div> : null}
     </div>
@@ -131,9 +131,9 @@ export function Chip({ children, tone = "neutral" }: { children: ReactNode; tone
     <span
       className={cn(
         "inline-flex items-center gap-1 rounded-[6px] px-1.5 py-[3px] text-[11px] font-medium",
-        tone === "accent" && "bg-[#eef2ff] text-[#3457d5]",
-        tone === "warn" && "bg-[#fff4df] text-[#96610b]",
-        tone === "neutral" && "bg-[#f1f4f9] text-[#617084]",
+        tone === "accent" && "bg-accent text-primary",
+        tone === "warn" && "bg-[#fff4df] dark:bg-[var(--ln-warn-bg)] text-[#96610b] dark:text-[var(--ln-warn)]",
+        tone === "neutral" && "bg-muted text-muted-foreground",
       )}
     >
       {children}

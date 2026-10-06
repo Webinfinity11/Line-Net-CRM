@@ -57,7 +57,7 @@ export default async function NotificationsPage() {
                 const href = notificationLink(me.role, n);
                 const inner = (
                   <>
-                    <span className={cn("grid size-9 shrink-0 place-items-center rounded-full", n.readAt ? "bg-[#f1f4f9] text-[#617084]" : "bg-[#eef2ff] text-[#3457d5]")}>
+                    <span className={cn("grid size-9 shrink-0 place-items-center rounded-full", n.readAt ? "bg-muted text-muted-foreground" : "bg-accent text-primary")}>
                       <Icon className="size-4 [stroke-width:1.7]" />
                     </span>
                     <span className="min-w-0 flex-1">
@@ -65,16 +65,16 @@ export default async function NotificationsPage() {
                         <span className="text-[13px] font-medium"><KeepNumbers text={n.title} /></span>
                         <span className="tabular shrink-0 text-[11px] text-muted-foreground">{formatDate(n.createdAt, true)}</span>
                       </span>
-                      {n.body && <span className="mt-0.5 block text-[12.5px] text-[#617084]">{n.body}</span>}
+                      {n.body && <span className="mt-0.5 block text-[12.5px] text-muted-foreground">{n.body}</span>}
                       {n.order && (
-                        <span className={cn("mt-1 block text-[11px]", href ? "text-[#3457d5]" : "text-muted-foreground")}>
+                        <span className={cn("mt-1 block text-[11px]", href ? "text-primary" : "text-muted-foreground")}>
                           {n.order.number} · {n.order.title}
                         </span>
                       )}
                     </span>
                   </>
                 );
-                const cls = cn("ln-card flex items-start gap-3 p-4", !n.readAt && "ring-1 ring-[#dbe3fd]");
+                const cls = cn("ln-card flex items-start gap-3 p-4", !n.readAt && "ring-1 ring-[#cde5e8] dark:ring-primary");
                 return (
                   <li key={n.id}>
                     {href ? (

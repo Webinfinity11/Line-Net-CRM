@@ -72,7 +72,7 @@ export default async function ClientsPage({ searchParams }: PageProps<"/clients"
             name="q"
             defaultValue={q}
             placeholder="ძებნა: კომპანია, ს/კ, საკონტაქტო პირი"
-            className="h-11 w-full rounded-full border border-[#e6ebf2] bg-[#f8faff] pl-9 pr-4 text-[16px] outline-none transition focus:border-[#7f97e6] focus:bg-white sm:h-9 sm:text-[13px]"
+            className="h-11 w-full rounded-full border border-border bg-[#f6fafb] dark:bg-muted pl-9 pr-4 text-[16px] outline-none transition focus:border-ring focus:bg-card sm:h-9 sm:text-[13px]"
           />
         </div>
         <Button type="submit" variant="outline" size="sm" className="h-11 flex-1 md:h-8 md:flex-none">
@@ -112,7 +112,7 @@ export default async function ClientsPage({ searchParams }: PageProps<"/clients"
                     </div>
                   </>
                 }
-                right={c.activeCount > 0 ? <Chip tone="accent">{c.activeCount} აქტიური</Chip> : <span className="text-muted-foreground">—</span>}
+                right={c.activeCount > 0 ? <Chip>{c.activeCount} აქტიური</Chip> : <span className="text-muted-foreground">—</span>}
               />
             ))}
           </DataList>
@@ -147,7 +147,7 @@ export default async function ClientsPage({ searchParams }: PageProps<"/clients"
                     </td>
                     <td className={cn(tableCls.tdRight, "hidden text-muted-foreground sm:table-cell")}>{c.siteCount}</td>
                     <td className={cn(tableCls.tdRight, "hidden text-muted-foreground sm:table-cell")}>{c.orderCount}</td>
-                    <td className={tableCls.tdRight}>{c.activeCount > 0 ? <Chip tone="accent">{c.activeCount}</Chip> : <span className="text-muted-foreground">—</span>}</td>
+                    <td className={tableCls.tdRight}>{c.activeCount > 0 ? <Chip>{c.activeCount}</Chip> : <span className="text-muted-foreground">—</span>}</td>
                   </tr>
                 ))}
               </tbody>

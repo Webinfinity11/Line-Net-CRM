@@ -77,22 +77,22 @@ export function Payments({
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="grid grid-cols-3 gap-2 text-center">
-          <div className="rounded-lg bg-[#f8faff] p-2 dark:bg-neutral-800">
+          <div className="rounded-lg bg-[#f6fafb] p-2 dark:bg-neutral-800">
             <div className="text-[11px] text-muted-foreground">თანხა</div>
             <div className="font-heading text-sm font-bold">{formatMoney(amount)}</div>
           </div>
-          <div className="rounded-lg bg-[#eaf6ef] p-2 dark:bg-emerald-950/30">
-            <div className="text-[11px] text-[#25815a]">მიღებული</div>
-            <div className="font-heading text-sm font-bold text-[#25815a]">{formatMoney(paidTotal)}</div>
+          <div className="rounded-lg bg-[#eaf6ef] p-2 dark:bg-[var(--ln-success-bg)]">
+            <div className="text-[11px] text-[#25815a] dark:text-[var(--ln-success)]">მიღებული</div>
+            <div className="font-heading text-sm font-bold text-[#25815a] dark:text-[var(--ln-success)]">{formatMoney(paidTotal)}</div>
           </div>
-          <div className={remaining > 0 ? "rounded-lg bg-[#faeeee] p-2 dark:bg-rose-950/30" : "rounded-lg bg-[#f8faff] p-2 dark:bg-neutral-800"}>
-            <div className={remaining > 0 ? "text-[11px] text-[#b13f32]" : "text-[11px] text-muted-foreground"}>ნაშთი</div>
-            <div className={remaining > 0 ? "font-heading text-sm font-bold text-[#b13f32]" : "font-heading text-sm font-bold"}>{amount ? formatMoney(remaining) : "—"}</div>
+          <div className={remaining > 0 ? "rounded-lg bg-[#faeeee] p-2 dark:bg-[var(--ln-alert-bg)]" : "rounded-lg bg-[#f6fafb] p-2 dark:bg-neutral-800"}>
+            <div className={remaining > 0 ? "text-[11px] text-[#b13f32] dark:text-[var(--ln-alert)]" : "text-[11px] text-muted-foreground"}>ნაშთი</div>
+            <div className={remaining > 0 ? "font-heading text-sm font-bold text-[#b13f32] dark:text-[var(--ln-alert)]" : "font-heading text-sm font-bold"}>{amount ? formatMoney(remaining) : "—"}</div>
           </div>
         </div>
 
         {reviewNeeded && (
-          <div className="flex flex-wrap items-center gap-2 rounded-lg border border-[#f0d9a8] bg-[#fff4df] p-2.5 text-xs text-[#96610b] dark:bg-amber-950/30" role="alert">
+          <div className="flex flex-wrap items-center gap-2 rounded-lg border border-[#f0d9a8] dark:border-[var(--ln-warn-line)] bg-[#fff4df] p-2.5 text-xs text-[#96610b] dark:text-[var(--ln-warn)] dark:bg-[var(--ln-warn-bg)]" role="alert">
             <AlertTriangle className="size-4 shrink-0" />
             <span className="flex-1">
               ძველი სისტემიდან სტატუსი „{PAYMENT_LABELS.partial}“ გადმოვიდა, მაგრამ მიღებული თანხა უცნობია. ჩაწერეთ რეალური გადახდები, ან დაადასტურეთ, რომ არაფერია მიღებული.
@@ -136,7 +136,7 @@ export function Payments({
                     confirmLabel="წაშლა"
                     variant="destructive"
                     size="xs"
-                    className="size-11 px-0 bg-transparent text-[#617084] hover:bg-[#f1f4f9] hover:text-[#17212b] md:size-7"
+                    className="size-11 px-0 bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground md:size-7"
                     ariaLabel="გადახდის წაშლა"
                     action={() => deletePayment(p.id)}
                   >

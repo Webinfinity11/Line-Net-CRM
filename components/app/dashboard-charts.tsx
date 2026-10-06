@@ -37,7 +37,7 @@ export function StatusDonut({ data, total }: { data: { name: string; value: numb
                 <Cell key={d.name} fill={d.color} />
               ))}
             </Pie>
-            <Tooltip formatter={(v) => [String(v), ""]} contentStyle={{ fontSize: 12, borderRadius: 8 }} />
+            <Tooltip formatter={(v) => [String(v), ""]} contentStyle={{ fontSize: 12, borderRadius: 8, background: "var(--popover)", color: "var(--popover-foreground)", borderColor: "var(--border)" }} itemStyle={{ color: "var(--popover-foreground)" }} />
           </PieChart>
         </ResponsiveContainer>
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
@@ -67,10 +67,10 @@ export function WeeklyBars({ data, height = 192 }: { data: { label: string; crea
           <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#eef1f6" />
           <XAxis dataKey="label" tickLine={false} axisLine={false} fontSize={11} />
           <YAxis allowDecimals={false} tickLine={false} axisLine={false} fontSize={11} />
-          <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} cursor={{ fill: "rgba(0,0,0,0.04)" }} />
+          <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, background: "var(--popover)", color: "var(--popover-foreground)", borderColor: "var(--border)" }} itemStyle={{ color: "var(--popover-foreground)" }} cursor={{ fill: "rgba(0,0,0,0.04)" }} />
           <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12 }} />
-          <Bar dataKey="created" name="შექმნილი" fill="#a5b5ed" radius={[6, 6, 0, 0]} isAnimationActive={false} />
-          <Bar dataKey="completed" name="შესრულებული" fill="#3457d5" radius={[6, 6, 0, 0]} isAnimationActive={false} />
+          <Bar dataKey="created" name="შექმნილი" fill="#a5cdd1" radius={[6, 6, 0, 0]} isAnimationActive={false} />
+          <Bar dataKey="completed" name="შესრულებული" fill="#397b83" radius={[6, 6, 0, 0]} isAnimationActive={false} />
         </BarChart>
       </ResponsiveContainer>
     </div>

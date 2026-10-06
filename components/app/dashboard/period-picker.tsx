@@ -25,7 +25,7 @@ export function PeriodPicker({ from, to, active }: { from?: string; to?: string;
             variant="outline"
             size="sm"
             aria-label="პერიოდი"
-            className={cn("h-9 max-md:size-11 max-md:shrink-0 max-md:p-0", active && "border-[#a5b5ed] bg-[#eef2ff] text-[#3457d5]")}
+            className={cn("h-9 max-md:size-11 max-md:shrink-0 max-md:p-0", active && "border-[#a5cdd1] dark:border-primary bg-accent text-primary")}
           />
         }
       >

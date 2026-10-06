@@ -9,9 +9,9 @@ const executor = { id: "a", role: "executor" } as SessionUser;
 beforeEach(() => vi.resetAllMocks());
 describe("executor server data boundary", () => {
  it("hides amounts and prices and removes receipts, material costs and payment events", async () => {
-  m.find.mockResolvedValue({ assignees: [{ userId: "a" }], amount: "100", paidTotal: "75", paymentStatus: "partial", payments: [{ amount: "75" }], materials: [{ unitCost: "40" }], items: [{ unitPrice: "100" }], events: [{ type: "payment_added" }, { type: "client_email" }, { type: "assigned" }] });
+  m.find.mockResolvedValue({ assignees: [{ userId: "a" }], amount: "100", vatPercent: "18", paidTotal: "75", paymentStatus: "partial", payments: [{ amount: "75" }], materials: [{ unitCost: "40" }], items: [{ unitPrice: "100" }], events: [{ type: "payment_added" }, { type: "client_email" }, { type: "updated", data: { amountTo: "100" } }, { type: "edited_closed", data: { amount: "100" } }, { type: "assigned" }] });
   const result = await getOrderForUser(1, executor);
-  expect(result?.order).toMatchObject({ amount: null, items: [{ unitPrice: null }], materials: [{ unitCost: null }], events: [{ type: "assigned" }] });
+  expect(result?.order).toMatchObject({ amount: null, vatPercent: null, items: [{ unitPrice: null }], materials: [{ unitCost: null }], events: [{ type: "assigned" }] });
   expect(result?.financeVisible).toBe(false);
   for (const key of ["paidTotal", "paidAt", "paymentStatus", "paymentReviewNeeded", "payments"]) expect(result?.order).not.toHaveProperty(key);
  });

@@ -27,11 +27,11 @@ export function ChecklistItems({ orderId, items, disabled, staff = false, onChan
       finally { onBusy?.(false); }
     });
   }
-  return <div className="divide-y divide-[#eef1f6]">{items.map(item => <div key={item.id} className="flex items-center gap-2">
+  return <div className="divide-y divide-[#eef1f6] dark:divide-border">{items.map(item => <div key={item.id} className="flex items-center gap-2">
     <label className="flex min-h-[44px] min-w-0 flex-1 cursor-pointer items-start gap-3 py-3 text-[14px]">
-      <input type="checkbox" checked={item.done} disabled={disabled || pending} onChange={e => run(() => toggleChecklistItem(orderId, item.id, e.target.checked))} className="mt-1 size-[18px] shrink-0 accent-[#3457d5]" />
-      <span className="min-w-0 break-words">{item.label}{item.required && <span className="ml-1 text-[12px] text-[#617084]">(სავალდებულო)</span>}
-        {item.done && <span className="block text-[11px] text-[#617084]">{item.doneByUser?.name ?? "—"}{item.doneAt ? ` · ${formatDate(item.doneAt)}` : ""}</span>}
+      <input type="checkbox" checked={item.done} disabled={disabled || pending} onChange={e => run(() => toggleChecklistItem(orderId, item.id, e.target.checked))} className="mt-1 size-[18px] shrink-0 accent-[#397b83]" />
+      <span className="min-w-0 break-words">{item.label}{item.required && <span className="ml-1 text-[12px] text-muted-foreground">(სავალდებულო)</span>}
+        {item.done && <span className="block text-[11px] text-muted-foreground">{item.doneByUser?.name ?? "—"}{item.doneAt ? ` · ${formatDate(item.doneAt)}` : ""}</span>}
       </span>
     </label>
     {staff && !disabled && <DropdownMenu><DropdownMenuTrigger render={<Button type="button" variant="ghost" className="size-[44px] shrink-0" aria-label="პუნქტის მოქმედებები" />}><MoreHorizontal className="size-4" /></DropdownMenuTrigger><DropdownMenuContent align="end"><DropdownMenuItem disabled={pending} className="min-h-[44px]" onClick={() => run(() => removeChecklistItem(orderId, item.id))}><Trash2 className="size-4" /> წაშლა</DropdownMenuItem></DropdownMenuContent></DropdownMenu>}
@@ -44,14 +44,14 @@ export function Checklist({ orderId, items, staff, readOnly }: { orderId: number
   const [required, setRequired] = useState(true);
   const [pending, start] = useTransition();
   return <Card><CardHeader><CardTitle>ჩეკ-ლისტი</CardTitle></CardHeader><CardContent>
-    {items.length ? <ChecklistItems orderId={orderId} items={items} staff={staff} disabled={readOnly || pending} /> : <p className="text-[13px] text-[#617084]">პუნქტები არ არის</p>}
-    {staff && !readOnly && <form className="mt-3 space-y-2 border-t border-[#eef1f6] pt-3" onSubmit={e => { e.preventDefault(); start(async () => {
+    {items.length ? <ChecklistItems orderId={orderId} items={items} staff={staff} disabled={readOnly || pending} /> : <p className="text-[13px] text-muted-foreground">პუნქტები არ არის</p>}
+    {staff && !readOnly && <form className="mt-3 space-y-2 border-t border-[#eef1f6] dark:border-border pt-3" onSubmit={e => { e.preventDefault(); start(async () => {
       const res = await addChecklistItem(orderId, label, required);
       if (!res.ok) { toast.error(res.error); return; }
       setLabel(""); router.refresh();
     }); }}>
       <Input aria-label="ახალი პუნქტი" placeholder="ახალი პუნქტი" value={label} onChange={e => setLabel(e.target.value)} required maxLength={500} className="h-[44px]" />
-      <div className="flex flex-wrap items-center justify-between gap-2"><label className="flex min-h-[44px] items-center gap-2 text-[13px]"><input type="checkbox" checked={required} onChange={e => setRequired(e.target.checked)} className="accent-[#3457d5]" /> სავალდებულო</label><Button type="submit" variant="outline" className="h-[44px]" disabled={pending}>დამატება</Button></div>
+      <div className="flex flex-wrap items-center justify-between gap-2"><label className="flex min-h-[44px] items-center gap-2 text-[13px]"><input type="checkbox" checked={required} onChange={e => setRequired(e.target.checked)} className="accent-[#397b83]" /> სავალდებულო</label><Button type="submit" variant="outline" className="h-[44px]" disabled={pending}>დამატება</Button></div>
     </form>}
   </CardContent></Card>;
 }

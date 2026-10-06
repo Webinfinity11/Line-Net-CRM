@@ -1,3 +1,6 @@
+import { db } from "@/db";
+import { sites as siteTable } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { SiteContacts } from "@/components/app/site-contacts";
 import { redirect } from "next/navigation";
 import { MapPin, UserRound } from "lucide-react";
@@ -10,7 +13,11 @@ export const metadata = { title: "მისამართები" };
 export default async function PortalSitesPage() {
   const { company } = await requirePortalUser();
   if (!company) redirect("/portal");
-  const sites = await listPortalSites(company.id);
+  const [listedSites, coordinates] = await Promise.all([
+    listPortalSites(company.id),
+    db.select({ id: siteTable.id, lat: siteTable.lat, lng: siteTable.lng }).from(siteTable).where(eq(siteTable.clientId, company.id)),
+  ]);
+  const sites = listedSites.map(site => ({ ...site, ...coordinates.find(point => point.id === site.id) }));
   return (
     <div className="mx-auto max-w-3xl">
       <PageHeader kicker={company.name} title="მისამართები" subtitle="თქვენი ობიექტები და ადგილზე საკონტაქტო პირები." actions={sites.length ? <PortalSiteDialog /> : undefined} />

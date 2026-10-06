@@ -113,16 +113,16 @@ export default async function ClientPage({ params }: PageProps<"/clients/[id]">)
           ) : (
             <div className="space-y-4">
               {mapMarkers.length > 0 && <MapView markers={mapMarkers} height={240} showLabels={false} />}
-              <ul className="max-md:divide-y max-md:divide-[#e6ebf2] md:space-y-2.5">
+              <ul className="max-md:divide-y max-md:divide-border md:space-y-2.5">
                 {client.sites.map((s) => (
-                  <li key={s.id} className="py-4 first:pt-0 last:pb-0 md:rounded-[14px] md:bg-[#f8faff] md:p-4 md:first:pt-4 md:last:pb-4">
+                  <li key={s.id} className="py-4 first:pt-0 last:pb-0 md:rounded-[14px] md:bg-[#f6fafb] dark:md:bg-muted md:p-4 md:first:pt-4 md:last:pb-4">
                     <div className="relative flex items-start gap-2.5">
                       <MapPin className="mt-0.5 hidden size-4 shrink-0 text-muted-foreground [stroke-width:1.7] md:block" />
                       <div className="min-w-0 flex-1">
                         <div className="min-h-11 pr-12 text-[13px] font-medium md:min-h-0 md:pr-0">{s.name}</div>
                         <div className="text-[11.5px] text-muted-foreground">
                           {s.address}
-                          {!s.lat && <span className="ml-1 text-[#96610b]">· კოორდინატები არ არის</span>}
+                          {!s.lat && <span className="ml-1 text-[#96610b] dark:text-[var(--ln-warn)]">· კოორდინატები არ არის</span>}
                         </div>
                         {(s.contactName || s.contactPhone) && (
                           <div className="mt-0.5 text-[11.5px] text-muted-foreground">
@@ -151,7 +151,7 @@ export default async function ClientPage({ params }: PageProps<"/clients/[id]">)
 
                     <SiteContacts siteId={s.id} staff />
                     {/* an empty equipment block repeated per branch is noise; then only the add link stays */}
-                    <div className="mt-2 border-t border-[#e6ebf2] pt-1 md:mt-3 md:pt-3">
+                    <div className="mt-2 border-t border-border pt-1 md:mt-3 md:pt-3">
                       <div className={cn("flex items-center justify-between gap-2", s.equipment.length > 0 && "mb-2")}>
                         <span className="flex items-center gap-1.5 text-[11.5px] text-muted-foreground">
                           <Cpu className="size-3.5 [stroke-width:1.7]" /> აღჭურვილობა {s.equipment.length > 0 ? `· ${s.equipment.length}` : ""}
@@ -163,7 +163,7 @@ export default async function ClientPage({ params }: PageProps<"/clients/[id]">)
                       {s.equipment.length === 0 ? null : (
                         <ul className="space-y-1">
                           {s.equipment.map((e) => (
-                            <li key={e.id} className="group flex flex-wrap items-center gap-2 rounded-[8px] px-1.5 py-1 text-[11.5px] transition-colors hover:bg-white">
+                            <li key={e.id} className="group flex flex-wrap items-center gap-2 rounded-[8px] px-1.5 py-1 text-[11.5px]">
                               <span className="font-medium">
                                 {e.quantity > 1 ? `${e.quantity} × ` : ""}
                                 {e.name}
@@ -205,12 +205,12 @@ export default async function ClientPage({ params }: PageProps<"/clients/[id]">)
           {orders.length === 0 ? (
             <EmptyState icon={ClipboardList} message="ამ კლიენტზე შეკვეთა ჯერ არ არის." />
           ) : (
-            <ul className="-mx-2 divide-y divide-[#eef1f6] md:max-h-[560px] md:space-y-0.5 md:divide-y-0 md:overflow-y-auto">
+            <ul className="-mx-2 divide-y divide-[#eef1f6] dark:divide-border md:max-h-[560px] md:space-y-0.5 md:divide-y-0 md:overflow-y-auto">
               {orders.slice(0, 30).map((o) => {
                 const late = isOverdue(o);
                 return (
                   <li key={o.id}>
-                    <Link href={`/orders/${o.id}`} className="flex flex-wrap items-start gap-2 rounded-[12px] px-2 py-2.5 md:flex-nowrap md:gap-3 transition-colors hover:bg-[#f8faff]">
+                    <Link href={`/orders/${o.id}`} className="ln-row-link flex flex-wrap items-start gap-2 rounded-[12px] px-2 py-2.5 md:flex-nowrap md:gap-3 transition-colors">
                       <span className="min-w-0 basis-full md:flex-1 md:basis-auto">
                         <span className="block text-[13px] font-medium md:truncate">{o.title}</span>
                         <span className="mt-0.5 flex min-w-0 flex-wrap items-center gap-[6px] text-[11px] text-muted-foreground">
@@ -286,14 +286,14 @@ export default async function ClientPage({ params }: PageProps<"/clients/[id]">)
             კლიენტს კაბინეტი ჯერ არ აქვს. წვდომის მიცემის შემდეგ თავად გამოგზავნის მოთხოვნას და ნახავს მის სტატუსს{me.role === "admin" ? "." : "; წვდომას ადმინი ამატებს."}
           </p>
         ) : (
-          <ul className="divide-y divide-[#eef1f6] md:space-y-1 md:divide-y-0">
+          <ul className="divide-y divide-[#eef1f6] dark:divide-border md:space-y-1 md:divide-y-0">
             {logins.map((l) => (
               <li key={l.id} className={cn("flex flex-wrap items-center justify-between gap-2 rounded-[12px] px-2 py-2 text-[13px]", l.banned && "opacity-60")}>
                 <span className="min-w-0 max-md:basis-full">
                   <span className="block break-words font-medium">{l.name}</span>
                   <span className="block break-all text-[11.5px] text-muted-foreground md:truncate">{l.email && <a href={`mailto:${l.email}`} className="ln-link">{l.email}</a>}</span>
                 </span>
-                {l.banned ? <Chip tone="warn">დეაქტივირებული</Chip> : <Chip tone="accent">აქტიური</Chip>}
+                {l.banned ? <Chip tone="warn">დეაქტივირებული</Chip> : <Chip>აქტიური</Chip>}
               </li>
             ))}
           </ul>

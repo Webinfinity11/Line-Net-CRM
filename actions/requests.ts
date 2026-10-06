@@ -2,7 +2,7 @@
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
-import { orderAssignees, orderEvents, orderRequests, orderVisits, orders, sites, user } from "@/db/schema";
+import { orderAssignees, orderEvents, orderRequests, orders, sites, user } from "@/db/schema";
 import { getSession, isStaff, requireUser } from "@/lib/session";
 import { notifyUsers, staffUserIds } from "@/lib/notify";
 import { syncAssignees } from "@/lib/assignees";
@@ -69,11 +69,8 @@ export async function takeOrder(orderId: number): Promise<ActionResult> {
   if (!person) return { error: "არ გაქვთ უფლება" };
   const site = o.siteId ? await tx.query.sites.findFirst({ where: eq(sites.id, o.siteId), columns: { name: true } }) : undefined;
   await syncAssignees(tx, orderId, current, [...current, me.id], me.id, false, "self_assigned");
-  const now = new Date();
-  const [visit] = await tx.insert(orderVisits).values({ orderId, userId: me.id, startedAt: now })
-    .onConflictDoNothing().returning({ id: orderVisits.id });
-  await tx.update(orders).set({ status: "in_progress", arrivedAt: o.arrivedAt ?? now, updatedAt: now }).where(eq(orders.id, orderId));
-  if (visit) await tx.insert(orderEvents).values({ orderId, userId: me.id, type: "visit_started", data: { visitId: visit.id } });
+  // taking only assigns; work starts with „დაწყება“ (startVisit), so the order lands in the technician's „დასაწყები“
+  await tx.update(orders).set({ ...(o.status === "new" ? { status: "assigned" as const } : {}), updatedAt: new Date() }).where(eq(orders.id, orderId));
   return { order: o, site: site?.name };
  });
  if ("error" in result) return { ok: false, error: result.error! };
@@ -81,7 +78,10 @@ export async function takeOrder(orderId: number): Promise<ActionResult> {
   type: "taken", title: `აიღო: ${me.name} · ${result.order.number} · ${result.site || "—"}`,
   body: result.order.title || result.order.description?.slice(0, 80), orderId,
  });
- refresh(orderId); return { ok: true };
+ refresh(orderId);
+ revalidatePath("/portal");
+ revalidatePath(`/portal/orders/${orderId}`);
+ return { ok: true };
 }
 
 export async function addColleague(orderId: number, userId: string): Promise<ActionResult> {
@@ -101,11 +101,7 @@ export async function addColleague(orderId: number, userId: string): Promise<Act
   const person = await tx.query.user.findFirst({ where: and(eq(user.id, userId), eq(user.role, "executor"), eq(user.banned, false)) });
   if (!person) return { error: "კოლეგის დამატება შეუძლებელია" };
   await syncAssignees(tx, orderId, current, [...current, userId], me.id, false);
-  const now = new Date();
-  const [visit] = await tx.insert(orderVisits).values({ orderId, userId: me.id, startedAt: now })
-    .onConflictDoNothing().returning({ id: orderVisits.id });
-  await tx.update(orders).set({ status: "in_progress", arrivedAt: o.arrivedAt ?? now, updatedAt: now }).where(eq(orders.id, orderId));
-  if (visit) await tx.insert(orderEvents).values({ orderId, userId: me.id, type: "visit_started", data: { visitId: visit.id } });
+  await tx.update(orders).set({ ...(o.status === "new" ? { status: "assigned" as const } : {}), updatedAt: new Date() }).where(eq(orders.id, orderId));
   return { order: o, name: person.name };
  });
  if ("error" in result) return { ok: false, error: result.error! };
@@ -113,5 +109,8 @@ export async function addColleague(orderId: number, userId: string): Promise<Act
  await notifyUsers(result.order.managerId ? [result.order.managerId] : await staffUserIds(), {
   type: "taken", title: `${me.name}-მა დაამატა ${result.name} · ${result.order.number}`, orderId,
  });
- refresh(orderId); return { ok: true };
+ refresh(orderId);
+ revalidatePath("/portal");
+ revalidatePath(`/portal/orders/${orderId}`);
+ return { ok: true };
 }

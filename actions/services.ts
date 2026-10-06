@@ -140,17 +140,19 @@ export async function addOrderItem(orderId: number, fd: FormData): Promise<Actio
   return { ok: true };
 }
 
-export async function updateOrderItem(itemId: number, quantity: number, unitPrice?: number | null): Promise<ActionResult> {
+export async function updateOrderItem(itemId: number, quantity: number, unitPrice?: number | null, unit?: string): Promise<ActionResult> {
   const me = (await getSession())?.user;
   if (!me) return { ok: false, error: "არ გაქვთ უფლება" };
   if (!Number.isFinite(quantity) || quantity <= 0) return { ok: false, error: "რაოდენობა არასწორია" };
+  const parsedUnit = z.string().trim().min(1).max(32).optional().safeParse(unit);
+  if (!parsedUnit.success) return { ok: false, error: "ერთეული არასწორია" };
   const updatePrice = isStaff(me.role) && unitPrice != null;
   if (updatePrice && (!Number.isFinite(unitPrice) || unitPrice < 0)) return { ok: false, error: "ფასი არასწორია" };
   const [item] = await db.select({ orderId: orderItems.orderId, createdBy: orderItems.createdBy }).from(orderItems).where(eq(orderItems.id, itemId));
   if (!item) return { ok: false, error: "პოზიცია ვერ მოიძებნა" };
   const allowed = await db.transaction(async (tx) => {
     if (!await canEditItem(tx, item.orderId, me, item.createdBy)) return false;
-    await tx.update(orderItems).set({ quantity: String(quantity), ...(updatePrice ? { unitPrice: String(unitPrice) } : {}) }).where(eq(orderItems.id, itemId));
+    await tx.update(orderItems).set({ quantity: String(quantity), ...(parsedUnit.data !== undefined ? { unit: parsedUnit.data } : {}), ...(updatePrice ? { unitPrice: String(unitPrice) } : {}) }).where(eq(orderItems.id, itemId));
     await recomputeOrderAmount(tx, item.orderId);
     return true;
   });

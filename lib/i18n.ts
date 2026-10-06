@@ -15,7 +15,7 @@ export const ACTIVE_STATUSES: OrderStatus[] = ["new", "assigned", "in_progress"]
 export const KANBAN_STATUSES: OrderStatus[] = ["new", "assigned", "in_progress", "done", "closed"];
 
 export const STATUS_COLORS: Record<OrderStatus, string> = {
-  new: "bg-[#f8faff] text-[#3d5a8a] dark:bg-blue-900/40 dark:text-blue-200",
+  new: "bg-[#f6fafb] text-[#397b83] dark:bg-[#326b72]/40 dark:text-[#a5cdd1]",
   assigned: "bg-[#f1eefa] text-[#6a5a92] dark:bg-violet-900/40 dark:text-violet-200",
   in_progress: "bg-[#fdf3e3] text-[#8a6a2f] dark:bg-amber-900/40 dark:text-amber-200",
   done: "bg-[#eaf4ee] text-[#35735a] dark:bg-emerald-900/40 dark:text-emerald-200",
@@ -25,16 +25,16 @@ export const STATUS_COLORS: Record<OrderStatus, string> = {
 
 /** Soft fills for job cards on calendars and day strips (paired with STATUS_HEX for the accent). */
 export const STATUS_TINT: Record<OrderStatus, string> = {
-  new: "#eef2ff",
-  assigned: "#f0ecfc",
-  in_progress: "#fff4df",
-  done: "#eaf6ef",
-  closed: "#eef1f5",
-  cancelled: "#fdeeee",
+  new: "var(--ln-status-new-bg, #edf6f7)",
+  assigned: "var(--ln-status-assigned-bg, #f0ecfc)",
+  in_progress: "var(--ln-status-in_progress-bg, #fff4df)",
+  done: "var(--ln-status-done-bg, #eaf6ef)",
+  closed: "var(--ln-status-closed-bg, #eef1f5)",
+  cancelled: "var(--ln-status-cancelled-bg, #fdeeee)",
 };
 
 export const STATUS_HEX: Record<OrderStatus, string> = {
-  new: "#3457d5",
+  new: "#397b83",
   assigned: "#7251ad",
   in_progress: "#d18a12",
   done: "#23764f",
@@ -55,10 +55,10 @@ export const PRIORITY_LABELS: Record<OrderPriority, string> = {
 };
 
 export const PRIORITY_COLORS: Record<OrderPriority, string> = {
-  low: "bg-[#f1f4f9] text-[#617084]",
-  normal: "bg-[#f1f4f9] text-[#617084]",
-  high: "bg-[#fff4df] text-[#96610b] border border-[#f0d9a8]",
-  urgent: "bg-[#faeeee] text-[#b13f32]",
+  low: "bg-[#f1f4f9] text-[#617084] dark:bg-muted dark:text-muted-foreground",
+  normal: "bg-[#f1f4f9] text-[#617084] dark:bg-muted dark:text-muted-foreground",
+  high: "bg-[#fff4df] text-[#96610b] border border-[#f0d9a8] dark:bg-[var(--ln-warn-bg)] dark:text-[var(--ln-warn)] dark:border-[var(--ln-warn-line)]",
+  urgent: "bg-[#faeeee] text-[#b13f32] dark:bg-[var(--ln-alert-bg)] dark:text-[var(--ln-alert)]",
 };
 
 export const PAYMENT_LABELS: Record<PaymentStatus, string> = {
@@ -127,6 +127,7 @@ export const ROLE_LABELS: Record<UserRole, string> = {
 };
 
 export const EVENT_LABELS: Record<string, string> = {
+  client_edited: "კლიენტმა შეცვალა განაცხადი",
   self_assigned: "აიღო",
   assignee_done: "შემსრულებელმა ჩააბარა",
   request_approved: "დანიშვნის მოთხოვნა დადასტურდა",
@@ -269,4 +270,18 @@ export function formatDate(value: Date | string | null | undefined, withTime = f
   const get = (type: Intl.DateTimeFormatPartTypes) => parts.find((p) => p.type === type)?.value ?? "";
   const date = `${get("day")}.${get("month")}.${get("year")}`;
   return withTime ? `${date}, ${get("hour")}:${get("minute")}` : date;
+}
+
+export const CLIENT_EDIT_FIELD_LABELS: Record<string, string> = {
+  title: "სათაური", description: "აღწერა", systemType: "კატეგორია", siteId: "ობიექტი", address: "მისამართი", priority: "სასწრაფოობა",
+};
+
+export function clientEditedEventText(data: Record<string, unknown> | null): string {
+  const changes = Array.isArray(data?.changes) ? data.changes : [];
+  const details = changes.flatMap(change => {
+    if (!change || typeof change !== "object" || typeof change.field !== "string") return [];
+    const value = (v: unknown) => v == null || v === "" ? "—" : change.field === "priority" ? (PRIORITY_LABELS[v as keyof typeof PRIORITY_LABELS] ?? String(v)) : String(v);
+    return [`${CLIENT_EDIT_FIELD_LABELS[change.field] ?? change.field} „${value(change.from)}“ → „${value(change.to)}“`];
+  });
+  return `${EVENT_LABELS.client_edited}${details.length ? `: ${details.join("; ")}` : ""}`;
 }

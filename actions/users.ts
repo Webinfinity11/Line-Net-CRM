@@ -5,10 +5,11 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/db";
-import { clients, user } from "@/db/schema";
+import { clients, executorCompetencies, user } from "@/db/schema";
 import { systemSlug } from "@/lib/systems";
 import { auth } from "@/lib/auth";
 import { getSession } from "@/lib/session";
+import type { Tx } from "@/lib/order-team";
 import type { ActionResult } from "./orders";
 
 const roleEnum = z.enum(["admin", "manager", "executor", "client"]);
@@ -23,6 +24,8 @@ const createInput = z.object({
   role: roleEnum,
   phone: z.string().max(60).optional().or(z.literal("")),
   specializations: specs,
+  competencyMode: z.enum(["all", "selected"]).default("all"),
+  competencies: specs,
   clientId: companyId,
 });
 
@@ -32,6 +35,8 @@ const updateInput = z.object({
   phone: z.string().max(60).optional().or(z.literal("")),
   password: z.string().min(6, "პაროლი მინიმუმ 6 სიმბოლოს უნდა შეიცავდეს").optional().or(z.literal("")),
   specializations: specs,
+  competencyMode: z.enum(["all", "selected"]).default("all"),
+  competencies: specs,
   clientId: companyId,
 });
 
@@ -50,9 +55,22 @@ async function requireAdmin() {
   return s.user;
 }
 
+function competencyError(v: { role: string; competencyMode: string; competencies: string[] }) {
+  return v.role === "executor" && v.competencyMode === "selected" && !v.competencies.length
+    ? "აირჩიეთ მინიმუმ ერთი კატეგორია ან მონიშნეთ ყველა კატეგორია" : null;
+}
+
+async function saveCompetencies(tx: Tx, id: string, v: { role: string; competencyMode: string; competencies: string[] }) {
+  await tx.delete(executorCompetencies).where(eq(executorCompetencies.userId, id));
+  if (v.role === "executor" && v.competencyMode === "selected") {
+    await tx.insert(executorCompetencies).values([...new Set(v.competencies)].map(systemSlug => ({ userId: id, systemSlug })));
+  }
+}
+
 function fdToObj(fd: FormData) {
-  const obj: Record<string, unknown> = Object.fromEntries([...fd.entries()].filter(([k, v]) => typeof v === "string" && k !== "specializations"));
+  const obj: Record<string, unknown> = Object.fromEntries([...fd.entries()].filter(([k, v]) => typeof v === "string" && k !== "specializations" && k !== "competencies"));
   obj.specializations = fd.getAll("specializations").filter((v): v is string => typeof v === "string");
+  obj.competencies = fd.getAll("competencies").filter((v): v is string => typeof v === "string");
   return obj;
 }
 
@@ -61,6 +79,8 @@ export async function createUser(fd: FormData): Promise<ActionResult<{ id: strin
   const parsed = await createInput.safeParseAsync(fdToObj(fd));
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "არასწორი მონაცემები" };
   const v = parsed.data;
+  const error = competencyError(v);
+  if (error) return { ok: false, error };
   const links = await roleLinks(v);
   if (typeof links === "string") return { ok: false, error: links };
   try {
@@ -68,8 +88,12 @@ export async function createUser(fd: FormData): Promise<ActionResult<{ id: strin
       headers: await headers(),
       body: { email: v.email, password: v.password, name: v.name, role: v.role as unknown as "admin", data: { phone: v.phone || null } },
     });
-    await db.update(user).set(links).where(eq(user.id, res.user.id));
+    await db.transaction(async tx => {
+      await tx.update(user).set(links).where(eq(user.id, res.user.id));
+      await saveCompetencies(tx, res.user.id, v);
+    });
     revalidatePath("/settings/users");
+    revalidatePath("/", "layout");
     return { ok: true, data: { id: res.user.id } };
   } catch (e) {
     const msg = e instanceof Error ? e.message : "შეცდომა";
@@ -82,17 +106,23 @@ export async function updateUser(id: string, fd: FormData): Promise<ActionResult
   const parsed = await updateInput.safeParseAsync(fdToObj(fd));
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "არასწორი მონაცემები" };
   const v = parsed.data;
+  const error = competencyError(v);
+  if (error) return { ok: false, error };
   if (id === me.id && v.role !== "admin") return { ok: false, error: "საკუთარ თავს ადმინის როლს ვერ მოხსნით" };
   const links = await roleLinks(v);
   if (typeof links === "string") return { ok: false, error: links };
-  await db
-    .update(user)
-    .set({ name: v.name, role: v.role, phone: v.phone || null, ...links, updatedAt: new Date() })
-    .where(eq(user.id, id));
+  await db.transaction(async tx => {
+    await tx
+      .update(user)
+      .set({ name: v.name, role: v.role, phone: v.phone || null, ...links, updatedAt: new Date() })
+      .where(eq(user.id, id));
+    await saveCompetencies(tx, id, v);
+  });
   if (v.password) {
     await auth.api.setUserPassword({ headers: await headers(), body: { userId: id, newPassword: v.password } });
   }
   revalidatePath("/settings/users");
+  revalidatePath("/", "layout");
   return { ok: true };
 }
 
@@ -102,5 +132,6 @@ export async function setUserBanned(id: string, banned: boolean): Promise<Action
   await db.update(user).set({ banned, banReason: banned ? "დეაქტივირებულია ადმინის მიერ" : null, updatedAt: new Date() }).where(eq(user.id, id));
   if (banned) await auth.api.revokeUserSessions({ headers: await headers(), body: { userId: id } });
   revalidatePath("/settings/users");
+  revalidatePath("/", "layout");
   return { ok: true };
 }
