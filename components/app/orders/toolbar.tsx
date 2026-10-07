@@ -3,6 +3,7 @@
 import { ArrowDownWideNarrow, Download, Search, SlidersHorizontal } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { PeriodFilter } from "@/components/app/period-filter";
 import { Button } from "@/components/ui/button";
 import { ViewPrefs } from "@/components/app/view-prefs";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
@@ -67,7 +68,7 @@ export function OrdersToolbar({
         {Object.entries(hidden).map(([k, v]) => (
           <input key={k} type="hidden" name={k} value={v} />
         ))}
-        <div className="relative w-full min-w-0 sm:w-[320px] max-md:w-auto max-md:flex-1">
+        <div className="relative w-full min-w-0 md:w-[220px] md:shrink-0">
           <button type="submit" aria-label="ძიება" className="absolute inset-y-0 left-0 grid w-9 cursor-pointer place-items-center rounded-l-full text-muted-foreground hover:text-primary focus-visible:outline-2 focus-visible:outline-primary">
             <Search className="size-4" />
           </button>
@@ -75,7 +76,7 @@ export function OrdersToolbar({
             name="q"
             value={query}
             onChange={event => setQuery(event.target.value)}
-            placeholder="ძებნა: ნომერი, სათაური, მისამართი…"
+            placeholder="ნომერი, სათაური, მისამართი…"
             aria-label="შეკვეთების ძიება"
             onKeyDown={event => {
               if (event.key === "Enter" && !event.nativeEvent.isComposing) {
@@ -83,16 +84,18 @@ export function OrdersToolbar({
                 formRef.current?.requestSubmit();
               }
             }}
-            className="h-11 w-full rounded-full border border-border bg-[#f6fafb] dark:bg-muted pl-9 pr-3 text-[16px] outline-none transition focus:border-ring focus:bg-card sm:text-[13px]"
+            className="h-11 w-full rounded-full border border-border bg-[#f6fafb] dark:bg-muted pl-9 pr-3 text-[16px] outline-none transition focus:border-ring focus:bg-card md:h-9 md:text-[13px]"
           />
         </div>
-        <NativeSelect name="month" aria-label="თვე" value={month} className="h-11 w-full sm:w-[200px]" onChange={() => formRef.current?.requestSubmit()}>
-          <option value="">ყველა თვე</option>
-          {months.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
-        </NativeSelect>
-        <span className="max-md:hidden shrink-0 text-[12px] text-muted-foreground">{total} შეკვეთა</span>
-        <div className="flex w-full flex-wrap items-center gap-2 sm:ml-auto sm:w-auto max-md:w-auto max-md:gap-1.5">
-          <Button type="button" variant="outline" size="sm" className="h-11 max-md:relative max-md:size-11 max-md:p-0" aria-label="ფილტრები" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
+        <input type="hidden" name="month" value={month || "all"} />
+        <PeriodFilter compact value={month} months={months} onChange={(value) => {
+          const input = formRef.current?.querySelector<HTMLInputElement>('input[name="month"]');
+          if (input) input.value = value || "all";
+          formRef.current?.requestSubmit();
+        }} />
+        <div className="flex w-full flex-wrap items-center gap-2 md:ml-auto md:w-auto md:flex-nowrap max-md:w-auto max-md:gap-1.5">
+          <span className="mr-1 hidden shrink-0 text-[12px] tabular text-muted-foreground md:inline">{total} შეკვეთა</span>
+          <Button type="button" variant="outline" size="sm" className="h-9 max-md:relative max-md:size-11 max-md:p-0" aria-label="ფილტრები" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
             <SlidersHorizontal className="size-3.5" /> <span className="max-md:hidden">ფილტრები</span>
             {activeCount > 0 && <span className="max-md:absolute max-md:-right-1 max-md:-top-1 ml-0.5 rounded-full bg-accent px-1.5 text-[10px] font-semibold text-primary">{activeCount}</span>}
           </Button>
@@ -103,7 +106,7 @@ export function OrdersToolbar({
             name="sort"
             value={sort === "created" ? "" : sort}
             aria-label="დალაგება"
-            className="h-11 text-[14px] sm:text-[13px] max-md:size-11 max-md:[&_button]:rounded-full max-md:[&_[data-slot=select-value]]:invisible max-md:[&_svg]:hidden"
+            className="h-9 text-[14px] md:text-[13px] max-md:size-11 max-md:[&_button]:rounded-full max-md:[&_[data-slot=select-value]]:invisible max-md:[&_svg]:hidden"
             onChange={() => formRef.current?.requestSubmit()}
           >
             {SORTS.map((s) => (
@@ -113,9 +116,9 @@ export function OrdersToolbar({
             ))}
           </NativeSelect>
           </div>
-          <div className="max-md:hidden [&_button]:h-11"><ViewPrefs storageKey="ln.orders.columns.v1" items={ORDER_COLUMNS} label="სვეტები" attr="data-col" /></div>
-          <Button render={<a href={excelHref} />} variant="outline" size="sm" className="h-11 max-md:size-11 max-md:p-0" aria-label="ყველა შეკვეთა Excel-ად, კატეგორიების მიხედვით" title="ყველა შეკვეთა Excel-ად, კატეგორიების მიხედვით">
-            <Download className="size-3.5" /> <span className="max-md:hidden">Excel ჯგუფებით</span>
+          <div className="max-md:hidden [&_button]:h-9"><ViewPrefs storageKey="ln.orders.columns.v1" items={ORDER_COLUMNS} label="სვეტები" attr="data-col" /></div>
+          <Button render={<a href={excelHref} />} variant="outline" size="sm" className="h-9 max-md:size-11 max-md:p-0 xl:px-3.5 max-xl:size-9 max-xl:p-0 max-md:size-11" aria-label="ყველა შეკვეთა Excel-ად, კატეგორიების მიხედვით" title="ყველა შეკვეთა Excel-ად, კატეგორიების მიხედვით">
+            <Download className="size-3.5" /> <span className="max-xl:hidden">Excel</span>
           </Button>
         </div>
       </form>

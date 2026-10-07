@@ -1,13 +1,13 @@
-const MONTHS = ["იანვარი", "თებერვალი", "მარტი", "აპრილი", "მაისი", "ივნისი", "ივლისი", "აგვისტო", "სექტემბერი", "ოქტომბერი", "ნოემბერი", "დეკემბერი"];
+export const MONTHS = ["იანვარი", "თებერვალი", "მარტი", "აპრილი", "მაისი", "ივნისი", "ივლისი", "აგვისტო", "სექტემბერი", "ოქტომბერი", "ნოემბერი", "დეკემბერი"];
 const OFFSET = 4 * 60 * 60_000;
 
-/** Half-open month boundaries at midnight in Tbilisi. Invalid URL values are ignored. */
+/** Half-open year or month boundaries at midnight in Tbilisi. Invalid URL values are ignored. */
 export function parseMonth(value: string | undefined): { from: Date; to: Date } | null {
-  if (!value || !/^[1-9]\d{3}-(0[1-9]|1[0-2])$/.test(value)) return null;
+  if (!value || !/^[1-9]\d{3}(-(0[1-9]|1[0-2]))?$/.test(value)) return null;
   const [year, month] = value.split("-").map(Number);
   return {
-    from: new Date(Date.UTC(year, month - 1, 1) - OFFSET),
-    to: new Date(Date.UTC(year, month, 1) - OFFSET),
+    from: new Date(Date.UTC(year, month ? month - 1 : 0, 1) - OFFSET),
+    to: new Date(Date.UTC(month ? year : year + 1, month || 0, 1) - OFFSET),
   };
 }
 
