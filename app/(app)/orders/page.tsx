@@ -1,5 +1,5 @@
 import { monthOptions, selectedMonth } from "@/lib/month-filter";
-import { LayoutGrid, List, Plus } from "lucide-react";
+import { House, LayoutGrid, List, Plus } from "lucide-react";
 import Link from "next/link";
 import { Kanban } from "@/components/app/kanban";
 import { OrderFilters } from "@/components/app/order-filters";
@@ -128,7 +128,7 @@ export default async function OrdersPage({ searchParams }: PageProps<"/orders">)
   for (const [k, v] of Object.entries(sp)) if (typeof v === "string" && v && k !== "page") params.set(k, v);
   const filterValues = {
     q: filters.q ?? "",
-    status: view === "kanban" ? "" : (filters.status ?? "active"),
+    status: filters.status ?? "active",
     type: filters.type ?? "",
     priority: filters.priority ?? "",
     system: filters.system ?? "",
@@ -165,6 +165,18 @@ export default async function OrdersPage({ searchParams }: PageProps<"/orders">)
 
       <PageHeader
         title={title}
+        titleAction={
+          <Button
+            variant="outline"
+            size="icon"
+            className="max-md:size-11"
+            aria-label="ყველა შეკვეთაზე დაბრუნება"
+            title="ყველა შეკვეთაზე დაბრუნება"
+            render={<Link href={view === "kanban" ? "/orders?status=all&month=all&view=kanban" : "/orders?status=all&month=all"} />}
+          >
+            <House className="size-4" />
+          </Button>
+        }
         subtitle={`სულ ${pageData.total} შეკვეთა`}
         actions={
           <>
@@ -201,7 +213,7 @@ export default async function OrdersPage({ searchParams }: PageProps<"/orders">)
         activeStatus={CARD_STATUSES.includes(status as OrderStatus) ? status : undefined}
         // Keep the user's current working view. Switching a status in Kanban
         // should filter the board, not unexpectedly replace it with the table.
-        hrefFor={(s) => hrefWith({ status: s, view: view === "kanban" ? "kanban" : null })}
+        hrefFor={(s) => hrefWith({ status: status === s ? "all" : s, view: view === "kanban" ? "kanban" : null })}
       />
 
       <OrdersToolbar

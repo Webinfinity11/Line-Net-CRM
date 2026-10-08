@@ -36,6 +36,7 @@ export function OrderFilters({
       router.push(`/orders${params.size ? `?${params}` : ""}`, { scroll: false });
     }} className="max-md:[&>div]:w-full max-md:[&>div]:max-w-none max-md:[&_select]:h-11 max-md:[&_input]:min-h-[44px] max-md:[&_button]:min-h-[44px] max-md:[&>label]:min-h-[44px] flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card p-3 dark:bg-neutral-900">
       {values.view === "kanban" && <input type="hidden" name="view" value="kanban" />}
+      {values.view === "kanban" && <input type="hidden" name="status" value={values.status} />}
       {values.sort && <input type="hidden" name="sort" value={values.sort} />}
       <input type="hidden" name="q" value={values.q} />
       {["manager", "payment", "month"].map(key => searchParams.get(key) ? <input key={key} type="hidden" name={key} value={searchParams.get(key)!} /> : null)}
