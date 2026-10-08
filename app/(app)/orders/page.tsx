@@ -8,7 +8,7 @@ import { OrdersTable, type OrderRow } from "@/components/app/orders/orders-table
 import { StatusCards } from "@/components/app/orders/status-cards";
 import { OrdersScopeFilters, OrdersToolbar } from "@/components/app/orders/toolbar";
 import { PageHeader } from "@/components/app/page-header";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import type { OrderPriority, OrderStatus, OrderType, SystemType } from "@/db/schema";
 import { orderPriorityEnum, orderStatusEnum, orderTypeEnum, systemTypeEnum } from "@/db/schema";
 import { formatDate, t } from "@/lib/i18n";
@@ -166,16 +166,14 @@ export default async function OrdersPage({ searchParams }: PageProps<"/orders">)
       <PageHeader
         title={title}
         titleAction={
-          <Button
-            variant="outline"
-            size="icon"
-            className="max-md:size-11"
+          <a
+            href={view === "kanban" ? "/orders?status=all&month=all&view=kanban" : "/orders?status=all&month=all"}
+            className={cn(buttonVariants({ variant: "outline", size: "icon" }), "max-md:size-11")}
             aria-label="ყველა შეკვეთაზე დაბრუნება"
             title="ყველა შეკვეთაზე დაბრუნება"
-            render={<Link href={view === "kanban" ? "/orders?status=all&month=all&view=kanban" : "/orders?status=all&month=all"} />}
           >
             <House className="size-4" />
-          </Button>
+          </a>
         }
         subtitle={`სულ ${pageData.total} შეკვეთა`}
         actions={
