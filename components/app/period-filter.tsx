@@ -16,18 +16,18 @@ export function PeriodFilter({ value, months, onChange, className, compact = fal
 }) {
   const [year = "", month = ""] = value.split("-");
   const years = [...new Set([...months.map(item => item.value.slice(0, 4)), ...(year ? [year] : [])])].sort().reverse();
-  return <div role="group" aria-label="პერიოდი" className={cn("flex w-full flex-wrap items-end gap-2 sm:w-auto", className)}>
-    <label className={cn("min-w-0 flex-1 space-y-1 text-xs text-muted-foreground sm:flex-none", compact && "space-y-0")}>
+  return <div role="group" aria-label="პერიოდი" className={cn("flex w-full shrink-0 flex-wrap items-end gap-2 sm:w-auto", className)}>
+    <label className={cn("min-w-[140px] flex-1 space-y-1 text-xs text-muted-foreground sm:flex-none", compact && "space-y-0")}>
       <span className={compact ? "sr-only" : "block"}>წელი</span>
-      <NativeSelect aria-label="წელი" value={year} className={cn("h-11 w-full sm:w-[140px]", compact && "md:h-9 md:w-[104px]")}
+      <NativeSelect aria-label="წელი" value={year} className={cn("h-11 w-full sm:w-[140px]", compact && "md:h-9")}
         onChange={event => onChange(event.target.value ? `${event.target.value}${month ? `-${month}` : ""}` : "")}>
         <option value="">ყველა წელი</option>
         {years.map(item => <option key={item} value={item}>{item}</option>)}
       </NativeSelect>
     </label>
-    <label className={cn("min-w-0 flex-1 space-y-1 text-xs text-muted-foreground sm:flex-none", compact && "space-y-0")}>
+    <label className={cn("min-w-[160px] flex-1 space-y-1 text-xs text-muted-foreground sm:flex-none", compact && "space-y-0")}>
       <span className={compact ? "sr-only" : "block"}>თვე</span>
-      <NativeSelect aria-label="თვე" value={month} disabled={!year} className={cn("h-11 w-full sm:w-[160px]", compact && "md:h-9 md:w-[132px]")}
+      <NativeSelect aria-label="თვე" value={month} disabled={!year} className={cn("h-11 w-full sm:w-[160px]", compact && "md:h-9")}
         onChange={event => onChange(`${year}${event.target.value ? `-${event.target.value}` : ""}`)}>
         <option value="">ყველა თვე</option>
         {MONTHS.map((label, index) => <option key={label} value={String(index + 1).padStart(2, "0")}>{label}</option>)}
