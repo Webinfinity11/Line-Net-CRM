@@ -1,4 +1,4 @@
-import { monthOptions, parseMonth } from "@/lib/month-filter";
+import { monthOptions, selectedMonth } from "@/lib/month-filter";
 import { LayoutGrid, List, Plus } from "lucide-react";
 import Link from "next/link";
 import { Kanban } from "@/components/app/kanban";
@@ -6,7 +6,7 @@ import { OrderFilters } from "@/components/app/order-filters";
 import { FilterChips } from "@/components/app/orders/filter-chips";
 import { OrdersTable, type OrderRow } from "@/components/app/orders/orders-table";
 import { StatusCards } from "@/components/app/orders/status-cards";
-import { ManagerFilter, OrdersToolbar } from "@/components/app/orders/toolbar";
+import { OrdersScopeFilters, OrdersToolbar } from "@/components/app/orders/toolbar";
 import { PageHeader } from "@/components/app/page-header";
 import { Button } from "@/components/ui/button";
 import type { OrderPriority, OrderStatus, OrderType, SystemType } from "@/db/schema";
@@ -35,6 +35,14 @@ export const metadata = { title: "შეკვეთები" };
 
 const SORTS = new Set(["created", "due", "priority", "amount"]);
 const CARD_STATUSES: OrderStatus[] = ["new", "assigned", "in_progress", "done", "closed"];
+const STATUS_TITLES: Partial<Record<OrderStatus, string>> = {
+  new: "ახალი შეკვეთები",
+  assigned: "დანიშნული შეკვეთები",
+  in_progress: "მიმდინარე შეკვეთები",
+  done: "შესრულებული შეკვეთები",
+  closed: "დახურული შეკვეთები",
+  cancelled: "გაუქმებული შეკვეთები",
+};
 
 function str(v: string | string[] | undefined) {
   return typeof v === "string" ? v : undefined;
@@ -56,7 +64,7 @@ export default async function OrdersPage({ searchParams }: PageProps<"/orders">)
   const payment = str(sp.payment) === "unpaid" ? "unpaid" : undefined;
   const filters: Filters = {
     payment,
-    month: parseMonth(str(sp.month)) ? str(sp.month) : undefined,
+    month: selectedMonth(str(sp.month)) || undefined,
     q: str(sp.q),
     manager: str(sp.manager) === "mine" ? me.id : str(sp.manager),
     status:
@@ -83,7 +91,7 @@ export default async function OrdersPage({ searchParams }: PageProps<"/orders">)
       : listOrdersPage(filters, page, PAGE_SIZE, sort),
     listAssignableUsers(),
     listClientsWithSites(),
-    getStatusSummary(),
+    getStatusSummary(filters),
     plannedMinutesByUser(today),
     getWorkHoursPerDay(),
     unreadCommentOrderIds(me.id),
@@ -148,17 +156,21 @@ export default async function OrdersPage({ searchParams }: PageProps<"/orders">)
     return s ? `/orders?${s}` : "/orders";
   };
   const hiddenForSearch = Object.fromEntries([...params.entries()].filter(([k]) => k !== "q" && k !== "sort" && k !== "month"));
-  const activeCount = ["type", "system", "priority", "assignee", "client", "overdue"].filter((k) => params.get(k)).length + (view !== "kanban" && status && status !== "active" ? 1 : 0);
+  const activeCount = ["type", "system", "priority", "assignee", "overdue"].filter((k) => params.get(k)).length + (view !== "kanban" && status === "cancelled" ? 1 : 0);
+  const title = STATUS_TITLES[filters.status as OrderStatus] ?? (status === "active" ? "აქტიური შეკვეთები" : "ყველა შეკვეთა");
 
   return (
     <div className="space-y-4">
-      <div className="max-md:[&>div]:gap-2 max-md:[&>div]:flex-nowrap max-md:[&_h1]:text-[20px]">
+      <div className="max-md:[&>div]:grid max-md:[&>div]:grid-cols-[minmax(0,1fr)_auto_auto] max-md:[&>div]:items-start max-md:[&>div]:gap-2 max-md:[&>div>div:last-child]:contents max-md:[&_h1]:text-[20px]">
 
       <PageHeader
-        title={t.order.many}
+        title={title}
         subtitle={`სულ ${pageData.total} შეკვეთა`}
         actions={
           <>
+            <OrdersScopeFilters manager={str(sp.manager) ?? ""} client={filterValues.client}
+              users={users.filter(u => u.role !== "executor")}
+              clients={clients.map((c) => ({ id: c.id, name: c.name }))} />
             <div className="flex rounded-lg border border-border bg-card p-0.5">
               <Link
                 href={hrefWith({ view: null })}
@@ -183,8 +195,14 @@ export default async function OrdersPage({ searchParams }: PageProps<"/orders">)
       />
 
       </div>
-      <ManagerFilter value={str(sp.manager) ?? ""} users={users.filter(u => u.role !== "executor")} />
-      <StatusCards counts={summary.counts} flow={summary.flow} activeStatus={CARD_STATUSES.includes(status as OrderStatus) ? status : undefined} hrefFor={(s) => hrefWith({ status: s, view: null })} />
+      <StatusCards
+        counts={summary.counts}
+        flow={summary.flow}
+        activeStatus={CARD_STATUSES.includes(status as OrderStatus) ? status : undefined}
+        // Keep the user's current working view. Switching a status in Kanban
+        // should filter the board, not unexpectedly replace it with the table.
+        hrefFor={(s) => hrefWith({ status: s, view: view === "kanban" ? "kanban" : null })}
+      />
 
       <OrdersToolbar
         month={filters.month ?? ""}
@@ -202,6 +220,7 @@ export default async function OrdersPage({ searchParams }: PageProps<"/orders">)
           users={users}
           clients={clients.map((c) => ({ id: c.id, name: c.name }))}
           values={filterValues}
+          externalClient
         />
       </OrdersToolbar>
 
